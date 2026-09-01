@@ -244,12 +244,18 @@
   .is-editing .inf-detail-right{width:380px; opacity:1;
     border-left:1px solid var(--color-neutral-3);}
   .inf-detail-right-inner{width:380px; height:100%; overflow-y:auto;
-    padding:var(--spacing-24);}
-  .inf-edit-eyebrow{margin:0 0 var(--spacing-12);
+    padding:var(--spacing-24) var(--spacing-24) var(--spacing-32);}
+  /* Right margin clears the modal's close button; the eyebrow gets its
+     own breathing room before the first field. */
+  .inf-edit-eyebrow{margin:var(--spacing-4) var(--spacing-40) var(--spacing-20) 0;
     font-size:var(--text-caption-size); line-height:var(--text-caption-lh);
     font-weight:700; text-transform:uppercase;
     letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
   .inf-detail-right .c-field{width:100%;}
+  /* Airier rhythm than the compact add-form: more row gap, and the
+     section eyebrows step clearly away from the group above. */
+  .inf-detail-right .inf-form-grid{gap:var(--spacing-16) var(--spacing-16);}
+  .inf-detail-right .inf-form-eyebrow{margin-top:var(--spacing-16);}
   #infEditCancel, #infEditSave{display:none;}
   .is-editing ~ .inf-drawer-foot #infEditCancel{display:inline-flex;}
   .inf-cardmodal-panel.is-editing #infDrawerRemove,
@@ -748,7 +754,9 @@
   /* ── Avatar resolver — same fallback-chain idea as collabBrand:
      unavatar's TikTok source first (verified working), Instagram second,
      initials stay when the chain dries out. Winner cached per profile. */
-  var AVA_KEY = 'collab-avatar-cache';
+  /* v2: v1 entries could point at harvested files that were later
+     purged as Instagram default-logo images. */
+  var AVA_KEY = 'collab-avatar-cache-v2';
   function avaCache(){
     try { return JSON.parse(localStorage.getItem(AVA_KEY)) || {}; }
     catch (e) { return {}; }
