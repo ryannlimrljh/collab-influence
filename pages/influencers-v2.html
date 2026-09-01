@@ -134,22 +134,20 @@
     z-index:2; display:flex; align-items:center; justify-content:center;
     color:var(--color-neutral-5); font-size:var(--icon-sm);}
 
-  /* ── Multi-select — the DLS's own Card/Table select recipes: the real
-     .c-checkbox-box glyph, revealed on hover and persistent once
-     checked, so an unselected grid stays quiet. */
+  /* ── Multi-select — the DLS's real .c-checkbox-box glyph. The DLS
+     reveals these on hover; here they are always drawn, matching the
+     list's own boxes, because a control you cannot see is a control
+     nobody knows exists. Hover only darkens the edge. */
   .inf-select{position:absolute; top:var(--spacing-12); left:var(--spacing-12);
-    z-index:3; opacity:0;
-    transition:opacity var(--duration-fast) var(--ease-standard);}
+    z-index:3;}
   .inf-select .c-checkbox-box{cursor:pointer; margin-top:0;}
-  .inf-card:hover .inf-select, .inf-card:focus-within .inf-select,
-  .inf-card.is-selected .inf-select{opacity:1;}
+  .inf-card:hover .inf-select .c-checkbox-box:not(.on){
+    border-color:var(--color-neutral-5);}
   /* Selected is a persistent 2px Obsidian edge; the padding drops the
      same pixel the border gains so the content box never shifts. */
   .inf-card.is-selected{border:2px solid var(--color-obsidian);
     box-shadow:var(--shadow-3);
     padding:calc(var(--spacing-32) - 1px) 0 calc(var(--spacing-20) - 1px);}
-  /* Touch: no hover to reveal with, so the boxes are always visible. */
-  @media (hover:none){.inf-select{opacity:1;}}
 
   /* Selection bar — replaces the subtitle line while a selection is
      live, so the count sits where the roster count normally reads. */
