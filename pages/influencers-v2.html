@@ -161,7 +161,13 @@
   /* A selected row reads by fill, not by border: a 2px edge inside a
      table would push every neighbouring cell a pixel. */
   .c-table tbody tr.is-selected{background:var(--color-neutral-2);}
-  .c-table-chk-col .c-checkbox-box{margin-top:0;}
+  /* The DLS reveals row boxes on hover, which reads as a missing
+     control in a list this long — an empty 40px column with a lone
+     header box above it. Selection is a primary action here, so the
+     boxes are always drawn. */
+  .c-table-chk-col .c-checkbox-box{margin-top:0; opacity:1;}
+  .c-table tbody tr:hover .c-table-chk-col .c-checkbox-box{
+    border-color:var(--color-neutral-5);}
   .inf-kebab:hover .inf-kebab-btn, .inf-kebab.is-open .inf-kebab-btn{
     color:var(--color-neutral-9); background:var(--color-neutral-1);}
   .inf-menu{position:absolute; right:0; top:calc(100% + 4px);
@@ -311,10 +317,15 @@
   @media (prefers-reduced-motion:reduce){
     .inf-cardmodal-panel, .inf-detail-right{transition:none;}
   }
-  .inf-drawer-head{display:flex; align-items:flex-start; gap:var(--spacing-12);
+  /* Centered, not top-aligned: with a 76px avatar the name and meta
+     sit beside its middle rather than hugging its crown. */
+  .inf-drawer-head{display:flex; align-items:center; gap:var(--spacing-16);
     padding:var(--spacing-24) var(--spacing-24) var(--spacing-16); flex:none;}
-  .inf-drawer-head .c-card-profile-avatar{width:48px; height:48px;
-    font-size:var(--text-body1-size);}
+  /* The modal is the one place the photo can carry real weight, and it
+     is the same face the 88px card shows — 48px read as a thumbnail of
+     a thumbnail. */
+  .inf-drawer-head .c-card-profile-avatar{width:76px; height:76px; flex:none;
+    font-size:var(--text-h5-size);}
   .inf-drawer-head h3{margin:0; font-size:var(--text-h4-size);
     line-height:var(--text-h4-lh); font-weight:var(--text-h4-weight);
     padding-right:var(--spacing-24);}
