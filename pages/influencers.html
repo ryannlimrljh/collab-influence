@@ -22,18 +22,18 @@
      sticky letter heads. Moved into the flow (onto the pageheader) so
      sticky top:0 really is the visible top. */
   .c-shell .c-shell-content{padding-top:0;}
-  .c-shell .c-pageheader{padding-top:var(--spacing-120); margin-bottom:var(--spacing-24);}
+  .c-shell .c-pageheader{padding-top:var(--spacing-40); margin-bottom:var(--spacing-24);}
   .inf-divider{border:none; border-top:1px solid var(--color-neutral-3);
     margin:0 0 var(--spacing-24);}
   .inf-controls{display:flex; flex-wrap:wrap; align-items:center;
     gap:var(--spacing-8); margin-bottom:var(--spacing-16);}
   .c-filter-tray{margin-bottom:var(--spacing-16);}
 
-  /* ── Two-column body: the roster grid plus the A–Z rail. The rail is
-     sticky inside .c-shell-content (the shell's real scroll container),
-     so it holds its place while the sections scroll past it. */
-  .inf-layout{display:flex; gap:var(--spacing-16); align-items:flex-start;}
-  .inf-main{flex:1; min-width:0;}
+  /* ── Body: the roster grid takes the full column; the A–Z rail pins
+     itself to the screen's right edge (fixed, out of flow) so it costs
+     the layout nothing but a sliver of breathing room. */
+  .inf-layout{display:block;}
+  .inf-main{min-width:0; padding-right:var(--spacing-16);}
 
   /* ── Letter sections. The head is sticky against the scroll container
      and repaints on the warm canvas so cards slide under it cleanly. */
@@ -47,9 +47,11 @@
     color:var(--color-neutral-5);}
   .inf-letter-head .rule{flex:1; border-top:1px solid var(--color-neutral-3);
     align-self:center;}
-  .inf-section{margin-bottom:var(--spacing-24);}
-  .inf-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
-    gap:var(--spacing-16); align-items:stretch;}
+  .inf-section{margin-bottom:var(--spacing-32);}
+  .inf-grid{display:grid; grid-template-columns:repeat(4, 1fr);
+    gap:var(--spacing-20); align-items:stretch;}
+  @media (max-width:1180px){.inf-grid{grid-template-columns:repeat(3, 1fr);}}
+  @media (max-width:880px){.inf-grid{grid-template-columns:repeat(2, 1fr);}}
 
   /* ── Card — the reference-1 read: centered identity column (avatar,
      name, quiet meta and niche lines) over a stat row of big follower
@@ -58,12 +60,25 @@
      dot on the stat label instead of a full Tag pill. */
   .inf-card{display:flex; flex-direction:column; align-items:center;
     text-align:center; height:100%; position:relative; cursor:pointer;
-    padding-top:var(--spacing-24); padding-bottom:var(--spacing-20);
-    transition:box-shadow var(--duration-base) var(--ease-settle);}
-  .inf-card:hover{box-shadow:var(--shadow-2);}
+    padding:0 0 var(--spacing-20); overflow:hidden;
+    transition:box-shadow var(--duration-base) var(--ease-settle),
+      transform var(--duration-base) var(--ease-settle);}
+  .inf-card:hover{box-shadow:var(--shadow-2); transform:translateY(-2px);}
   .inf-card:focus-visible{box-shadow:var(--shadow-focus); outline:none;}
+  @media (prefers-reduced-motion:reduce){.inf-card:hover{transform:none;}}
+  /* Banner — the profile photo itself, blown up and softened, sitting
+     behind a per-profile pastel gradient fallback (the DLS's own
+     elemental pastels, hashed off the name so each card keeps its hue). */
+  .inf-banner{width:100%; height:72px; flex:none; position:relative;
+    overflow:hidden;}
+  .inf-banner img{position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; transform:scale(1.8); filter:blur(14px) saturate(1.25);
+    opacity:0; transition:opacity var(--duration-slow) var(--ease-standard);}
+  .inf-banner img.is-loaded{opacity:1;}
   .inf-card .c-card-profile-avatar{width:64px; height:64px;
-    font-size:var(--text-body1-size); margin-bottom:var(--spacing-12);}
+    font-size:var(--text-body1-size); margin:-32px 0 var(--spacing-12);
+    border:3px solid var(--color-neutral-1); box-shadow:var(--shadow-1);
+    z-index:1;}
   .inf-name{margin:0; max-width:100%; font-size:var(--text-h5-size);
     line-height:var(--text-h5-lh); font-weight:800;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -90,10 +105,13 @@
     object-fit:cover; border-radius:var(--radius-pill); opacity:0;
     transition:opacity var(--duration-base) var(--ease-standard);}
   .c-card-profile-avatar img.is-loaded{opacity:1;}
-  .inf-kebab{position:absolute; top:var(--spacing-8); right:var(--spacing-8);}
-  .inf-kebab-btn{color:var(--color-neutral-5); width:32px; height:32px;}
+  .inf-kebab{position:absolute; top:var(--spacing-8); right:var(--spacing-8);
+    z-index:2;}
+  .inf-kebab-btn{color:var(--color-neutral-9); width:28px; height:28px;
+    background:rgba(255,255,255,.65); backdrop-filter:blur(4px);
+    border-radius:var(--radius-pill);}
   .inf-kebab:hover .inf-kebab-btn, .inf-kebab.is-open .inf-kebab-btn{
-    color:var(--color-neutral-9); background:var(--color-neutral-2);}
+    color:var(--color-neutral-9); background:var(--color-neutral-1);}
   .inf-menu{position:absolute; right:0; top:calc(100% + 4px);
     background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
     border-radius:var(--radius-md); box-shadow:var(--shadow-3);
@@ -124,8 +142,8 @@
   /* ── A–Z rail — the scrolling indicator, kept quiet: just small grey
      letters, the current one in ink, letters with nothing to jump to
      faded near-out. Functional weight, whisper visual weight. */
-  .inf-rail{position:sticky; top:var(--spacing-8); flex:none; width:20px;
-    height:calc(100dvh - 120px); min-height:420px;
+  .inf-rail{position:fixed; right:2px; top:50%; transform:translateY(-50%);
+    width:18px; height:min(84dvh, 660px); z-index:20;
     display:flex; flex-direction:column; justify-content:space-between;
     padding:var(--spacing-8) 0;}
   .inf-rail-row{display:flex; align-items:center; justify-content:center;
@@ -243,7 +261,7 @@
   }
 
   @media (max-width:900px){
-    .inf-rail{min-height:0; height:calc(100dvh - 140px);}
+    .inf-rail{right:0; height:min(76dvh, 560px);}
   }
   @media (max-width:640px){
     .inf-grid{grid-template-columns:1fr;}
@@ -556,6 +574,14 @@
     img.onload = function () {
       if (!cached) avaSet(rec.id, list[i]);
       img.classList.add('is-loaded');
+      /* The card's banner is the same photo, blurred large — one fetch,
+         the browser cache serves the second <img>. */
+      var card = img.closest('.inf-card');
+      var banner = card && card.querySelector('.inf-banner img');
+      if (banner && !banner.src) {
+        banner.onload = function(){ banner.classList.add('is-loaded'); };
+        banner.src = img.src;
+      }
     };
     img.src = list[0];
   }
@@ -619,6 +645,22 @@
     'c-tag-water': 'var(--color-navy)', 'c-tag-fire': 'var(--color-orange)',
     'c-tag-gold': 'var(--color-amber)', '': 'var(--color-neutral-4)'
   };
+  /* Banner fallback gradients — the DLS elemental pastels, paired and
+     hashed off the name so every profile keeps a stable hue even before
+     (or without) a photo. */
+  var GRADS = [
+    ['var(--color-water-pastel)', 'var(--color-earth-pastel)'],
+    ['var(--color-fire-pastel)', 'var(--color-gold-pastel)'],
+    ['var(--color-wood-pastel)', 'var(--color-water-pastel)'],
+    ['var(--color-earth-pastel)', 'var(--color-gold-pastel)'],
+    ['var(--color-gold-pastel)', 'var(--color-wood-pastel)']
+  ];
+  function gradOf(name){
+    var h = 0;
+    for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+    var g = GRADS[h % GRADS.length];
+    return 'linear-gradient(135deg, ' + g[0] + ', ' + g[1] + ')';
+  }
   function cardHTML(r){
     var meta = [r.age, r.gender, r.location].filter(Boolean).join(' · ') || '—';
     var nicheline = (r.niches || []).join(' · ');
@@ -640,6 +682,7 @@
           '<button class="inf-menu-item" type="button" data-act="edit" data-id="' + r.id + '"><i class="ph ph-pencil-simple"></i> Edit</button>' +
           '<button class="inf-menu-item is-danger" type="button" data-act="remove" data-id="' + r.id + '"><i class="ph ph-trash"></i> Remove</button>' +
         '</span></span>' +
+      '<div class="inf-banner" style="background:' + gradOf(r.name) + '"><img alt="" /></div>' +
       '<span class="c-card-profile-avatar">' + esc(initialsOf(r.name)) +
         '<img alt="" loading="lazy" data-avatar-for="' + r.id + '" /></span>' +
       '<h4 class="inf-name">' + esc(r.name) + '</h4>' +
