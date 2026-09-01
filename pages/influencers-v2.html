@@ -1136,10 +1136,15 @@
     try { localStorage.setItem(VIEW_KEY, view); } catch (err) {}
     applyViewButtons();
     if (REDUCED || document.hidden || !mainEl.animate) { render(); return; }
+    /* The old crossfade moved the whole block as one slab, which is why
+       it felt rigid: nothing about it suggested the roster was being
+       re-laid-out. Now the items leave and arrive individually, so the
+       switch reads as the layout reassembling. Only the items near the
+       viewport are animated — the rest are off-screen anyway. */
+    staggerOut();
     var out = mainEl.animate(
-      [{opacity: 1, transform: 'none'},
-       {opacity: 0, transform: 'translateY(6px) scale(.995)'}],
-      {duration: 170, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards'});
+      [{opacity: 1}, {opacity: 0}],
+      {duration: 210, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards'});
     /* The swap is driven by whichever of onfinish or the timer lands
        first, and runs exactly once. A hidden or backgrounded tab
        freezes animations, so onfinish alone would leave the page stuck
@@ -1152,13 +1157,67 @@
       /* Cancel before the entrance so the outgoing pose (held by
          fill:forwards) doesn't fight the incoming keyframes. */
       out.cancel();
-      mainEl.animate(
-        [{opacity: 0, transform: 'translateY(-6px) scale(.995)'},
-         {opacity: 1, transform: 'none'}],
-        {duration: 260, easing: 'cubic-bezier(.32,.72,.3,1)'});
+      staggerIn();
     }
     out.onfinish = swap;
-    setTimeout(swap, 260);
+    setTimeout(swap, 300);
+  }
+  /* The items in play: cards or rows, viewport-bounded. Document order
+     means everything after the first below-the-fold item is also below
+     the fold, so the scan can stop there. */
+  function visibleItems(){
+    var els = mainEl.querySelectorAll('.inf-card[data-id], tr[data-id]');
+    var vh = window.innerHeight, out = [];
+    for (var i = 0; i < els.length; i++) {
+      var r = els[i].getBoundingClientRect();
+      if (r.top > vh + 120) break;
+      if (r.bottom < -120) continue;
+      out.push(els[i]);
+    }
+    return out;
+  }
+  function staggerOut(){
+    visibleItems().forEach(function(el, i){
+      el.animate(
+        [{opacity: 1, transform: 'none'},
+         {opacity: 0, transform: 'translateY(-8px) scale(.97)'}],
+        {duration: 200, delay: Math.min(i * 9, 110),
+         easing: 'cubic-bezier(.4,0,1,1)', fill: 'both'});
+    });
+  }
+  function staggerIn(){
+    /* Cards drop in with a little more scale (they are the bigger
+       shape); rows come from the left, along the axis they read on. */
+    var tile = view === 'tile';
+    var from = tile
+      ? {opacity: 0, transform: 'translateY(14px) scale(.94)'}
+      : {opacity: 0, transform: 'translateX(-18px)'};
+    var running = [];
+    visibleItems().forEach(function(el, i){
+      running.push(el.animate([from, {opacity: 1, transform: 'none'}],
+        {duration: tile ? 420 : 340,
+         delay: Math.min(i * (tile ? 26 : 16), 320),
+         easing: 'cubic-bezier(.22,.9,.3,1)', fill: 'backwards'}));
+    });
+    /* fill:'backwards' holds opacity 0 through the delay, which is what
+       makes the cascade read — but it also means a stalled animation
+       clock leaves rows invisible for good. That happens when the page
+       is painted but not compositing (an occluded window), where
+       document.hidden is still false, so the guard at the top of
+       switchView cannot catch it. Timers keep running in that state, so
+       this sweeps up anything that never started. Longest possible
+       flight is 320ms delay + 420ms duration. */
+    /* The frame the items sit in comes back on its own, quickly, so the
+       header and rules don't wait on the cascade. It joins the sweep
+       below for the same reason the items do — a stalled clock would
+       otherwise hold the whole container at opacity 0. */
+    running.push(mainEl.animate([{opacity: 0}, {opacity: 1}],
+      {duration: 200, easing: 'ease-out'}));
+    setTimeout(function(){
+      running.forEach(function(a){
+        if (a.playState !== 'finished') a.cancel();
+      });
+    }, 1200);
   }
   document.querySelector('.inf-viewseg').addEventListener('click', function(e){
     var b = e.target.closest('.inf-viewbtn');
