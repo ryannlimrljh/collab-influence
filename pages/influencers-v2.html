@@ -207,15 +207,20 @@
   /* ── A–Z rail — the scrolling indicator, kept quiet: just small grey
      letters, the current one in ink, letters with nothing to jump to
      faded near-out. Functional weight, whisper visual weight. */
-  .inf-rail{position:fixed; right:2px; top:50%; transform:translateY(-50%);
-    width:18px; z-index:20;
-    display:flex; flex-direction:column; align-items:center; gap:5px;}
+  /* Sized up now that the scrollbar no longer shares this strip. The
+     27 letters still have to fit one screen, so the pitch is the real
+     constraint: 12px type on a 19px pitch needs ~513px, which clears a
+     900px viewport comfortably — see the short-screen rule below. */
+  .inf-rail{position:fixed; right:6px; top:50%; transform:translateY(-50%);
+    width:24px; z-index:20;
+    display:flex; flex-direction:column; align-items:center; gap:7px;}
   .inf-rail-row{display:flex; align-items:center; justify-content:center;
     border:0; background:none; padding:0; cursor:pointer;
     font-family:inherit; line-height:1;}
-  .inf-rail-letter{width:16px; text-align:center; font-size:10px;
+  .inf-rail-letter{width:22px; text-align:center; font-size:12px;
     font-weight:600; color:var(--color-neutral-4);
-    transition:color var(--duration-fast) var(--ease-standard);}
+    transition:color var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-settle);}
   .inf-rail-row:hover .inf-rail-letter{color:var(--color-neutral-9);}
   .inf-rail-row.is-active .inf-rail-letter{color:var(--color-neutral-9);
     font-weight:800;}
@@ -223,6 +228,20 @@
   .inf-rail-row.is-empty .inf-rail-letter{color:var(--color-neutral-3);}
   .inf-rail-row:focus-visible{outline:2px solid var(--color-obsidian);
     outline-offset:1px; border-radius:var(--radius-sm);}
+  /* The letter under the pointer nudges out of the rail — at this size
+     it can afford the gesture, and it confirms the target before you
+     commit to the jump. */
+  .inf-rail-row:hover .inf-rail-letter{transform:translateX(-2px) scale(1.15);}
+  /* Short viewports: 27 letters at the full pitch would run off the
+     screen, so the rail tightens rather than overflowing. */
+  @media (max-height:760px){
+    .inf-rail{gap:4px;}
+    .inf-rail-letter{font-size:11px;}
+  }
+  @media (max-height:620px){
+    .inf-rail{gap:2px;}
+    .inf-rail-letter{font-size:10px;}
+  }
 
   /* ── Detail modal — the mothership landing's hero-card overlay,
      ported: warm-canvas backdrop at .88 (not a black veil), and the
