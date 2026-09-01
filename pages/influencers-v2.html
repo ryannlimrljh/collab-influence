@@ -96,7 +96,11 @@
   .inf-card{display:flex; flex-direction:column; align-items:center;
     text-align:center; height:100%; min-height:314px; position:relative;
     width:100%; max-width:276px; margin-inline:auto;
-    cursor:pointer; padding:var(--spacing-32) 0 var(--spacing-20);
+    /* Deeper bottom inset so the hover pill has somewhere to land
+       inside the card. The stat row is pushed up by margin-top:auto,
+       so this moves content rather than growing the card — min-height
+       still governs and the card stays 314. */
+    cursor:pointer; padding:var(--spacing-24) 0 var(--spacing-32);
     overflow:hidden;
     transition:box-shadow var(--duration-base) var(--ease-settle),
       transform var(--duration-base) var(--ease-settle);}
@@ -139,25 +143,23 @@
     font-size:var(--text-footnote-size); line-height:var(--text-footnote-lh);
     color:var(--color-neutral-5);}
   .inf-stat .tdot{width:6px; height:6px; border-radius:var(--radius-pill); flex:none;}
-  /* Hovering a follower figure swaps its platform label for the tier
-     pill — the same pill the list and the modal use, so the tier reads
-     identically everywhere. Both sit in one relative box and crossfade,
-     so the card never reflows and its neighbours never twitch. */
+  /* Hovering a follower figure reveals the tier pill BELOW the platform
+     label — the same pill the list and the modal use. It sits in the
+     card's bottom inset rather than over the label, so "TikTok" and
+     "Instagram" stay readable and the number keeps its caption while
+     you read the tier. Absolutely positioned, so nothing reflows. */
   .inf-lblwrap{position:relative; display:inline-flex; align-items:center;
     justify-content:center; min-height:18px;}
-  .inf-lblwrap .lbl{transition:opacity var(--duration-fast) var(--ease-standard);}
-  .inf-lblwrap .inf-tier{position:absolute; left:50%; top:50%;
-    transform:translate(-50%, -50%) scale(.94); opacity:0;
-    pointer-events:none; white-space:nowrap;
+  .inf-lblwrap .inf-tier{position:absolute; left:50%; top:calc(100% + 5px);
+    transform:translateX(-50%) translateY(-3px) scale(.94); opacity:0;
+    pointer-events:none; white-space:nowrap; z-index:2;
     transition:opacity var(--duration-fast) var(--ease-standard),
-      transform var(--duration-fast) var(--ease-settle);}
-  .inf-stat:hover .inf-lblwrap .lbl,
-  .inf-card:focus-visible .inf-lblwrap .lbl{opacity:0;}
+      transform var(--duration-base) var(--ease-settle);}
   .inf-stat:hover .inf-lblwrap .inf-tier,
   .inf-card:focus-visible .inf-lblwrap .inf-tier{opacity:1;
-    transform:translate(-50%, -50%) scale(1);}
+    transform:translateX(-50%) translateY(0) scale(1);}
   @media (prefers-reduced-motion:reduce){
-    .inf-lblwrap .lbl, .inf-lblwrap .inf-tier{transition:none;}
+    .inf-lblwrap .inf-tier{transition:none;}
   }
   a.inf-stat:hover .num{text-decoration:underline;}
   .c-card-profile-avatar{position:relative; overflow:hidden;}
