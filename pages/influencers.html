@@ -69,7 +69,7 @@
   /* Banner — the profile photo itself, blown up and softened, sitting
      behind a per-profile pastel gradient fallback (the DLS's own
      elemental pastels, hashed off the name so each card keeps its hue). */
-  .inf-banner{width:100%; height:72px; flex:none; position:relative;
+  .inf-banner{width:100%; height:104px; flex:none; position:relative;
     overflow:hidden;}
   .inf-banner img{position:absolute; inset:0; width:100%; height:100%;
     object-fit:cover; transform:scale(1.8); filter:blur(14px) saturate(1.25);
@@ -107,9 +107,15 @@
   .c-card-profile-avatar img.is-loaded{opacity:1;}
   .inf-kebab{position:absolute; top:var(--spacing-8); right:var(--spacing-8);
     z-index:2;}
-  .inf-kebab-btn{color:var(--color-neutral-9); width:28px; height:28px;
+  .c-btn.inf-kebab-btn{color:var(--color-neutral-9); width:28px; height:28px;
     background:rgba(255,255,255,.65); backdrop-filter:blur(4px);
     border-radius:var(--radius-pill);}
+  /* Pin marker on a pinned card's banner. */
+  .inf-pinmark{position:absolute; top:var(--spacing-8); left:var(--spacing-8);
+    z-index:2; width:28px; height:28px; display:flex; align-items:center;
+    justify-content:center; border-radius:var(--radius-pill);
+    background:rgba(255,255,255,.65); backdrop-filter:blur(4px);
+    color:var(--color-neutral-9); font-size:var(--icon-sm);}
   .inf-kebab:hover .inf-kebab-btn, .inf-kebab.is-open .inf-kebab-btn{
     color:var(--color-neutral-9); background:var(--color-neutral-1);}
   .inf-menu{position:absolute; right:0; top:calc(100% + 4px);
@@ -143,9 +149,8 @@
      letters, the current one in ink, letters with nothing to jump to
      faded near-out. Functional weight, whisper visual weight. */
   .inf-rail{position:fixed; right:2px; top:50%; transform:translateY(-50%);
-    width:18px; height:min(84dvh, 660px); z-index:20;
-    display:flex; flex-direction:column; justify-content:space-between;
-    padding:var(--spacing-8) 0;}
+    width:18px; z-index:20;
+    display:flex; flex-direction:column; align-items:center; gap:2px;}
   .inf-rail-row{display:flex; align-items:center; justify-content:center;
     border:0; background:none; padding:0; cursor:pointer;
     font-family:inherit; line-height:1;}
@@ -231,9 +236,11 @@
   .inf-platrow{display:grid; grid-template-columns:1.4fr 1fr;
     gap:var(--spacing-12); grid-column:1 / -1;}
 
-  /* ── Filter panel: grouped sections inside the one compact panel. */
-  .c-filter-panel{max-height:min(480px, 60vh); overflow-y:auto; min-width:240px;}
-  .inf-filter-group + .inf-filter-group{margin-top:var(--spacing-8);}
+  /* ── Filter pills — one DS Compact filter per facet, the live app's
+     own read: a row of labelled trigger pills, each with its panel. */
+  .inf-pillbar{display:flex; flex-wrap:wrap; gap:var(--spacing-8);}
+  .inf-pill{position:relative;}
+  .c-filter-panel{max-height:min(420px, 56vh); overflow-y:auto; min-width:200px;}
 
   /* ── Toasts. */
   .c-toast-host{position:fixed; bottom:var(--spacing-24); right:var(--spacing-24);
@@ -261,7 +268,7 @@
   }
 
   @media (max-width:900px){
-    .inf-rail{right:0; height:min(76dvh, 560px);}
+    .inf-rail{right:0;}
   }
   @media (max-width:640px){
     .inf-grid{grid-template-columns:1fr;}
@@ -341,20 +348,7 @@
             <button class="c-filter-search-clear" id="infSearchClear" aria-label="Clear search" hidden><i class="ph ph-x"></i></button>
           </div>
           <span class="c-filter-search-divider" aria-hidden="true"></span>
-          <div style="position:relative;">
-            <button class="c-filter-trigger" id="infFilterTrigger" type="button" aria-haspopup="true" aria-expanded="false">
-              <i class="ph ph-funnel leading"></i> Filter
-              <span class="count" id="infFilterCount" hidden></span>
-              <i class="ph ph-caret-down chev"></i>
-            </button>
-            <div class="c-filter-panel" id="infFilterPanel">
-              <div id="infFilterGroups"></div>
-              <div class="c-filter-footer">
-                <button class="c-btn c-btn-ghost c-btn-sm" id="infFilterClear" type="button">Clear</button>
-                <button class="c-btn c-btn-primary c-btn-sm" id="infFilterDone" type="button">Done</button>
-              </div>
-            </div>
-          </div>
+          <div class="inf-pillbar" id="infPillbar"></div>
           <button class="c-btn c-btn-ghost c-btn-sm c-filter-clear-bar" id="infClearAll" type="button" hidden>Clear all</button>
         </div>
       </div>
@@ -597,7 +591,7 @@
     : null;
 
   /* ── State. */
-  var LETTERS = '#ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  var LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#'.split('');
   var FACETS = [
     {key:'gender', label:'Gender', of:function(r){ return r.gender ? [r.gender] : []; }},
     {key:'age', label:'Age group', of:function(r){ return r.age ? [r.age] : []; }},
@@ -645,21 +639,36 @@
     'c-tag-water': 'var(--color-navy)', 'c-tag-fire': 'var(--color-orange)',
     'c-tag-gold': 'var(--color-amber)', '': 'var(--color-neutral-4)'
   };
-  /* Banner fallback gradients — the DLS elemental pastels, paired and
-     hashed off the name so every profile keeps a stable hue even before
-     (or without) a photo. */
-  var GRADS = [
-    ['var(--color-water-pastel)', 'var(--color-earth-pastel)'],
-    ['var(--color-fire-pastel)', 'var(--color-gold-pastel)'],
-    ['var(--color-wood-pastel)', 'var(--color-water-pastel)'],
-    ['var(--color-earth-pastel)', 'var(--color-gold-pastel)'],
-    ['var(--color-gold-pastel)', 'var(--color-wood-pastel)']
+  /* Banner fallback gradients — rule-based, not random: the profile's
+     first recognised niche picks the owning DLS element (food→Gold,
+     beauty→Wood, parenting→Earth, fitness/gaming→Fire, everything
+     lifestyle-shaped→Water), so the hue MEANS something at a glance.
+     The name hash then varies only the angle and the partner pastel
+     (one of the two neighbouring elements), so same-niche cards stay
+     in the same family without reading as copies. */
+  var ELEMENT_ORDER = ['fire', 'wood', 'earth', 'water', 'gold'];
+  var NICHE_ELEMENT = [
+    [/food|cook|foodie|bak|recipe|makan/i, 'gold'],
+    [/beauty|skincare|fashion|makeup|style|hair/i, 'wood'],
+    [/parent|family|kid|mom|mum|edu/i, 'earth'],
+    [/fitness|sport|gym|run|esport|gam(e|ing|er)|entertain/i, 'fire']
   ];
-  function gradOf(name){
-    var h = 0;
+  function elementOf(rec){
+    var text = (rec.niches || []).join(' ');
+    for (var i = 0; i < NICHE_ELEMENT.length; i++) {
+      if (NICHE_ELEMENT[i][0].test(text)) return NICHE_ELEMENT[i][1];
+    }
+    return 'water';
+  }
+  function gradOf(rec){
+    var h = 0, name = rec.name;
     for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-    var g = GRADS[h % GRADS.length];
-    return 'linear-gradient(135deg, ' + g[0] + ', ' + g[1] + ')';
+    var el = elementOf(rec);
+    var idx = ELEMENT_ORDER.indexOf(el);
+    var partner = ELEMENT_ORDER[(idx + (h % 2 ? 1 : ELEMENT_ORDER.length - 1)) % ELEMENT_ORDER.length];
+    var angle = 115 + (h % 70);
+    return 'linear-gradient(' + angle + 'deg, var(--color-' + partner +
+      '-pastel), var(--color-' + el + '-pastel) 70%)';
   }
   function cardHTML(r){
     var meta = [r.age, r.gender, r.location].filter(Boolean).join(' · ') || '—';
@@ -675,14 +684,18 @@
         ? '<a class="inf-stat" href="' + esc(p.link) + '" target="_blank" rel="noopener" title="' + title + '">' + inner + '</a>'
         : '<span class="inf-stat" title="' + title + '">' + inner + '</span>';
     }).join('');
+    var pinned = influencerStore.isPinned(r.id);
     return '<article class="c-card inf-card" tabindex="0" data-id="' + r.id + '" aria-label="' + esc(r.name) + '">' +
       '<span class="inf-kebab"><button class="c-btn c-btn-ghost c-btn-sm c-btn-icon inf-kebab-btn" type="button" aria-label="Options for ' + esc(r.name) + '" aria-haspopup="true"><i class="ph ph-dots-three-vertical"></i></button>' +
         '<span class="inf-menu">' +
+          '<button class="inf-menu-item" type="button" data-act="pin" data-id="' + r.id + '"><i class="ph ' + (pinned ? 'ph-push-pin-slash' : 'ph-push-pin') + '"></i> ' + (pinned ? 'Unpin' : 'Pin to top') + '</button>' +
           '<button class="inf-menu-item" type="button" data-act="view" data-id="' + r.id + '"><i class="ph ph-user-circle"></i> View details</button>' +
           '<button class="inf-menu-item" type="button" data-act="edit" data-id="' + r.id + '"><i class="ph ph-pencil-simple"></i> Edit</button>' +
           '<button class="inf-menu-item is-danger" type="button" data-act="remove" data-id="' + r.id + '"><i class="ph ph-trash"></i> Remove</button>' +
         '</span></span>' +
-      '<div class="inf-banner" style="background:' + gradOf(r.name) + '"><img alt="" /></div>' +
+      '<div class="inf-banner" style="background:' + gradOf(r) + '"><img alt="" />' +
+        (pinned ? '<span class="inf-pinmark" title="Pinned"><i class="ph-fill ph-push-pin"></i></span>' : '') +
+      '</div>' +
       '<span class="c-card-profile-avatar">' + esc(initialsOf(r.name)) +
         '<img alt="" loading="lazy" data-avatar-for="' + r.id + '" /></span>' +
       '<h4 class="inf-name">' + esc(r.name) + '</h4>' +
@@ -700,14 +713,22 @@
   function render(){
     refreshData();
     var hits = all.filter(matches);
+    var pinnedHits = hits.filter(function(r){ return influencerStore.isPinned(r.id); });
+    var restHits = hits.filter(function(r){ return !influencerStore.isPinned(r.id); });
     letterCounts = {};
     LETTERS.forEach(function(L){ letterCounts[L] = 0; });
-    hits.forEach(function(r){ letterCounts[letterOf(r.name)] += 1; });
+    restHits.forEach(function(r){ letterCounts[letterOf(r.name)] += 1; });
 
     var html = '';
+    if (pinnedHits.length) {
+      html += '<section class="inf-section" id="letter-pinned">' +
+        '<div class="inf-letter-head"><h3><i class="ph-fill ph-push-pin" style="font-size:var(--icon-base)"></i> Pinned</h3>' +
+        '<span class="cnt">' + pinnedHits.length + '</span><span class="rule"></span></div>' +
+        '<div class="inf-grid">' + pinnedHits.map(cardHTML).join('') + '</div></section>';
+    }
     LETTERS.forEach(function(L){
       if (!letterCounts[L]) return;
-      var members = hits.filter(function(r){ return letterOf(r.name) === L; });
+      var members = restHits.filter(function(r){ return letterOf(r.name) === L; });
       html += '<section class="inf-section" id="letter-' + (L === '#' ? 'hash' : L) + '" data-letter="' + L + '">' +
         '<div class="inf-letter-head"><h3>' + L + '</h3>' +
         '<span class="cnt">' + members.length + '</span><span class="rule"></span></div>' +
@@ -760,7 +781,7 @@
   /* Scroll-spy — the letter whose section owns the current viewport top. */
   var spyTick = false;
   function spy(){
-    var sections = mainEl.querySelectorAll('.inf-section');
+    var sections = mainEl.querySelectorAll('.inf-section[data-letter]');
     var pos = scroller.scrollTop + 90;
     var current = null;
     sections.forEach(function(s){
@@ -777,10 +798,11 @@
     setTimeout(function(){ spyTick = false; spy(); }, 80);
   });
 
-  /* ── Filters — DS Compact filter panel with grouped sections, applied
+  /* ── Filters — the live app's own read: one labelled trigger pill per
+     facet, each opening its own DS Compact filter panel; a facet applies
      on Done, never per keystroke. Option lists come off the data. */
-  var trigger = document.getElementById('infFilterTrigger');
-  var panel = document.getElementById('infFilterPanel');
+  var pillbar = document.getElementById('infPillbar');
+  var openFacet = null;
   function facetOptions(f){
     var counts = {};
     all.forEach(function(r){
@@ -793,65 +815,88 @@
     }
     return opts.map(function(v){ return {v: v, n: counts[v]}; });
   }
-  function renderOptions(){
-    document.getElementById('infFilterGroups').innerHTML = FACETS.map(function(f){
-      return '<div class="inf-filter-group"><p class="c-filter-panel-title">' + f.label + '</p>' +
-        facetOptions(f).map(function(o){
-          var on = pending[f.key].indexOf(o.v) > -1;
-          return '<label class="c-filter-option" data-facet="' + f.key + '" data-v="' + esc(o.v) + '">' +
-            '<span class="c-checkbox-box' + (on ? ' on' : '') + '">' + (on ? '<i class="ph ph-check"></i>' : '') + '</span>' +
-            '<span class="label">' + esc(o.v) + ' <span style="color:var(--color-neutral-4)">' + o.n + '</span></span></label>';
-        }).join('') + '</div>';
+  function optionRows(f){
+    return facetOptions(f).map(function(o){
+      var on = pending[f.key].indexOf(o.v) > -1;
+      return '<label class="c-filter-option" data-facet="' + f.key + '" data-v="' + esc(o.v) + '">' +
+        '<span class="c-checkbox-box' + (on ? ' on' : '') + '">' + (on ? '<i class="ph ph-check"></i>' : '') + '</span>' +
+        '<span class="label">' + esc(o.v) + ' <span style="color:var(--color-neutral-4)">' + o.n + '</span></span></label>';
     }).join('');
   }
-  function appliedCount(){
-    return FACETS.reduce(function(n, f){ return n + applied[f.key].length; }, 0);
+  function renderPillbar(){
+    openFacet = null;
+    pillbar.innerHTML = FACETS.map(function(f){
+      var n = applied[f.key].length;
+      return '<div class="inf-pill" data-facet="' + f.key + '">' +
+        '<button class="c-filter-trigger' + (n ? ' active' : '') + '" type="button" data-facet="' + f.key + '" aria-haspopup="true" aria-expanded="false">' +
+          f.label + (n ? '<span class="count">' + n + '</span>' : '') +
+          '<i class="ph ph-caret-down chev"></i></button>' +
+        '<div class="c-filter-panel" data-panel="' + f.key + '">' +
+          '<div data-options="' + f.key + '"></div>' +
+          '<div class="c-filter-footer">' +
+            '<button class="c-btn c-btn-ghost c-btn-sm" data-clear="' + f.key + '" type="button">Clear</button>' +
+            '<button class="c-btn c-btn-primary c-btn-sm" data-done="' + f.key + '" type="button">Done</button>' +
+          '</div></div></div>';
+    }).join('');
   }
-  function openPanel(){
-    FACETS.forEach(function(f){ pending[f.key] = applied[f.key].slice(); });
-    renderOptions();
-    panel.classList.add('is-open');
-    trigger.classList.add('is-open');
-    trigger.setAttribute('aria-expanded', 'true');
+  function facetByKey(k){
+    return FACETS.filter(function(f){ return f.key === k; })[0];
   }
-  function closePanel(){
-    panel.classList.remove('is-open');
-    trigger.classList.remove('is-open');
-    trigger.setAttribute('aria-expanded', 'false');
+  function closePanels(){
+    openFacet = null;
+    pillbar.querySelectorAll('.c-filter-panel.is-open').forEach(function(p){
+      p.classList.remove('is-open');
+    });
+    pillbar.querySelectorAll('.c-filter-trigger.is-open').forEach(function(t){
+      t.classList.remove('is-open');
+      t.setAttribute('aria-expanded', 'false');
+    });
   }
-  trigger.addEventListener('click', function(e){
+  pillbar.addEventListener('click', function(e){
     e.stopPropagation();
-    if (panel.classList.contains('is-open')) closePanel(); else openPanel();
-  });
-  panel.addEventListener('click', function(e){
-    e.stopPropagation();
+    var trig = e.target.closest('.c-filter-trigger');
+    if (trig) {
+      var k = trig.dataset.facet;
+      var was = openFacet === k;
+      closePanels();
+      if (!was) {
+        openFacet = k;
+        pending[k] = applied[k].slice();
+        pillbar.querySelector('[data-options="' + k + '"]').innerHTML = optionRows(facetByKey(k));
+        pillbar.querySelector('[data-panel="' + k + '"]').classList.add('is-open');
+        trig.classList.add('is-open');
+        trig.setAttribute('aria-expanded', 'true');
+      }
+      return;
+    }
     var opt = e.target.closest('.c-filter-option');
-    if (!opt) return;
-    var k = opt.dataset.facet, v = opt.dataset.v;
-    var i = pending[k].indexOf(v);
-    if (i > -1) pending[k].splice(i, 1); else pending[k].push(v);
-    renderOptions();
-  });
-  document.getElementById('infFilterClear').addEventListener('click', function(e){
-    e.stopPropagation();
-    FACETS.forEach(function(f){ pending[f.key] = []; });
-    renderOptions();
-  });
-  document.getElementById('infFilterDone').addEventListener('click', function(e){
-    e.stopPropagation();
-    FACETS.forEach(function(f){ applied[f.key] = pending[f.key].slice(); });
-    closePanel(); render();
+    if (opt) {
+      var ok = opt.dataset.facet, v = opt.dataset.v;
+      var i = pending[ok].indexOf(v);
+      if (i > -1) pending[ok].splice(i, 1); else pending[ok].push(v);
+      pillbar.querySelector('[data-options="' + ok + '"]').innerHTML = optionRows(facetByKey(ok));
+      return;
+    }
+    var clr = e.target.closest('[data-clear]');
+    if (clr) {
+      pending[clr.dataset.clear] = [];
+      pillbar.querySelector('[data-options="' + clr.dataset.clear + '"]').innerHTML = optionRows(facetByKey(clr.dataset.clear));
+      return;
+    }
+    var done = e.target.closest('[data-done]');
+    if (done) {
+      applied[done.dataset.done] = pending[done.dataset.done].slice();
+      closePanels();
+      render();
+    }
   });
   document.getElementById('infClearAll').addEventListener('click', function(){
     FACETS.forEach(function(f){ applied[f.key] = []; });
     render();
   });
   function renderTray(){
-    var countBadge = document.getElementById('infFilterCount');
-    var n = appliedCount();
-    countBadge.hidden = !n;
-    countBadge.textContent = n;
-    trigger.classList.toggle('active', !!n);
+    renderPillbar();
+    var n = FACETS.reduce(function(m, f){ return m + applied[f.key].length; }, 0);
     var tray = document.getElementById('infTray');
     tray.hidden = !n;
     tray.innerHTML = FACETS.map(function(f){
@@ -869,9 +914,9 @@
     render();
   });
   document.addEventListener('click', function(e){
-    if (!panel.classList.contains('is-open')) return;
-    if (e.target.closest('#infFilterPanel') || e.target.closest('#infFilterTrigger')) return;
-    closePanel();
+    if (openFacet === null) return;
+    if (e.target.closest('#infPillbar')) return;
+    closePanels();
   });
 
   var search = document.getElementById('infSearch');
@@ -1095,6 +1140,12 @@
     if (item) {
       e.stopPropagation();
       closeMenus();
+      if (item.dataset.act === 'pin') {
+        var now = influencerStore.togglePin(item.dataset.id);
+        var who = byId[item.dataset.id];
+        toast(who ? who.name + (now ? ' pinned to top.' : ' unpinned.') : 'Updated.');
+        render();
+      }
       if (item.dataset.act === 'view') openDrawer(item.dataset.id);
       if (item.dataset.act === 'edit') openForm(item.dataset.id);
       if (item.dataset.act === 'remove') askRemove(item.dataset.id);
@@ -1115,6 +1166,7 @@
   document.addEventListener('keydown', function(e){
     if (e.key !== 'Escape') return;
     closeMenus();
+    closePanels();
     if (delScrim.classList.contains('is-open')) closeRemove();
     else if (formScrim.classList.contains('is-open')) closeForm();
     else if (drawerScrim.classList.contains('is-open')) closeDrawer();

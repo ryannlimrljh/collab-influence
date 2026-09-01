@@ -21,6 +21,7 @@
     s.added = s.added || [];
     s.edits = s.edits || {};
     s.removed = s.removed || [];
+    s.pins = s.pins || [];
     return s;
   }
 
@@ -58,7 +59,19 @@
     remove: function (id) {
       var s = state();
       if (s.removed.indexOf(id) < 0) s.removed.push(id);
+      s.pins = s.pins.filter(function (p) { return p !== id; });
       save(s);
+    },
+    isPinned: function (id) {
+      return state().pins.indexOf(id) > -1;
+    },
+    /* Toggle; returns true when the card is now pinned. */
+    togglePin: function (id) {
+      var s = state();
+      var i = s.pins.indexOf(id);
+      if (i > -1) s.pins.splice(i, 1); else s.pins.push(id);
+      save(s);
+      return i < 0;
     },
     /* Clear the whole overlay — back to the generated dataset. */
     reset: function () {
