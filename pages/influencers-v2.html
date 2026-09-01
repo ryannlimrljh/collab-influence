@@ -347,10 +347,21 @@
   .inf-viewbtn:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}
   .inf-viewbtn.is-active{background:var(--color-obsidian); color:var(--color-neutral-1);}
   .inf-viewbtn:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:-2px;}
-  /* The density control is a list-view concern only; it reuses the view
-     segment's own shape so the two read as one control cluster. */
-  .inf-densityseg{display:none;}
-  .inf-densityseg.is-on{display:flex;}
+  /* Density is a single borderless toggle, NOT a second segmented
+     control: two identical segments side by side read as one broken
+     four-button control. Borderless keeps it clearly subordinate to the
+     view switch, which is the real mode change. */
+  .inf-densitybtn{display:none; align-items:center; justify-content:center;
+    width:34px; height:34px; align-self:center; flex:none;
+    border:0; background:transparent; border-radius:var(--radius-sm);
+    color:var(--color-neutral-5); font-size:var(--icon-sm); cursor:pointer;
+    transition:background-color var(--duration-fast) var(--ease-standard),
+      color var(--duration-fast) var(--ease-standard);}
+  .inf-densitybtn.is-on{display:flex;}
+  .inf-densitybtn:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}
+  .inf-densitybtn[aria-pressed="true"]{color:var(--color-neutral-9);
+    background:var(--color-neutral-2);}
+  .inf-densitybtn:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:-2px;}
 
   /* ── List view — the DLS standalone table.
      Fixed layout so the browser honours the column widths below instead
@@ -420,31 +431,39 @@
   .inf-table thead th{position:sticky; top:0; z-index:4;
     background:var(--color-neutral-2);}
 
-  /* Tier as an ORDINAL ramp, not five categorical hues. The old pills
-     said pink/green/blue/orange/amber, which carry no sense of rank —
-     you had to read the word to know Macro beats Micro. One neutral
-     ramp, darkening with reach, says it at a glance and stops 900-odd
-     pills from shouting over the names and the follower counts. */
-  .inf-tier{display:inline-block; padding:2px 7px; border-radius:var(--radius-pill);
+  /* Tier keeps the DLS element hues so the list and the cards say the
+     same thing about the same profile — the cards' tier dot uses these
+     exact colours. Rank still reads without decoding hue, because the
+     dot stays the element colour while the pill's own fill deepens
+     with reach: pale for Seeder, a solid element wash by Mega. */
+  .inf-tier{display:inline-flex; align-items:center; gap:5px;
+    padding:2px 8px; border-radius:var(--radius-pill);
     font-size:var(--text-footnote-size); font-weight:700; line-height:16px;
-    white-space:nowrap;}
+    white-space:nowrap; border:1px solid transparent;}
+  .inf-tier .dot{width:6px; height:6px; border-radius:var(--radius-pill);
+    flex:none; background:currentColor;}
   .inf-tier-0{background:var(--color-neutral-2); color:var(--color-neutral-5);}
-  .inf-tier-1{background:var(--color-neutral-2); color:var(--color-neutral-6, var(--color-neutral-5));}
-  .inf-tier-2{background:var(--color-neutral-3); color:var(--color-neutral-9);}
-  .inf-tier-3{background:var(--color-neutral-4); color:var(--color-neutral-9);}
-  .inf-tier-4{background:var(--color-neutral-6, #6b6b6b); color:var(--color-neutral-1);}
-  .inf-tier-5{background:var(--color-obsidian); color:var(--color-neutral-1);}
+  .inf-tier-1{background:var(--color-wood-bg); color:var(--color-salmon-pink);
+    border-color:color-mix(in srgb, var(--color-salmon-pink) 22%, transparent);}
+  .inf-tier-2{background:var(--color-earth-bg); color:var(--color-green);
+    border-color:color-mix(in srgb, var(--color-green) 22%, transparent);}
+  .inf-tier-3{background:var(--color-water-bg); color:var(--color-navy);
+    border-color:color-mix(in srgb, var(--color-navy) 22%, transparent);}
+  .inf-tier-4{background:var(--color-fire-bg); color:var(--color-orange);
+    border-color:color-mix(in srgb, var(--color-orange) 30%, transparent);}
+  /* Mega is the one that should stop the eye: full element fill. */
+  .inf-tier-5{background:var(--color-amber); color:var(--color-obsidian);
+    border-color:color-mix(in srgb, var(--color-obsidian) 12%, transparent);}
+  .inf-tier-5 .dot{background:var(--color-obsidian);}
 
   .inf-list-plat{white-space:nowrap;}
   .inf-plat{display:flex; align-items:center; justify-content:flex-end;
     gap:var(--spacing-8);}
   .inf-plat .pnum{font-variant-numeric:tabular-nums; font-weight:700;
     min-width:46px; text-align:right; color:var(--color-neutral-9);}
-  .inf-plat .ptier{width:56px; flex:none; display:flex;}
-  /* The tier pill loses its side padding rather than its label: at this
-     column width the word is the payload, the pill is just its frame. */
-  .inf-plat .ptier .c-tag{padding-left:6px; padding-right:6px;
-    font-size:var(--text-footnote-size);}
+  /* Wider now that the pill carries a dot again — the XHS column's exit
+     freed the room, so nothing else gives anything up. */
+  .inf-plat .ptier{width:74px; flex:none; display:flex;}
   th.c-table-sort-th[data-sort]{cursor:pointer; user-select:none;
     white-space:nowrap;}
   .inf-sorticon{font-size:var(--icon-micro); color:var(--color-neutral-4);
@@ -652,10 +671,10 @@
           <div class="inf-pillbar" id="infPillbar"></div>
           <button class="c-btn c-btn-ghost c-btn-sm c-filter-clear-bar" id="infClearAll" type="button" hidden>Clear all</button>
         </div>
-        <div class="inf-viewseg inf-densityseg" role="group" aria-label="Row density" id="infDensitySeg">
-          <button class="inf-viewbtn" type="button" data-density="comfortable" aria-label="Comfortable rows" title="Comfortable rows"><i class="ph ph-rows"></i></button>
-          <button class="inf-viewbtn" type="button" data-density="compact" aria-label="Compact rows" title="Compact rows"><i class="ph ph-list-dashes"></i></button>
-        </div>
+        <button class="inf-densitybtn" type="button" id="infDensityBtn"
+                aria-pressed="false" aria-label="Compact rows" title="Compact rows">
+          <i class="ph ph-rows"></i>
+        </button>
         <div class="inf-viewseg" role="group" aria-label="View">
           <button class="inf-viewbtn" type="button" data-view="list" aria-label="List view" title="List view"><i class="ph ph-list-bullets"></i></button>
           <button class="inf-viewbtn is-active" type="button" data-view="tile" aria-label="Tile view" title="Tile view"><i class="ph ph-squares-four"></i></button>
@@ -1114,16 +1133,19 @@
   var density = 'comfortable';
   try { density = localStorage.getItem(DENSITY_KEY) === 'compact' ? 'compact' : 'comfortable'; } catch (e) {}
   function applyDensity(){
-    document.getElementById('infDensitySeg').classList.toggle('is-on', view === 'list');
-    document.querySelectorAll('[data-density]').forEach(function(b){
-      b.classList.toggle('is-active', b.dataset.density === density);
-    });
-    mainEl.classList.toggle('is-compact', density === 'compact');
+    var btn = document.getElementById('infDensityBtn');
+    var compact = density === 'compact';
+    btn.classList.toggle('is-on', view === 'list');
+    btn.setAttribute('aria-pressed', String(compact));
+    /* The icon shows the state you are IN, the label says what a press
+       will do — so the control never claims to be something it isn't. */
+    btn.innerHTML = '<i class="ph ' + (compact ? 'ph-list-dashes' : 'ph-rows') + '"></i>';
+    btn.title = compact ? 'Comfortable rows' : 'Compact rows';
+    btn.setAttribute('aria-label', btn.title);
+    mainEl.classList.toggle('is-compact', compact);
   }
-  document.getElementById('infDensitySeg').addEventListener('click', function(e){
-    var b = e.target.closest('[data-density]');
-    if (!b || b.dataset.density === density) return;
-    density = b.dataset.density;
+  document.getElementById('infDensityBtn').addEventListener('click', function(){
+    density = density === 'compact' ? 'comfortable' : 'compact';
     try { localStorage.setItem(DENSITY_KEY, density); } catch (err) {}
     applyDensity();
   });
@@ -1228,7 +1250,8 @@
       return '<td class="inf-list-plat"><span class="inf-plat">' +
         '<span class="pnum">' + (p && p.followers != null ? fmtFollowers(p.followers) : '—') + '</span>' +
         '<span class="ptier">' +
-        (t ? '<span class="inf-tier inf-tier-' + t.rank + '">' + t.name + '</span>' : '') +
+        (t ? '<span class="inf-tier inf-tier-' + t.rank + '">' +
+             (t.rank ? '<span class="dot"></span>' : '') + t.name + '</span>' : '') +
         '</span></span></td>';
     }
     var sel = selected.has(r.id);
