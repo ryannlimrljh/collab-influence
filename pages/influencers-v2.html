@@ -71,10 +71,14 @@
   /* No perspective here: the tilt carries its own perspective() inside
      the inline transform, so idle grids stay flat 2D — a page-wide 3D
      context on every section was a real compositing cost. */
-  .inf-grid{display:grid; grid-template-columns:repeat(4, 1fr);
+  /* Column COUNT answers the screen width, not column width. A fixed
+     four-up stretched each card wider and wider until it went square
+     and the portrait identity column looked lost in it; auto-fill adds
+     a fifth, sixth, seventh card instead and every card stays the same
+     portrait shape it has at 1280. */
+  .inf-grid{display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
     gap:var(--spacing-20); align-items:stretch;}
-  @media (max-width:1180px){.inf-grid{grid-template-columns:repeat(3, 1fr);}}
-  @media (max-width:880px){.inf-grid{grid-template-columns:repeat(2, 1fr);}}
 
   /* ── Card — the reference-1 read: centered identity column (avatar,
      name, quiet meta and niche lines) over a stat row of big follower
@@ -85,8 +89,13 @@
      pull completely or crop well, so the card is now a clean identity
      column. min-height holds the grid's old rhythm so removing the
      banner doesn't shrink every row. */
+  /* The cap is the backstop on the grid's own sizing: at a couple of
+     widths the last columns still have slack to share, and without it
+     a card widens past its own height and goes square. Centred in its
+     cell so the row stays evenly spaced when the cap bites. */
   .inf-card{display:flex; flex-direction:column; align-items:center;
     text-align:center; height:100%; min-height:314px; position:relative;
+    width:100%; max-width:276px; margin-inline:auto;
     cursor:pointer; padding:var(--spacing-32) 0 var(--spacing-20);
     overflow:hidden;
     transition:box-shadow var(--duration-base) var(--ease-settle),
@@ -688,6 +697,8 @@
     .inf-rail{right:0;}
   }
   @media (max-width:640px){
+    /* Below the auto-fill minimum a single full-width card beats a
+       cramped two-up, so this one override stays. */
     .inf-grid{grid-template-columns:1fr;}
     .inf-form-grid, .inf-platrow{grid-template-columns:1fr;}
     .c-pageheader-row{flex-wrap:wrap; gap:var(--spacing-12);}
