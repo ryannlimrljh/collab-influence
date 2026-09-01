@@ -353,8 +353,17 @@
      of sizing to the longest name; every column then fits the viewport
      and the table never scrolls sideways. The influencer column takes
      what's left after the fixed ones, which is what lets it shrink. */
+  /* The wrapper must not clip: the DLS gives it overflow:hidden for the
+     horizontal scroller this table no longer needs, and that same
+     clipping cuts off a kebab menu opened on the last rows. The fixed
+     layout below is what keeps the columns inside the viewport now. */
+  .c-table-standalone-wrap{overflow:visible;}
   .inf-table{table-layout:fixed; width:100%;}
-  .inf-table th, .inf-table td{overflow:hidden;}
+  /* Clipping is per-cell, never blanket: overflow:hidden on every td
+     also clips the kebab's dropdown, which is far wider than its own
+     48px cell. Only the text columns truncate. */
+  .inf-table td.inf-cell-text, .inf-table th.c-table-sort-th{
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   /* Proportional, not fixed-px: percentages always sum to the table's
      own width, so the columns fit any viewport without a scroller, and
      the influencer column stops swallowing all the leftover room the
@@ -1057,8 +1066,11 @@
 
   /* ── View mode — tile (card sections) or list (one A–Z table). */
   var VIEW_KEY = 'collab-influencers-view-v2';
-  var view = 'tile';
-  try { view = localStorage.getItem(VIEW_KEY) === 'list' ? 'list' : 'tile'; } catch (e) {}
+  /* List is the default first impression — the roster reads as a
+     working table before it reads as a gallery. A stored choice still
+     wins on every later visit. */
+  var view = 'list';
+  try { view = localStorage.getItem(VIEW_KEY) === 'tile' ? 'tile' : 'list'; } catch (e) {}
   function applyViewButtons(){
     document.querySelectorAll('.inf-viewbtn').forEach(function(b){
       b.classList.toggle('is-active', b.dataset.view === view);
@@ -1176,9 +1188,9 @@
           '<span class="inf-rowsub">' + esc((r.niches || []).join(', ') || '—') + '</span></span>' +
         (pinned ? '<i class="ph-fill ph-push-pin inf-rowpin" title="Pinned"></i>' : '') +
       '</span></td>' +
-      '<td>' + esc(r.age || '—') + '</td>' +
-      '<td>' + esc(r.gender || '—') + '</td>' +
-      '<td>' + esc(r.location || '—') + '</td>' +
+      '<td class="inf-cell-text">' + esc(r.age || '—') + '</td>' +
+      '<td class="inf-cell-text">' + esc(r.gender || '—') + '</td>' +
+      '<td class="inf-cell-text" title="' + esc(r.location || '') + '">' + esc(r.location || '—') + '</td>' +
       platCell('tiktok') + platCell('instagram') + platCell('xhs') +
       '<td class="c-table-action-col"><span class="inf-kebab">' +
         '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon inf-kebab-btn" type="button" aria-label="Options for ' + esc(r.name) + '" aria-haspopup="true"><i class="ph ph-dots-three-vertical"></i></button>' +
@@ -2312,8 +2324,13 @@
   });
 
   /* Boot: bones first, the roster a beat later with the arrival cascade.
-     The data is inline (nothing is actually fetched), so the skeleton
-     beat is short — enough to register as "loading", not a wait. */
+     The data is inline (nothing is actually fetched), so this beat is
+     staged rather than real — long enough for the skeleton to register
+     as a considered loading state instead of a flicker. */
+  /* Sync the toggle before the bones are drawn: the markup's own
+     is-active is just a default, and during the skeleton beat it would
+     otherwise advertise the wrong view. */
+  applyViewButtons();
   renderSkeleton();
   setTimeout(function(){
     render();
@@ -2322,7 +2339,7 @@
     setTimeout(function(){
       document.getElementById('infContent').classList.remove('inf-arriving');
     }, 900);
-  }, 420);
+  }, 1000);
 })();
 </script>
 </body>
