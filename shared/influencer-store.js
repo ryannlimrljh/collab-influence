@@ -7,7 +7,10 @@
 (function () {
   'use strict';
 
-  var KEY = 'collab-influencers';
+  /* A page can claim its own overlay by setting this global BEFORE the
+     script loads (influencers-v2.html does) — otherwise every page
+     shares the original store. */
+  var KEY = window.INFLUENCER_STORE_KEY || 'collab-influencers';
 
   function load() {
     try { return JSON.parse(localStorage.getItem(KEY)) || {}; }

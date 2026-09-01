@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Collab:Influence · Influencers</title>
+<title>Collab:Influence · Influencers v2</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <!-- Earth is Collab:Influence's element, so the mound is the tab mark. -->
 <link rel="icon" type="image/svg+xml" href="../collabrium-dls/SVG/earth.svg" />
@@ -66,9 +66,14 @@
      numbers with muted platform labels. Composes the base Card shell +
      Profile card's avatar recipe; tier survives as a 6px element-color
      dot on the stat label instead of a full Tag pill. */
+  /* No banner strip: the platforms only expose imagery we could never
+     pull completely or crop well, so the card is now a clean identity
+     column. min-height holds the grid's old rhythm so removing the
+     banner doesn't shrink every row. */
   .inf-card{display:flex; flex-direction:column; align-items:center;
-    text-align:center; height:100%; position:relative; cursor:pointer;
-    padding:0 0 var(--spacing-20); overflow:hidden;
+    text-align:center; height:100%; min-height:314px; position:relative;
+    cursor:pointer; padding:var(--spacing-32) 0 var(--spacing-20);
+    overflow:hidden;
     transition:box-shadow var(--duration-base) var(--ease-settle),
       transform var(--duration-base) var(--ease-settle);}
   .inf-card:hover{box-shadow:var(--shadow-2); transform:translateY(-2px);}
@@ -81,31 +86,14 @@
     will-change:transform;} /* own layer while tilting — no repaints per move */
   .inf-card:focus-visible{box-shadow:var(--shadow-focus); outline:none;}
   @media (prefers-reduced-motion:reduce){.inf-card:hover{transform:none;}}
-  /* Banner — the reference's three-image strip: three 4:5 tiles with a
-     hairline gap. The platforms only expose the profile photo publicly
-     (no post-grid API), so the photo fills the strip — sharp in the
-     middle tile, softened and zoomed on the side tiles. Without a photo
-     the tiles hold the profile's gender hue in three stepped shades:
-     Wood pink for female, Water blue for male, neutral for unclassified. */
-  .inf-banner{width:100%; flex:none; position:relative;
-    display:grid; grid-template-columns:1fr 1fr 1fr; gap:2px;
-    background:var(--color-neutral-1);}
-  .inf-tile{position:relative; aspect-ratio:4 / 5; overflow:hidden;}
-  .inf-tile img{position:absolute; inset:0; width:100%; height:100%;
-    object-fit:cover; opacity:0;
-    transition:opacity var(--duration-slow) var(--ease-standard);}
-  .inf-tile img.is-loaded{opacity:1;}
-  /* Tile treatments — three reads of the harvested photos so the strip
-     features distinct images: a tight close-up, the photo straight, and
-     a duotone tinted by the tile's own gender hue underneath. */
-  .inf-tile img.v-zoom{transform:scale(1.9); object-position:50% 22%;
-    filter:saturate(1.2);}
-  .inf-tile img.v-sharp{}
-  .inf-tile img.v-duo{filter:grayscale(1) contrast(1.08) brightness(1.06);
-    mix-blend-mode:multiply;}
-  .inf-card .c-card-profile-avatar{width:64px; height:64px;
-    font-size:var(--text-body1-size); margin:-32px 0 var(--spacing-12);
-    border:3px solid var(--color-neutral-1); box-shadow:var(--shadow-1);
+  /* The three-image banner strip is gone: the platforms never exposed
+     imagery we could pull completely, and half-filled or badly cropped
+     tiles read worse than no tiles at all. The avatar carries the card. */
+  /* The avatar is the card's only image now, so it carries more weight:
+     88px, and the ring reads as a quiet edge rather than a cut-out. */
+  .inf-card .c-card-profile-avatar{width:88px; height:88px;
+    font-size:var(--text-h5-size); margin:0 0 var(--spacing-16);
+    border:1px solid var(--color-neutral-3); box-shadow:var(--shadow-1);
     z-index:1;}
   .inf-name{margin:0; max-width:100%; font-size:var(--text-h5-size);
     line-height:var(--text-h5-lh); font-weight:800;
@@ -138,12 +126,11 @@
   .c-btn.inf-kebab-btn{color:var(--color-neutral-9); width:28px; height:28px;
     background:rgba(255,255,255,.65); backdrop-filter:blur(4px);
     border-radius:var(--radius-pill);}
-  /* Pin marker on a pinned card's banner. */
-  .inf-pinmark{position:absolute; top:var(--spacing-8); left:var(--spacing-8);
-    z-index:2; width:28px; height:28px; display:flex; align-items:center;
-    justify-content:center; border-radius:var(--radius-pill);
-    background:rgba(255,255,255,.65); backdrop-filter:blur(4px);
-    color:var(--color-neutral-9); font-size:var(--icon-sm);}
+  /* Pin marker, top-left on the card itself now that there's no banner
+     to sit on — no frosted plate needed over a plain white card. */
+  .inf-pinmark{position:absolute; top:var(--spacing-12); left:var(--spacing-12);
+    z-index:2; display:flex; align-items:center; justify-content:center;
+    color:var(--color-neutral-5); font-size:var(--icon-sm);}
   .inf-kebab:hover .inf-kebab-btn, .inf-kebab.is-open .inf-kebab-btn{
     color:var(--color-neutral-9); background:var(--color-neutral-1);}
   .inf-menu{position:absolute; right:0; top:calc(100% + 4px);
@@ -432,13 +419,10 @@
      ratio, same avatar overlap, same paddings) so the real roster lands
      in place with zero jump; bones pulse until the swap. */
   .inf-sk-card{display:flex; flex-direction:column; align-items:center;
-    height:100%; padding:0 0 var(--spacing-20); overflow:hidden;}
-  .inf-sk-banner{width:100%; display:grid; grid-template-columns:1fr 1fr 1fr;
-    gap:2px; background:var(--color-neutral-1);}
-  .inf-sk-tile{aspect-ratio:4 / 5; background:var(--color-neutral-2);}
-  .inf-sk-ava{width:64px; height:64px; border-radius:var(--radius-pill);
-    background:var(--color-neutral-3); border:3px solid var(--color-neutral-1);
-    margin:-32px 0 var(--spacing-12); z-index:1;}
+    height:100%; min-height:314px; overflow:hidden;
+    padding:var(--spacing-32) 0 var(--spacing-20);}
+  .inf-sk-ava{width:88px; height:88px; border-radius:var(--radius-pill);
+    background:var(--color-neutral-3); margin:0 0 var(--spacing-16); z-index:1;}
   .inf-sk-bar{height:12px; border-radius:var(--radius-sm);
     background:var(--color-neutral-2);}
   .inf-sk-stats{display:flex; gap:var(--spacing-32); margin-top:auto;
@@ -450,7 +434,7 @@
     border-bottom:1px solid var(--color-neutral-2);}
   .inf-sk-row .inf-sk-ava{width:36px; height:36px; margin:0; border:0;}
   @media (prefers-reduced-motion:no-preference){
-    .inf-sk-tile, .inf-sk-ava, .inf-sk-bar{
+    .inf-sk-ava, .inf-sk-bar{
       animation:inf-sk-pulse 1.4s var(--ease-standard) infinite;}
     @keyframes inf-sk-pulse{0%,100%{opacity:1;} 50%{opacity:.45;}}
   }
@@ -753,7 +737,7 @@
 <script src="../shared/shell.js?v=0.9.46"></script>
 <script src="../shared/influencers-data.js"></script>
 <script src="../shared/avatar-manifest.js?v=2"></script>
-<script src="../shared/post-manifest.js?v=1"></script>
+<script>window.INFLUENCER_STORE_KEY = 'collab-influencers-v2';</script>
 <script src="../shared/influencer-store.js?v=2"></script>
 <script>
 (function () {
@@ -830,14 +814,6 @@
     if (m.ig) out.push('../assets/avatars/' + rec.id + '-ig.jpg');
     return out;
   }
-  /* Harvested TikTok POST images (scripts/harvest-posts.py) — real,
-     distinct content shots for the banner strip. */
-  function localPosts(rec){
-    var n = (window.POST_FILES || {})[rec.id] || 0;
-    var out = [];
-    for (var k = 1; k <= n; k++) out.push('../assets/posts/' + rec.id + '-p' + k + '.jpg');
-    return out;
-  }
   function avatarCandidates(rec){
     /* Harvested local files FIRST: unavatar rate-limits (429) under any
        real load — with 495 cards it left most of the page on initials —
@@ -877,18 +853,6 @@
     img.onload = function () {
       if (!cached) avaSet(rec.id, list[i]);
       img.classList.add('is-loaded');
-      /* Runtime-resolved photo (no harvested files): the one image
-         still feeds all three tiles, differentiated by treatment. */
-      var card = img.closest('.inf-card');
-      if (card) {
-        var variants = ['v-zoom', 'v-sharp', 'v-duo'];
-        card.querySelectorAll('.inf-banner img').forEach(function(tileImg, ti){
-          if (tileImg.src) return;
-          tileImg.classList.add(variants[ti] || 'v-sharp');
-          tileImg.onload = function(){ tileImg.classList.add('is-loaded'); };
-          tileImg.src = img.src;
-        });
-      }
     };
     img.src = list[0];
   }
@@ -897,7 +861,7 @@
   document.addEventListener('load', function(e){
     var t = e.target;
     if (t && t.tagName === 'IMG' && t.closest &&
-        t.closest('.inf-banner, .c-card-profile-avatar')) {
+        t.closest('.c-card-profile-avatar')) {
       t.classList.add('is-loaded');
     }
   }, true);
@@ -961,15 +925,6 @@
     'c-tag-water': 'var(--color-navy)', 'c-tag-fire': 'var(--color-orange)',
     'c-tag-gold': 'var(--color-amber)', '': 'var(--color-neutral-4)'
   };
-  /* Banner placeholder tiles — one hue per gender, stepped light→strong
-     across the three tiles: Wood pink for female, Water blue for male,
-     neutrals when gender isn't recorded. */
-  function tileShades(rec){
-    var g = (rec.gender || '').toLowerCase();
-    if (g === 'female') return ['var(--color-wood-bg)', 'var(--color-wood-bg-strong)', 'var(--color-wood-pastel)'];
-    if (g === 'male') return ['var(--color-water-bg)', 'var(--color-water-bg-strong)', 'var(--color-water-pastel)'];
-    return ['var(--color-neutral-2)', 'var(--color-neutral-3)', 'var(--color-neutral-4)'];
-  }
   function cardHTML(r){
     var meta = [r.age, r.gender, r.location].filter(Boolean).join(' · ') || '—';
     var nicheline = (r.niches || []).join(' · ');
@@ -993,35 +948,7 @@
           '<button class="inf-menu-item" type="button" data-act="edit" data-id="' + r.id + '"><i class="ph ph-pencil-simple"></i> Edit</button>' +
           '<button class="inf-menu-item is-danger" type="button" data-act="remove" data-id="' + r.id + '"><i class="ph ph-trash"></i> Remove</button>' +
         '</span></span>' +
-      '<div class="inf-banner">' +
-        (function(){
-          /* Strip composition, best material first: harvested TikTok
-             POST images fill tiles as themselves (real distinct
-             content), any harvested avatar photo (IG if it exists, the
-             TikTok one otherwise) takes a free tile as a close-up, and
-             any tile still empty is filled at runtime by the avatar
-             chain (v-zoom/v-sharp/v-duo by position). No imagery at
-             all leaves the gender-hue tiles. */
-          var posts = localPosts(r);
-          var avas = localAvatars(r);
-          var face = avas.filter(function(p){ return p.indexOf('-ig.') > -1; })[0] || avas[0];
-          var slots = [null, null, null];
-          if (posts[0]) slots[0] = {s: posts[0], v: 'v-sharp'};
-          if (posts[1]) slots[2] = {s: posts[1], v: 'v-sharp'};
-          if (face) {
-            var free = slots[0] ? (slots[1] ? 2 : 1) : 0;
-            if (!slots[free]) slots[free] = {s: face, v: 'v-zoom'};
-          }
-          return tileShades(r).map(function(shade, ti){
-            return '<span class="inf-tile" style="background:' + shade + '">' +
-              (slots[ti]
-                ? '<img class="' + slots[ti].v + '" alt="" loading="lazy" src="' + slots[ti].s + '" />'
-                : '<img alt="" />') +
-              '</span>';
-          }).join('');
-        })() +
-        (pinned ? '<span class="inf-pinmark" title="Pinned"><i class="ph-fill ph-push-pin"></i></span>' : '') +
-      '</div>' +
+      (pinned ? '<span class="inf-pinmark" title="Pinned"><i class="ph-fill ph-push-pin"></i></span>' : '') +
       '<span class="c-card-profile-avatar">' + esc(initialsOf(r.name)) +
         '<img alt="" loading="lazy" data-avatar-for="' + r.id + '" /></span>' +
       '<h4 class="inf-name">' + esc(r.name) + '</h4>' +
@@ -1037,7 +964,7 @@
   var letterCounts = {};
 
   /* ── View mode — tile (card sections) or list (one A–Z table). */
-  var VIEW_KEY = 'collab-influencers-view';
+  var VIEW_KEY = 'collab-influencers-view-v2';
   var view = 'tile';
   try { view = localStorage.getItem(VIEW_KEY) === 'list' ? 'list' : 'tile'; } catch (e) {}
   function applyViewButtons(){
@@ -1285,7 +1212,6 @@
   function renderSkeleton(){
     function skCard(){
       return '<div class="c-card inf-sk-card">' +
-        '<div class="inf-sk-banner"><span class="inf-sk-tile"></span><span class="inf-sk-tile"></span><span class="inf-sk-tile"></span></div>' +
         '<span class="inf-sk-ava"></span>' +
         '<span class="inf-sk-bar" style="width:56%"></span>' +
         '<span class="inf-sk-bar" style="width:38%; height:8px; margin-top:8px;"></span>' +
