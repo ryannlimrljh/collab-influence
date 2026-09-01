@@ -139,6 +139,26 @@
     font-size:var(--text-footnote-size); line-height:var(--text-footnote-lh);
     color:var(--color-neutral-5);}
   .inf-stat .tdot{width:6px; height:6px; border-radius:var(--radius-pill); flex:none;}
+  /* Hovering a follower figure swaps its platform label for the tier
+     pill — the same pill the list and the modal use, so the tier reads
+     identically everywhere. Both sit in one relative box and crossfade,
+     so the card never reflows and its neighbours never twitch. */
+  .inf-lblwrap{position:relative; display:inline-flex; align-items:center;
+    justify-content:center; min-height:18px;}
+  .inf-lblwrap .lbl{transition:opacity var(--duration-fast) var(--ease-standard);}
+  .inf-lblwrap .inf-tier{position:absolute; left:50%; top:50%;
+    transform:translate(-50%, -50%) scale(.94); opacity:0;
+    pointer-events:none; white-space:nowrap;
+    transition:opacity var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-settle);}
+  .inf-stat:hover .inf-lblwrap .lbl,
+  .inf-card:focus-visible .inf-lblwrap .lbl{opacity:0;}
+  .inf-stat:hover .inf-lblwrap .inf-tier,
+  .inf-card:focus-visible .inf-lblwrap .inf-tier{opacity:1;
+    transform:translate(-50%, -50%) scale(1);}
+  @media (prefers-reduced-motion:reduce){
+    .inf-lblwrap .lbl, .inf-lblwrap .inf-tier{transition:none;}
+  }
   a.inf-stat:hover .num{text-decoration:underline;}
   .c-card-profile-avatar{position:relative; overflow:hidden;}
   .c-card-profile-avatar img{position:absolute; inset:0; width:100%; height:100%;
@@ -1210,9 +1230,12 @@
     var stats = (r.platforms || []).map(function(p){
       var t = tierOf(p.followers);
       var inner = '<span class="num">' + (p.followers != null ? fmtFollowers(p.followers) : '—') + '</span>' +
-        '<span class="lbl">' +
+        '<span class="inf-lblwrap"><span class="lbl">' +
         (t ? '<span class="tdot" style="background:' + TIER_DOT[t.cls] + '"></span>' : '') +
-        esc(p.platform === 'xhs' ? 'XHS' : p.label) + '</span>';
+        esc(p.platform === 'xhs' ? 'XHS' : p.label) + '</span>' +
+        (t ? '<span class="inf-tier inf-tier-' + t.rank + '">' +
+             (t.rank ? '<span class="dot"></span>' : '') + t.name + '</span>' : '') +
+        '</span>';
       var title = (p.handle ? '@' + esc(p.handle) + ' · ' : '') + (t ? t.name : '');
       return p.link
         ? '<a class="inf-stat" href="' + esc(p.link) + '" target="_blank" rel="noopener" title="' + title + '">' + inner + '</a>'
