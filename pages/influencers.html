@@ -66,15 +66,22 @@
   .inf-card:hover{box-shadow:var(--shadow-2); transform:translateY(-2px);}
   .inf-card:focus-visible{box-shadow:var(--shadow-focus); outline:none;}
   @media (prefers-reduced-motion:reduce){.inf-card:hover{transform:none;}}
-  /* Banner — the profile photo itself, blown up and softened, sitting
-     behind a per-profile pastel gradient fallback (the DLS's own
-     elemental pastels, hashed off the name so each card keeps its hue). */
-  .inf-banner{width:100%; height:104px; flex:none; position:relative;
-    overflow:hidden;}
-  .inf-banner img{position:absolute; inset:0; width:100%; height:100%;
-    object-fit:cover; transform:scale(1.8); filter:blur(14px) saturate(1.25);
-    opacity:0; transition:opacity var(--duration-slow) var(--ease-standard);}
-  .inf-banner img.is-loaded{opacity:1;}
+  /* Banner — the reference's three-image strip: three 4:5 tiles with a
+     hairline gap. The platforms only expose the profile photo publicly
+     (no post-grid API), so the photo fills the strip — sharp in the
+     middle tile, softened and zoomed on the side tiles. Without a photo
+     the tiles hold the profile's gender hue in three stepped shades:
+     Wood pink for female, Water blue for male, neutral for unclassified. */
+  .inf-banner{width:100%; flex:none; position:relative;
+    display:grid; grid-template-columns:1fr 1fr 1fr; gap:2px;
+    background:var(--color-neutral-1);}
+  .inf-tile{position:relative; aspect-ratio:4 / 5; overflow:hidden;}
+  .inf-tile img{position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; opacity:0;
+    transition:opacity var(--duration-slow) var(--ease-standard);}
+  .inf-tile img.is-loaded{opacity:1;}
+  .inf-tile:nth-child(1) img{transform:scale(1.7); filter:blur(10px) saturate(1.25) brightness(1.05);}
+  .inf-tile:nth-child(3) img{transform:scale(1.7); filter:blur(10px) saturate(1.15) brightness(.95);}
   .inf-card .c-card-profile-avatar{width:64px; height:64px;
     font-size:var(--text-body1-size); margin:-32px 0 var(--spacing-12);
     border:3px solid var(--color-neutral-1); box-shadow:var(--shadow-1);
@@ -150,7 +157,7 @@
      faded near-out. Functional weight, whisper visual weight. */
   .inf-rail{position:fixed; right:2px; top:50%; transform:translateY(-50%);
     width:18px; z-index:20;
-    display:flex; flex-direction:column; align-items:center; gap:2px;}
+    display:flex; flex-direction:column; align-items:center; gap:5px;}
   .inf-rail-row{display:flex; align-items:center; justify-content:center;
     border:0; background:none; padding:0; cursor:pointer;
     font-family:inherit; line-height:1;}
@@ -568,13 +575,15 @@
     img.onload = function () {
       if (!cached) avaSet(rec.id, list[i]);
       img.classList.add('is-loaded');
-      /* The card's banner is the same photo, blurred large — one fetch,
-         the browser cache serves the second <img>. */
+      /* The banner strip is the same photo across all three tiles —
+         one fetch, the browser cache serves the copies. */
       var card = img.closest('.inf-card');
-      var banner = card && card.querySelector('.inf-banner img');
-      if (banner && !banner.src) {
-        banner.onload = function(){ banner.classList.add('is-loaded'); };
-        banner.src = img.src;
+      if (card) {
+        card.querySelectorAll('.inf-banner img').forEach(function(tileImg){
+          if (tileImg.src) return;
+          tileImg.onload = function(){ tileImg.classList.add('is-loaded'); };
+          tileImg.src = img.src;
+        });
       }
     };
     img.src = list[0];
@@ -639,36 +648,14 @@
     'c-tag-water': 'var(--color-navy)', 'c-tag-fire': 'var(--color-orange)',
     'c-tag-gold': 'var(--color-amber)', '': 'var(--color-neutral-4)'
   };
-  /* Banner fallback gradients — rule-based, not random: the profile's
-     first recognised niche picks the owning DLS element (food→Gold,
-     beauty→Wood, parenting→Earth, fitness/gaming→Fire, everything
-     lifestyle-shaped→Water), so the hue MEANS something at a glance.
-     The name hash then varies only the angle and the partner pastel
-     (one of the two neighbouring elements), so same-niche cards stay
-     in the same family without reading as copies. */
-  var ELEMENT_ORDER = ['fire', 'wood', 'earth', 'water', 'gold'];
-  var NICHE_ELEMENT = [
-    [/food|cook|foodie|bak|recipe|makan/i, 'gold'],
-    [/beauty|skincare|fashion|makeup|style|hair/i, 'wood'],
-    [/parent|family|kid|mom|mum|edu/i, 'earth'],
-    [/fitness|sport|gym|run|esport|gam(e|ing|er)|entertain/i, 'fire']
-  ];
-  function elementOf(rec){
-    var text = (rec.niches || []).join(' ');
-    for (var i = 0; i < NICHE_ELEMENT.length; i++) {
-      if (NICHE_ELEMENT[i][0].test(text)) return NICHE_ELEMENT[i][1];
-    }
-    return 'water';
-  }
-  function gradOf(rec){
-    var h = 0, name = rec.name;
-    for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-    var el = elementOf(rec);
-    var idx = ELEMENT_ORDER.indexOf(el);
-    var partner = ELEMENT_ORDER[(idx + (h % 2 ? 1 : ELEMENT_ORDER.length - 1)) % ELEMENT_ORDER.length];
-    var angle = 115 + (h % 70);
-    return 'linear-gradient(' + angle + 'deg, var(--color-' + partner +
-      '-pastel), var(--color-' + el + '-pastel) 70%)';
+  /* Banner placeholder tiles — one hue per gender, stepped light→strong
+     across the three tiles: Wood pink for female, Water blue for male,
+     neutrals when gender isn't recorded. */
+  function tileShades(rec){
+    var g = (rec.gender || '').toLowerCase();
+    if (g === 'female') return ['var(--color-wood-bg)', 'var(--color-wood-bg-strong)', 'var(--color-wood-pastel)'];
+    if (g === 'male') return ['var(--color-water-bg)', 'var(--color-water-bg-strong)', 'var(--color-water-pastel)'];
+    return ['var(--color-neutral-2)', 'var(--color-neutral-3)', 'var(--color-neutral-4)'];
   }
   function cardHTML(r){
     var meta = [r.age, r.gender, r.location].filter(Boolean).join(' · ') || '—';
@@ -693,7 +680,10 @@
           '<button class="inf-menu-item" type="button" data-act="edit" data-id="' + r.id + '"><i class="ph ph-pencil-simple"></i> Edit</button>' +
           '<button class="inf-menu-item is-danger" type="button" data-act="remove" data-id="' + r.id + '"><i class="ph ph-trash"></i> Remove</button>' +
         '</span></span>' +
-      '<div class="inf-banner" style="background:' + gradOf(r) + '"><img alt="" />' +
+      '<div class="inf-banner">' +
+        tileShades(r).map(function(shade){
+          return '<span class="inf-tile" style="background:' + shade + '"><img alt="" /></span>';
+        }).join('') +
         (pinned ? '<span class="inf-pinmark" title="Pinned"><i class="ph-fill ph-push-pin"></i></span>' : '') +
       '</div>' +
       '<span class="c-card-profile-avatar">' + esc(initialsOf(r.name)) +
