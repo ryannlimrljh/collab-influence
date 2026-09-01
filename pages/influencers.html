@@ -1978,7 +1978,7 @@
      the return trip to the card's own settle transition. The entry rect
      is cached at pointerover because measuring a card mid-tilt returns
      its ROTATED bounding box, which feeds the angle back into itself. */
-  var TILT_MAX = 10;
+  var TILT_MAX = 4; /* whisper-level: the card leans, it doesn't swivel */
   var tiltCard = null, tiltRect = null;
   function untilt(){
     if (!tiltCard) return;
@@ -2001,7 +2001,7 @@
     var px = (e.clientX - tiltRect.left) / tiltRect.width;
     var py = (e.clientY - tiltRect.top) / tiltRect.height;
     tiltCard.classList.add('is-tilting');
-    tiltCard.style.transform = 'translateY(-2px) scale(1.03)' +
+    tiltCard.style.transform = 'translateY(-2px) scale(1.015)' +
       ' rotateX(' + (-(py - 0.5) * 2 * TILT_MAX).toFixed(2) + 'deg)' +
       ' rotateY(' + ((px - 0.5) * 2 * TILT_MAX).toFixed(2) + 'deg)';
   });
