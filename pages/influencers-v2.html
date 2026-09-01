@@ -149,13 +149,62 @@
     box-shadow:var(--shadow-3);
     padding:calc(var(--spacing-32) - 1px) 0 calc(var(--spacing-20) - 1px);}
 
-  /* Selection bar — replaces the subtitle line while a selection is
-     live, so the count sits where the roster count normally reads. */
-  .inf-selbar{display:none; align-items:center; gap:var(--spacing-12);
-    margin-top:var(--spacing-8);}
-  .inf-selbar.is-on{display:flex;}
-  .inf-selbar .cnt{font-size:var(--text-body2-size); font-weight:700;
-    color:var(--color-neutral-9);}
+  /* ── Selection bar — the pastel-rim panel that opens under the filter
+     row the moment anything is selected. Same sweep recipe the planner
+     uses for its AI surfaces (pastel gradient at low opacity behind the
+     content, plus a masked 1px rim), because this is the doorway to a
+     generated artefact rather than a plain toolbar. */
+  .inf-selbar{position:relative; z-index:0; overflow:hidden;
+    display:flex; align-items:center; gap:var(--spacing-16);
+    padding:var(--spacing-16) var(--spacing-20);
+    border-radius:var(--radius-lg); background:var(--color-neutral-1);
+    /* Collapsed by default; height/opacity are animated on open. */
+    max-height:0; opacity:0; margin:0;
+    padding-top:0; padding-bottom:0; border-radius:var(--radius-lg);
+    transition:max-height .34s var(--ease-settle),
+      opacity .24s var(--ease-standard),
+      margin .34s var(--ease-settle),
+      padding .34s var(--ease-settle);}
+  .inf-selbar.is-on{max-height:120px; opacity:1;
+    margin:var(--spacing-12) 0 0;
+    padding-top:var(--spacing-16); padding-bottom:var(--spacing-16);}
+  .inf-selbar::before, .inf-selbar::after{content:''; position:absolute;
+    inset:0; border-radius:inherit; pointer-events:none;
+    background-image:linear-gradient(90deg,var(--color-fire-pastel) 0%,var(--color-wood-pastel) 20%,var(--color-earth-pastel) 40%,var(--color-water-pastel) 60%,var(--color-gold-pastel) 80%,var(--color-fire-pastel) 100%);
+    background-size:200% 100%; animation:inf-sweep 6s linear infinite;}
+  .inf-selbar::before{z-index:-1; opacity:.16;}
+  .inf-selbar::after{z-index:1; padding:1px;
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude;}
+  @keyframes inf-sweep{to{background-position:-200% 0;}}
+  @media (prefers-reduced-motion:reduce){
+    .inf-selbar{transition:none;}
+    .inf-selbar::before, .inf-selbar::after{animation:none;}
+  }
+  /* Overlapping thumbnails of who is in the set — the selection made
+     concrete, so you can see whether it is the right people. */
+  .inf-selstack{display:flex; flex:none; padding-left:6px;}
+  .inf-selstack .c-card-profile-avatar{width:34px; height:34px; margin-left:-10px;
+    border:2px solid var(--color-neutral-1); box-shadow:var(--shadow-1);
+    font-size:var(--text-label3-size); flex:none;}
+  .inf-selstack .more{display:flex; align-items:center; justify-content:center;
+    width:34px; height:34px; margin-left:-10px; border-radius:var(--radius-pill);
+    border:2px solid var(--color-neutral-1); background:var(--color-obsidian);
+    color:var(--color-neutral-1); font-size:var(--text-footnote-size);
+    font-weight:700; flex:none;}
+  .inf-seltext{min-width:0; flex:1;}
+  .inf-seltext .cnt{display:block; font-size:var(--text-body2-size);
+    font-weight:700; color:var(--color-neutral-9);}
+  .inf-seltext .hint{display:block; margin-top:2px;
+    font-size:var(--text-caption-size); line-height:var(--text-caption-lh);
+    color:var(--color-neutral-5);}
+  .inf-selactions{display:flex; align-items:center; gap:var(--spacing-8);
+    flex:none;}
+  @media (max-width:820px){
+    .inf-selbar{flex-wrap:wrap;}
+    .inf-selbar.is-on{max-height:220px;}
+    .inf-selactions{width:100%; justify-content:flex-end;}
+  }
   /* A selected row reads by fill, not by border: a 2px edge inside a
      table would push every neighbouring cell a pixel. */
   .c-table tbody tr.is-selected{background:var(--color-neutral-2);}
@@ -661,10 +710,6 @@
           <div class="c-pageheader-text">
             <h1>Influencers</h1>
             <p class="sub" id="infSub">The full talent roster, A to Z.</p>
-            <div class="inf-selbar" id="infSelBar">
-              <span class="cnt" id="infSelCount">0 selected</span>
-              <button class="c-btn c-btn-ghost c-btn-sm" type="button" id="infSelClear">Clear selection</button>
-            </div>
           </div>
           <div class="c-pageheader-actions">
             <button class="c-btn c-btn-secondary c-btn-md" type="button" id="infBulkBtn">
@@ -699,6 +744,21 @@
         </div>
       </div>
       <div class="c-filter-tray" id="infTray" hidden></div>
+
+      <!-- Opens under the filters the moment anything is selected. -->
+      <div class="inf-selbar" id="infSelBar" role="region" aria-label="Selected influencers">
+        <span class="inf-selstack" id="infSelStack" aria-hidden="true"></span>
+        <span class="inf-seltext">
+          <span class="cnt" id="infSelCount">0 profiles selected</span>
+          <span class="hint">Select influencers and generate a sharable link for client review</span>
+        </span>
+        <span class="inf-selactions">
+          <button class="c-btn c-btn-ghost c-btn-sm" type="button" id="infSelClear">Clear</button>
+          <button class="c-btn c-btn-primary c-btn-md" type="button" id="infSelGenerate">
+            <i class="ph ph-plus"></i> Generate Client Preview
+          </button>
+        </span>
+      </div>
 
       <div class="inf-layout">
         <div class="inf-main" id="infMain"></div>
@@ -2349,7 +2409,25 @@
     var n = selected.size;
     document.getElementById('infSelBar').classList.toggle('is-on', !!n);
     document.getElementById('infSelCount').textContent =
-      n === 1 ? '1 influencer selected' : n + ' influencers selected';
+      n === 1 ? '1 profile selected' : n + ' profiles selected';
+    if (!n) return;   /* leave the stack as-is while the bar collapses */
+
+    /* Faces, in roster order rather than click order, so the stack is
+       stable as the set grows. Five is where overlapping thumbnails
+       stop reading as individuals; the rest become a +N cap. */
+    var MAX = 5;
+    var ids = all.filter(function(r){ return selected.has(r.id); }).map(function(r){ return r.id; });
+    var stack = document.getElementById('infSelStack');
+    stack.innerHTML = ids.slice(0, MAX).map(function(id){
+      var r = byId[id];
+      return '<span class="c-card-profile-avatar">' + esc(initialsOf(r.name)) +
+        '<img alt="" data-avatar-for="' + id + '" /></span>';
+    }).join('') +
+      (ids.length > MAX ? '<span class="more">+' + (ids.length - MAX) + '</span>' : '');
+    stack.querySelectorAll('img[data-avatar-for]').forEach(function(img){
+      var r = byId[img.dataset.avatarFor];
+      if (r) attachAvatar(img, r);
+    });
   }
   function paintBox(box, on){
     box.classList.toggle('on', on);
@@ -2393,6 +2471,15 @@
     paintHeadBox();
     paintSelBar();
   }
+  /* Generating the preview is the next build's job; this confirms the
+     set and says plainly that the link isn't real yet, rather than
+     pretending to hand over something that doesn't exist. */
+  document.getElementById('infSelGenerate').addEventListener('click', function(){
+    var n = selected.size;
+    if (!n) return;
+    toast('Client preview for ' + n + (n === 1 ? ' profile' : ' profiles') +
+      ' — sharable link coming in the next build.');
+  });
   document.getElementById('infSelClear').addEventListener('click', function(){
     selected.clear();
     mainEl.querySelectorAll('.is-selected').forEach(function(el){ el.classList.remove('is-selected'); });
