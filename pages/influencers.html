@@ -80,8 +80,14 @@
     object-fit:cover; opacity:0;
     transition:opacity var(--duration-slow) var(--ease-standard);}
   .inf-tile img.is-loaded{opacity:1;}
-  .inf-tile:nth-child(1) img{transform:scale(1.7); filter:blur(10px) saturate(1.25) brightness(1.05);}
-  .inf-tile:nth-child(3) img{transform:scale(1.7); filter:blur(10px) saturate(1.15) brightness(.95);}
+  /* Tile treatments — three reads of the harvested photos so the strip
+     features distinct images: a tight close-up, the photo straight, and
+     a duotone tinted by the tile's own gender hue underneath. */
+  .inf-tile img.v-zoom{transform:scale(1.9); object-position:50% 22%;
+    filter:saturate(1.2);}
+  .inf-tile img.v-sharp{}
+  .inf-tile img.v-duo{filter:grayscale(1) contrast(1.08) brightness(1.06);
+    mix-blend-mode:multiply;}
   .inf-card .c-card-profile-avatar{width:64px; height:64px;
     font-size:var(--text-body1-size); margin:-32px 0 var(--spacing-12);
     border:3px solid var(--color-neutral-1); box-shadow:var(--shadow-1);
@@ -219,6 +225,47 @@
     right:var(--spacing-16); z-index:2; background:none; border:none;
     cursor:pointer; padding:0; line-height:1; color:var(--color-neutral-5);
     font-size:20px;}
+  /* ── Split edit mode: the panel widens and an edit pane slides out on
+     the right; the left pane is the same detail view, re-rendered live
+     from the fields as they change. Width/pane sizes animate on the
+     settle curve; the inner column keeps a fixed width so the fields
+     never squish mid-animation. */
+  .inf-cardmodal-panel{transition:opacity .3s var(--ease-standard),
+    width .45s var(--ease-settle);}
+  .inf-cardmodal-panel.is-editing{width:min(860px, calc(100vw - var(--spacing-32)));}
+  .inf-detail-cols{display:flex; flex:1; min-height:0;}
+  .inf-detail-left{flex:1; min-width:0; display:flex; flex-direction:column;
+    min-height:0;}
+  .inf-detail-right{width:0; opacity:0; overflow:hidden; flex:none;
+    border-left:1px solid transparent;
+    transition:width .45s var(--ease-settle),
+      opacity .3s var(--ease-standard),
+      border-color .3s var(--ease-standard);}
+  .is-editing .inf-detail-right{width:380px; opacity:1;
+    border-left:1px solid var(--color-neutral-3);}
+  .inf-detail-right-inner{width:380px; height:100%; overflow-y:auto;
+    padding:var(--spacing-24);}
+  .inf-edit-eyebrow{margin:0 0 var(--spacing-12);
+    font-size:var(--text-caption-size); line-height:var(--text-caption-lh);
+    font-weight:700; text-transform:uppercase;
+    letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
+  .inf-detail-right .c-field{width:100%;}
+  #infEditCancel, #infEditSave{display:none;}
+  .is-editing ~ .inf-drawer-foot #infEditCancel{display:inline-flex;}
+  .inf-cardmodal-panel.is-editing #infDrawerRemove,
+  .inf-cardmodal-panel.is-editing #infDrawerEdit{display:none;}
+  .inf-cardmodal-panel.is-editing #infEditCancel,
+  .inf-cardmodal-panel.is-editing #infEditSave{display:inline-flex;}
+  @media (max-width:760px){
+    /* No room for a live preview beside the fields: editing takes the
+       whole panel. */
+    .inf-cardmodal-panel.is-editing .inf-detail-left{display:none;}
+    .is-editing .inf-detail-right{width:100%;}
+    .inf-detail-right-inner{width:100%;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .inf-cardmodal-panel, .inf-detail-right{transition:none;}
+  }
   .inf-drawer-head{display:flex; align-items:flex-start; gap:var(--spacing-12);
     padding:var(--spacing-24) var(--spacing-24) var(--spacing-16); flex:none;}
   .inf-drawer-head .c-card-profile-avatar{width:48px; height:48px;
@@ -497,11 +544,58 @@
   <div class="inf-cardmodal-backdrop"></div>
   <div class="inf-cardmodal-panel" id="infDetailPanel" role="dialog" aria-modal="true" aria-label="Influencer details">
     <button class="inf-cardmodal-close" type="button" id="infDrawerClose" aria-label="Close details"><i class="ph ph-x"></i></button>
-    <div class="inf-drawer-head" id="infDrawerHead"></div>
-    <div class="inf-drawer-body" id="infDrawerBody"></div>
+    <div class="inf-detail-cols">
+      <div class="inf-detail-left">
+        <div class="inf-drawer-head" id="infDrawerHead"></div>
+        <div class="inf-drawer-body" id="infDrawerBody"></div>
+      </div>
+      <div class="inf-detail-right" aria-label="Edit profile">
+        <div class="inf-detail-right-inner">
+          <h5 class="inf-edit-eyebrow">Edit profile</h5>
+          <div class="inf-form-grid">
+            <div class="c-field span2"><label for="e-name">Name</label>
+              <input id="e-name" /></div>
+            <div class="c-field span2"><label for="e-niche">Niches</label>
+              <input id="e-niche" placeholder="Comma separated" /></div>
+            <div class="c-field"><label for="e-age">Age group</label>
+              <select id="e-age"><option value="">—</option><option>20-30</option><option>30-40</option><option>40-50</option><option>50-60</option></select></div>
+            <div class="c-field"><label for="e-gender">Gender</label>
+              <select id="e-gender"><option value="">—</option><option>Female</option><option>Male</option></select></div>
+            <div class="c-field"><label for="e-eth">Ethnicity</label>
+              <select id="e-eth"><option value="">—</option><option>Malay</option><option>Chinese</option><option>Indian</option><option>Other</option></select></div>
+            <div class="c-field"><label for="e-loc">Location</label>
+              <input id="e-loc" /></div>
+            <p class="inf-form-eyebrow">Platforms</p>
+            <div class="c-field"><label for="e-tt">TikTok handle</label>
+              <input id="e-tt" placeholder="@handle" /></div>
+            <div class="c-field"><label for="e-ttf">Followers</label>
+              <input id="e-ttf" inputmode="numeric" /></div>
+            <div class="c-field"><label for="e-ig">Instagram handle</label>
+              <input id="e-ig" placeholder="@handle" /></div>
+            <div class="c-field"><label for="e-igf">Followers</label>
+              <input id="e-igf" inputmode="numeric" /></div>
+            <div class="c-field"><label for="e-xhs">Xiaohongshu handle</label>
+              <input id="e-xhs" placeholder="@handle" /></div>
+            <div class="c-field"><label for="e-xhsf">Followers</label>
+              <input id="e-xhsf" inputmode="numeric" /></div>
+            <p class="inf-form-eyebrow">Contact — internal only</p>
+            <div class="c-field"><label for="e-email">Email</label>
+              <input id="e-email" type="email" /></div>
+            <div class="c-field"><label for="e-phone">Phone</label>
+              <input id="e-phone" /></div>
+            <div class="c-field span2"><label for="e-addr">Address</label>
+              <textarea id="e-addr" rows="2"></textarea></div>
+            <div class="c-field"><label for="e-nric">NRIC</label>
+              <input id="e-nric" /></div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="inf-drawer-foot">
       <button class="c-btn c-btn-ghost c-btn-md" type="button" id="infDrawerRemove" style="color:var(--color-red);"><i class="ph ph-trash"></i> Remove</button>
       <button class="c-btn c-btn-secondary c-btn-md" type="button" id="infDrawerEdit"><i class="ph ph-pencil-simple"></i> Edit</button>
+      <button class="c-btn c-btn-ghost c-btn-md" type="button" id="infEditCancel">Cancel</button>
+      <button class="c-btn c-btn-primary c-btn-md" type="button" id="infEditSave">Save changes</button>
     </div>
   </div>
 </div>
@@ -602,6 +696,8 @@
 
 <script src="../shared/shell.js?v=0.9.46"></script>
 <script src="../shared/influencers-data.js"></script>
+<script src="../shared/avatar-manifest.js?v=1"></script>
+<script src="../shared/post-manifest.js?v=1"></script>
 <script src="../shared/influencer-store.js?v=1"></script>
 <script>
 (function () {
@@ -663,19 +759,54 @@
       localStorage.setItem(AVA_KEY, JSON.stringify(c));
     } catch (e) {}
   }
+  /* Harvested local photos (scripts/harvest-avatars.py) come first —
+     no rate limits, Instagram included; unavatar stays as the runtime
+     fallback for profiles the harvest missed. */
+  function localAvatars(rec){
+    var m = (window.AVATAR_FILES || {})[rec.id] || {};
+    var out = [];
+    if (m.tt) out.push('../assets/avatars/' + rec.id + '-tt.jpg');
+    if (m.ig) out.push('../assets/avatars/' + rec.id + '-ig.jpg');
+    return out;
+  }
+  /* Harvested TikTok POST images (scripts/harvest-posts.py) — real,
+     distinct content shots for the banner strip. */
+  function localPosts(rec){
+    var n = (window.POST_FILES || {})[rec.id] || 0;
+    var out = [];
+    for (var k = 1; k <= n; k++) out.push('../assets/posts/' + rec.id + '-p' + k + '.jpg');
+    return out;
+  }
   function avatarCandidates(rec){
+    /* unavatar's TikTok photo first ON PURPOSE: the banner composes the
+       harvested Instagram photo into tile one at render time, so the
+       runtime-resolved image (which fills the other tiles) being TikTok
+       is what makes the strip feature two different photos. */
     var out = [];
     (rec.platforms || []).forEach(function (p) {
       if (!p.handle) return;
-      if (p.platform === 'tiktok') out.unshift('https://unavatar.io/tiktok/' + encodeURIComponent(p.handle) + '?fallback=false');
+      if (p.platform === 'tiktok') out.push('https://unavatar.io/tiktok/' + encodeURIComponent(p.handle) + '?fallback=false');
+    });
+    out = out.concat(localAvatars(rec));
+    (rec.platforms || []).forEach(function (p) {
+      if (!p.handle) return;
       if (p.platform === 'instagram') out.push('https://unavatar.io/instagram/' + encodeURIComponent(p.handle) + '?fallback=false');
     });
     return out;
   }
   function attachAvatar(img, rec){
+    var locals = localAvatars(rec);
     var cached = avaCache()[rec.id];
-    if (cached === 'none') return;
-    var list = cached ? [cached] : avatarCandidates(rec);
+    var list;
+    if (cached === 'none') {
+      if (!locals.length) return;
+      list = locals;          /* remote known dead, but a harvested file exists */
+      cached = null;
+    } else if (cached) {
+      list = [cached];
+    } else {
+      list = avatarCandidates(rec);
+    }
     if (!list.length) { avaSet(rec.id, 'none'); return; }
     var i = 0;
     img.onerror = function () {
@@ -686,12 +817,14 @@
     img.onload = function () {
       if (!cached) avaSet(rec.id, list[i]);
       img.classList.add('is-loaded');
-      /* The banner strip is the same photo across all three tiles —
-         one fetch, the browser cache serves the copies. */
+      /* Runtime-resolved photo (no harvested files): the one image
+         still feeds all three tiles, differentiated by treatment. */
       var card = img.closest('.inf-card');
       if (card) {
-        card.querySelectorAll('.inf-banner img').forEach(function(tileImg){
+        var variants = ['v-zoom', 'v-sharp', 'v-duo'];
+        card.querySelectorAll('.inf-banner img').forEach(function(tileImg, ti){
           if (tileImg.src) return;
+          tileImg.classList.add(variants[ti] || 'v-sharp');
           tileImg.onload = function(){ tileImg.classList.add('is-loaded'); };
           tileImg.src = img.src;
         });
@@ -699,6 +832,15 @@
     };
     img.src = list[0];
   }
+  /* Banner tiles rendered with src up front still get the fade-in:
+     load events don't bubble, but they do capture. */
+  document.addEventListener('load', function(e){
+    var t = e.target;
+    if (t && t.tagName === 'IMG' && t.closest &&
+        t.closest('.inf-banner, .c-card-profile-avatar')) {
+      t.classList.add('is-loaded');
+    }
+  }, true);
   var avatarIO = ('IntersectionObserver' in window)
     ? new IntersectionObserver(function (entries) {
         entries.forEach(function (en) {
@@ -792,9 +934,30 @@
           '<button class="inf-menu-item is-danger" type="button" data-act="remove" data-id="' + r.id + '"><i class="ph ph-trash"></i> Remove</button>' +
         '</span></span>' +
       '<div class="inf-banner">' +
-        tileShades(r).map(function(shade){
-          return '<span class="inf-tile" style="background:' + shade + '"><img alt="" /></span>';
-        }).join('') +
+        (function(){
+          /* Strip composition, best material first: harvested TikTok
+             POST images fill tiles as themselves (real distinct
+             content), the harvested Instagram photo takes a free tile
+             as a close-up, and any tile still empty is filled at
+             runtime by the avatar chain (v-zoom/v-sharp/v-duo by
+             position). No imagery at all leaves the gender-hue tiles. */
+          var posts = localPosts(r);
+          var ig = localAvatars(r).filter(function(p){ return p.indexOf('-ig.') > -1; })[0];
+          var slots = [null, null, null];
+          if (posts[0]) slots[0] = {s: posts[0], v: 'v-sharp'};
+          if (posts[1]) slots[2] = {s: posts[1], v: 'v-sharp'};
+          if (ig) {
+            var free = slots[0] ? (slots[1] ? 2 : 1) : 0;
+            if (!slots[free]) slots[free] = {s: ig, v: 'v-zoom'};
+          }
+          return tileShades(r).map(function(shade, ti){
+            return '<span class="inf-tile" style="background:' + shade + '">' +
+              (slots[ti]
+                ? '<img class="' + slots[ti].v + '" alt="" loading="lazy" src="' + slots[ti].s + '" />'
+                : '<img alt="" />') +
+              '</span>';
+          }).join('');
+        })() +
         (pinned ? '<span class="inf-pinmark" title="Pinned"><i class="ph-fill ph-push-pin"></i></span>' : '') +
       '</div>' +
       '<span class="c-card-profile-avatar">' + esc(initialsOf(r.name)) +
@@ -1333,20 +1496,26 @@
       (from.left + from.width / 2) <= window.innerWidth / 2 ? '1' : '-1');
     return true;
   }
-  function openDrawer(id, sourceEl){
-    var r = byId[id];
-    if (!r) return;
-    drawerId = id;
-    clearTimeout(hideTimer);
-    swingSrcEl = sourceEl || null;
-    swingSrcRect = sourceEl ? sourceEl.getBoundingClientRect() : null;
+  /* The detail view renderer — used at open, and re-run live from the
+     edit pane on every change so the left panel mirrors the fields.
+     A resolved avatar photo survives re-renders via keepSrc. */
+  function renderDetailContent(r, keepAvatar){
+    var headEl = document.getElementById('infDrawerHead');
+    var prevImg = headEl.querySelector('img');
+    var keepSrc = keepAvatar && prevImg && prevImg.classList.contains('is-loaded')
+      ? prevImg.getAttribute('src') : null;
     var meta = [r.age, r.gender, r.ethnicity, r.location].filter(Boolean).join(' · ');
-    document.getElementById('infDrawerHead').innerHTML =
+    headEl.innerHTML =
       '<span class="c-card-profile-avatar">' + esc(initialsOf(r.name)) +
         '<img alt="" data-avatar-for="' + r.id + '" /></span>' +
       '<div><h3>' + esc(r.name) + '</h3><p>' + esc(meta || '—') + '</p></div>';
-    var img = document.getElementById('infDrawerHead').querySelector('img');
-    attachAvatar(img, r);
+    var img = headEl.querySelector('img');
+    if (keepSrc) {
+      img.classList.add('is-loaded');
+      img.src = keepSrc;
+    } else {
+      attachAvatar(img, r);
+    }
 
     var badges = (r.niches || []).map(function(n){
       return '<span class="c-badge c-badge-neutral">' + esc(n) + '</span>';
@@ -1370,6 +1539,17 @@
         '<div class="inf-kv"><dt>Address</dt><dd>' + esc(pii.address || '—') + '</dd></div>' +
         '<div class="inf-kv"><dt>NRIC</dt><dd>' + esc(pii.nric || '—') + '</dd></div>' +
         '</dl></div></div>';
+  }
+
+  function openDrawer(id, sourceEl, startEditing){
+    var r = byId[id];
+    if (!r) return;
+    drawerId = id;
+    clearTimeout(hideTimer);
+    swingSrcEl = sourceEl || null;
+    swingSrcRect = sourceEl ? sourceEl.getBoundingClientRect() : null;
+    renderDetailContent(r, false);
+    if (startEditing) enterEdit(); else exitEditMode();
     drawerScrim.classList.add('is-open');
     drawerScrim.setAttribute('aria-hidden', 'false');
     if (!REDUCED && setSwingVars()) {
@@ -1396,11 +1576,81 @@
   drawerScrim.addEventListener('click', function(e){
     if (e.target.closest('.inf-cardmodal-backdrop')) closeDrawer();
   });
-  document.getElementById('infDrawerEdit').addEventListener('click', function(){
+
+  /* ── Split edit mode: fields on the right, the left panel re-rendered
+     from them on every input so edits reflect immediately. */
+  var E = function (id) { return document.getElementById(id); };
+  function fillEditFields(r){
+    E('e-name').value = r.name || '';
+    E('e-niche').value = (r.niches || []).join(', ');
+    E('e-age').value = r.age || '';
+    E('e-gender').value = r.gender || '';
+    E('e-eth').value = ['Malay','Chinese','Indian'].indexOf(r.ethnicity) > -1 ? r.ethnicity : (r.ethnicity ? 'Other' : '');
+    E('e-loc').value = r.location || '';
+    E('e-tt').value = platGet(r, 'tiktok').handle || '';
+    E('e-ttf').value = platGet(r, 'tiktok').followers != null ? platGet(r, 'tiktok').followers : '';
+    E('e-ig').value = platGet(r, 'instagram').handle || '';
+    E('e-igf').value = platGet(r, 'instagram').followers != null ? platGet(r, 'instagram').followers : '';
+    E('e-xhs').value = platGet(r, 'xhs').handle || '';
+    E('e-xhsf').value = platGet(r, 'xhs').followers != null ? platGet(r, 'xhs').followers : '';
+    E('e-email').value = (r.pii || {}).email || '';
+    E('e-phone').value = (r.pii || {}).phone || '';
+    E('e-addr').value = (r.pii || {}).address || '';
+    E('e-nric').value = (r.pii || {}).nric || '';
+  }
+  function editDraft(){
+    var base = byId[drawerId] || {};
+    var platforms = [];
+    [['tiktok', 'TikTok', 'e-tt', 'e-ttf', 'https://www.tiktok.com/@'],
+     ['instagram', 'Instagram', 'e-ig', 'e-igf', 'https://www.instagram.com/'],
+     ['xhs', 'Xiaohongshu', 'e-xhs', 'e-xhsf', '']].forEach(function(row){
+      var h = E(row[2]).value.trim().replace(/^@/, '');
+      var f = numOrNull(E(row[3]).value);
+      if (h || f != null) {
+        platforms.push({platform: row[0], label: row[1], handle: h,
+          followers: f, link: h && row[4] ? row[4] + h : ''});
+      }
+    });
+    return {
+      id: base.id,
+      name: E('e-name').value.trim() || base.name,
+      niches: E('e-niche').value.split(',').map(function(s){ return s.trim(); }).filter(Boolean),
+      age: E('e-age').value, gender: E('e-gender').value,
+      ethnicity: E('e-eth').value, location: E('e-loc').value.trim(),
+      platforms: platforms,
+      pii: {email: E('e-email').value.trim(), phone: E('e-phone').value.trim(),
+        address: E('e-addr').value.trim(), nric: E('e-nric').value.trim()}
+    };
+  }
+  function enterEdit(){
+    var r = byId[drawerId];
+    if (!r) return;
+    fillEditFields(r);
+    detailPanel.classList.add('is-editing');
+    setTimeout(function(){ E('e-name').focus(); }, 300);
+  }
+  function exitEditMode(){
+    detailPanel.classList.remove('is-editing');
+  }
+  document.querySelector('.inf-detail-right').addEventListener('input', function(){
     if (!drawerId) return;
-    var id = drawerId;
-    closeDrawer();
-    openForm(id);
+    renderDetailContent(editDraft(), true);
+  });
+  document.getElementById('infDrawerEdit').addEventListener('click', enterEdit);
+  document.getElementById('infEditCancel').addEventListener('click', function(){
+    exitEditMode();
+    if (byId[drawerId]) renderDetailContent(byId[drawerId], true);
+  });
+  document.getElementById('infEditSave').addEventListener('click', function(){
+    if (!drawerId) return;
+    var rec = editDraft();
+    if (!rec.name) { E('e-name').focus(); return; }
+    delete rec.id;
+    influencerStore.update(drawerId, rec);
+    toast('Saved changes to ' + rec.name + '.');
+    exitEditMode();
+    render();
+    if (byId[drawerId]) renderDetailContent(byId[drawerId], true);
   });
   document.getElementById('infDrawerRemove').addEventListener('click', function(){
     if (!drawerId) return;
@@ -1550,7 +1800,7 @@
         render();
       }
       if (item.dataset.act === 'view') openDrawer(item.dataset.id, item.closest('.inf-card, tr'));
-      if (item.dataset.act === 'edit') openForm(item.dataset.id);
+      if (item.dataset.act === 'edit') openDrawer(item.dataset.id, item.closest('.inf-card, tr'), true);
       if (item.dataset.act === 'remove') askRemove(item.dataset.id);
       return;
     }
@@ -1577,7 +1827,14 @@
     if (delScrim.classList.contains('is-open')) closeRemove();
     else if (bulkScrim.classList.contains('is-open')) closeBulk();
     else if (formScrim.classList.contains('is-open')) closeForm();
-    else if (drawerScrim.classList.contains('is-open')) closeDrawer();
+    else if (drawerScrim.classList.contains('is-open')) {
+      if (detailPanel.classList.contains('is-editing')) {
+        exitEditMode();
+        if (byId[drawerId]) renderDetailContent(byId[drawerId], true);
+      } else {
+        closeDrawer();
+      }
+    }
   });
 
   render();
