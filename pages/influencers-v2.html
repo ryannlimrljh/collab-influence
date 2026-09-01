@@ -381,6 +381,26 @@
     .inf-cardmodal-panel.is-swinging-open,
     .inf-cardmodal-panel.is-swinging-closed{animation:none;}
   }
+  /* Bulk upload uses the same fold as Add influencer and the detail
+     card, so every panel on this page arrives the same way. It keeps
+     the c-cbrief sheet styling and only borrows the swing. */
+  /* .c-cbrief centres itself with position:fixed + a translate(-50%,-50%)
+     transform. The swing keyframes own the transform, so that centring
+     would be wiped out mid-flight and the panel would land off-screen.
+     Hand the centring to the flex container instead and let the panel
+     be an ordinary in-flow box. */
+  .inf-bulkpanel{position:relative; top:auto; left:auto; transform:none;
+    z-index:1; transform-origin:top left;
+    opacity:0; transition:opacity .3s var(--ease-standard);
+    max-height:calc(100dvh - var(--spacing-60)); overflow-y:auto;}
+  .inf-cardmodal.is-shown .inf-bulkpanel{opacity:1;}
+  .inf-bulkpanel.is-swinging-open{animation:inf-swing-open .8s cubic-bezier(.25,.9,.35,1) both;}
+  .inf-bulkpanel.is-swinging-closed{animation:inf-swing-close .55s cubic-bezier(.3,.6,.35,1) both;}
+  @media (prefers-reduced-motion:reduce){
+    .inf-bulkpanel.is-swinging-open,
+    .inf-bulkpanel.is-swinging-closed{animation:none;}
+  }
+
   .inf-cardmodal-close{position:absolute; top:var(--spacing-16);
     right:var(--spacing-16); z-index:2; background:none; border:none;
     cursor:pointer; padding:0; line-height:1; color:var(--color-neutral-5);
@@ -934,8 +954,9 @@
 </div>
 
 <!-- Bulk upload modal -->
-<div class="c-cbrief-scrim" id="infBulkScrim">
-  <div class="c-cbrief" role="dialog" aria-modal="true" aria-labelledby="infBulkTitle">
+<div class="inf-cardmodal" id="infBulkScrim" aria-hidden="true">
+  <div class="inf-cardmodal-backdrop"></div>
+  <div class="c-cbrief inf-bulkpanel" role="dialog" aria-modal="true" aria-labelledby="infBulkTitle">
     <button class="c-cbrief-close" type="button" id="infBulkClose" aria-label="Close bulk upload"><i class="ph ph-x"></i></button>
     <span class="c-herocard-eyebrow">Bulk upload</span>
     <h3 style="margin:0; font-size:var(--text-h4-size); line-height:var(--text-h4-lh); font-weight:var(--text-h4-weight);" id="infBulkTitle">Add influencers from a file</h3>
@@ -1794,13 +1815,40 @@
     var confirmBtn = document.getElementById('infBulkConfirm');
     confirmBtn.disabled = true;
     confirmBtn.textContent = 'Add 0 influencers';
-    bulkScrim.classList.add('is-open');
+    openBulk(this);
   });
-  function closeBulk(){ bulkScrim.classList.remove('is-open'); }
+  var bulkPanel = document.querySelector('.inf-bulkpanel');
+  var bulkSrcEl = null, bulkHideTimer = null;
+  function openBulk(sourceEl){
+    clearTimeout(bulkHideTimer);
+    bulkSrcEl = sourceEl || null;
+    bulkScrim.classList.add('is-open');
+    bulkScrim.setAttribute('aria-hidden', 'false');
+    if (!REDUCED && swingVarsFor(bulkPanel, bulkSrcEl, null)) {
+      bulkPanel.classList.add('is-swinging-open');
+    }
+    bulkScrim.classList.add('is-shown');
+  }
+  /* Folds back into the button it came out of, and only stops being
+     display:flex once the flight has landed. */
+  function closeBulk(){
+    if (!bulkScrim.classList.contains('is-open')) return;
+    if (!REDUCED && swingVarsFor(bulkPanel, bulkSrcEl, null)) {
+      bulkPanel.classList.add('is-swinging-closed');
+    }
+    bulkScrim.classList.remove('is-shown');
+    clearTimeout(bulkHideTimer);
+    bulkHideTimer = setTimeout(function(){
+      bulkScrim.classList.remove('is-open');
+      bulkScrim.setAttribute('aria-hidden', 'true');
+      bulkPanel.classList.remove('is-swinging-open', 'is-swinging-closed');
+      bulkSrcEl = null;
+    }, REDUCED ? 320 : 600);
+  }
   document.getElementById('infBulkClose').addEventListener('click', closeBulk);
   document.getElementById('infBulkCancel').addEventListener('click', closeBulk);
   bulkScrim.addEventListener('click', function(e){
-    if (e.target === bulkScrim) closeBulk();
+    if (e.target === bulkScrim || e.target.closest('.inf-cardmodal-backdrop')) closeBulk();
   });
   document.getElementById('infBulkFile').addEventListener('change', function(){
     var file = this.files && this.files[0];
@@ -2054,20 +2102,25 @@
   var isAdding = false; /* the same modal, folding out of the Add button */
   var swingSrcEl = null, swingSrcRect = null, hideTimer = null;
   var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function setSwingVars(){
-    detailPanel.classList.remove('is-swinging-open', 'is-swinging-closed');
-    void detailPanel.offsetWidth;
-    var from = (swingSrcEl && swingSrcEl.isConnected)
-      ? swingSrcEl.getBoundingClientRect() : swingSrcRect;
+  /* Shared by every swing panel (details, add, bulk upload) so they all
+     fly by the same math and read as one behaviour. */
+  function swingVarsFor(panel, srcEl, srcRect){
+    panel.classList.remove('is-swinging-open', 'is-swinging-closed');
+    void panel.offsetWidth;
+    var from = (srcEl && srcEl.isConnected)
+      ? srcEl.getBoundingClientRect() : srcRect;
     if (!from) return false;
-    var to = detailPanel.getBoundingClientRect();
-    detailPanel.style.setProperty('--sw-dx', (from.left - to.left).toFixed(1) + 'px');
-    detailPanel.style.setProperty('--sw-dy', (from.top - to.top).toFixed(1) + 'px');
-    detailPanel.style.setProperty('--sw-sx', (from.width / to.width).toFixed(4));
-    detailPanel.style.setProperty('--sw-sy', (from.height / to.height).toFixed(4));
-    detailPanel.style.setProperty('--sw-dir',
+    var to = panel.getBoundingClientRect();
+    panel.style.setProperty('--sw-dx', (from.left - to.left).toFixed(1) + 'px');
+    panel.style.setProperty('--sw-dy', (from.top - to.top).toFixed(1) + 'px');
+    panel.style.setProperty('--sw-sx', (from.width / to.width).toFixed(4));
+    panel.style.setProperty('--sw-sy', (from.height / to.height).toFixed(4));
+    panel.style.setProperty('--sw-dir',
       (from.left + from.width / 2) <= window.innerWidth / 2 ? '1' : '-1');
     return true;
+  }
+  function setSwingVars(){
+    return swingVarsFor(detailPanel, swingSrcEl, swingSrcRect);
   }
   /* The detail view renderer — used at open, and re-run live from the
      edit pane on every change so the left panel mirrors the fields.
@@ -2118,6 +2171,19 @@
         '</dl></div></div>';
   }
 
+  /* A table row is ~1270x68 while the panel is ~480x640, so flying the
+     panel out of the row itself means scaling it 2.65x wide and 0.1x
+     tall — a squash so extreme it reads as a glitch rather than a fold.
+     The row's avatar is near-square, so the modal grows out of (and
+     folds back into) the person's own photo: nearly uniform scale, and
+     it points at the row you actually opened. Cards already match the
+     panel's proportions, so they stay as they are. */
+  function swingAnchor(el){
+    if (!el) return null;
+    if (el.tagName === 'TR') return el.querySelector('.c-card-profile-avatar') || el;
+    return el;
+  }
+
   function openDrawer(id, sourceEl, startEditing){
     var r = byId[id];
     if (!r) return;
@@ -2125,8 +2191,8 @@
     drawerId = id;
     isAdding = false;
     clearTimeout(hideTimer);
-    swingSrcEl = sourceEl || null;
-    swingSrcRect = sourceEl ? sourceEl.getBoundingClientRect() : null;
+    swingSrcEl = swingAnchor(sourceEl);
+    swingSrcRect = swingSrcEl ? swingSrcEl.getBoundingClientRect() : null;
     renderDetailContent(r, false);
     if (startEditing) enterEdit(); else exitEditMode();
     drawerScrim.classList.add('is-open');
