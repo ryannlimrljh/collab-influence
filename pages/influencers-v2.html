@@ -123,14 +123,45 @@
   .c-card-profile-avatar img.is-loaded{opacity:1;}
   .inf-kebab{position:absolute; top:var(--spacing-8); right:var(--spacing-8);
     z-index:2;}
-  .c-btn.inf-kebab-btn{color:var(--color-neutral-9); width:28px; height:28px;
-    background:rgba(255,255,255,.65); backdrop-filter:blur(4px);
-    border-radius:var(--radius-pill);}
-  /* Pin marker, top-left on the card itself now that there's no banner
-     to sit on — no frosted plate needed over a plain white card. */
-  .inf-pinmark{position:absolute; top:var(--spacing-12); left:var(--spacing-12);
+  /* 34px: comfortably tappable and legible over a plain card, where the
+     old 28px frosted pill was sized to sit on a busy banner. */
+  .c-btn.inf-kebab-btn{color:var(--color-neutral-9); width:34px; height:34px;
+    background:transparent; border-radius:var(--radius-pill);}
+  .c-btn.inf-kebab-btn i{font-size:var(--icon-base);}
+  /* Pin marker sits beside the kebab: top-left now belongs to the
+     selection checkbox, which is the more frequent target. */
+  .inf-pinmark{position:absolute; top:var(--spacing-16); right:var(--spacing-40);
     z-index:2; display:flex; align-items:center; justify-content:center;
     color:var(--color-neutral-5); font-size:var(--icon-sm);}
+
+  /* ── Multi-select — the DLS's own Card/Table select recipes: the real
+     .c-checkbox-box glyph, revealed on hover and persistent once
+     checked, so an unselected grid stays quiet. */
+  .inf-select{position:absolute; top:var(--spacing-12); left:var(--spacing-12);
+    z-index:3; opacity:0;
+    transition:opacity var(--duration-fast) var(--ease-standard);}
+  .inf-select .c-checkbox-box{cursor:pointer; margin-top:0;}
+  .inf-card:hover .inf-select, .inf-card:focus-within .inf-select,
+  .inf-card.is-selected .inf-select{opacity:1;}
+  /* Selected is a persistent 2px Obsidian edge; the padding drops the
+     same pixel the border gains so the content box never shifts. */
+  .inf-card.is-selected{border:2px solid var(--color-obsidian);
+    box-shadow:var(--shadow-3);
+    padding:calc(var(--spacing-32) - 1px) 0 calc(var(--spacing-20) - 1px);}
+  /* Touch: no hover to reveal with, so the boxes are always visible. */
+  @media (hover:none){.inf-select{opacity:1;}}
+
+  /* Selection bar — replaces the subtitle line while a selection is
+     live, so the count sits where the roster count normally reads. */
+  .inf-selbar{display:none; align-items:center; gap:var(--spacing-12);
+    margin-top:var(--spacing-8);}
+  .inf-selbar.is-on{display:flex;}
+  .inf-selbar .cnt{font-size:var(--text-body2-size); font-weight:700;
+    color:var(--color-neutral-9);}
+  /* A selected row reads by fill, not by border: a 2px edge inside a
+     table would push every neighbouring cell a pixel. */
+  .c-table tbody tr.is-selected{background:var(--color-neutral-2);}
+  .c-table-chk-col .c-checkbox-box{margin-top:0;}
   .inf-kebab:hover .inf-kebab-btn, .inf-kebab.is-open .inf-kebab-btn{
     color:var(--color-neutral-9); background:var(--color-neutral-1);}
   .inf-menu{position:absolute; right:0; top:calc(100% + 4px);
@@ -501,6 +532,10 @@
           <div class="c-pageheader-text">
             <h1>Influencers</h1>
             <p class="sub" id="infSub">The full talent roster, A to Z.</p>
+            <div class="inf-selbar" id="infSelBar">
+              <span class="cnt" id="infSelCount">0 selected</span>
+              <button class="c-btn c-btn-ghost c-btn-sm" type="button" id="infSelClear">Clear selection</button>
+            </div>
           </div>
           <div class="c-pageheader-actions">
             <button class="c-btn c-btn-secondary c-btn-md" type="button" id="infBulkBtn">
@@ -891,6 +926,12 @@
   var applied = {}, query = '';
   FACETS.forEach(function(f){ applied[f.key] = []; });
 
+  /* ── Multi-select. Deliberately in memory only: a selection is a
+     working set for the action you are about to take, not a preference
+     that should survive a reload. The next build reads `selected` for
+     its bulk actions. */
+  var selected = new Set();
+
   var all = [], byId = {};
   function refreshData(){
     all = window.influencerStore ? influencerStore.merged(INFLUENCERS) : INFLUENCERS.slice();
@@ -940,7 +981,11 @@
         : '<span class="inf-stat" title="' + title + '">' + inner + '</span>';
     }).join('');
     var pinned = influencerStore.isPinned(r.id);
-    return '<article class="c-card inf-card" tabindex="0" data-id="' + r.id + '" aria-label="' + esc(r.name) + '">' +
+    var sel = selected.has(r.id);
+    return '<article class="c-card inf-card' + (sel ? ' is-selected' : '') + '" tabindex="0" data-id="' + r.id + '" aria-label="' + esc(r.name) + '">' +
+      '<span class="inf-select"><span class="c-checkbox-box' + (sel ? ' on' : '') +
+        '" role="checkbox" tabindex="0" aria-checked="' + sel + '" data-sel="' + r.id +
+        '" aria-label="Select ' + esc(r.name) + '">' + (sel ? '<i class="ph ph-check"></i>' : '') + '</span></span>' +
       '<span class="inf-kebab"><button class="c-btn c-btn-ghost c-btn-sm c-btn-icon inf-kebab-btn" type="button" aria-label="Options for ' + esc(r.name) + '" aria-haspopup="true"><i class="ph ph-dots-three-vertical"></i></button>' +
         '<span class="inf-menu">' +
           '<button class="inf-menu-item" type="button" data-act="pin" data-id="' + r.id + '"><i class="ph ' + (pinned ? 'ph-push-pin-slash' : 'ph-push-pin') + '"></i> ' + (pinned ? 'Unpin' : 'Pin to top') + '</button>' +
@@ -1037,8 +1082,13 @@
         (t ? '<span class="c-tag ' + t.cls + '">' + (t.cls ? '<span class="dot"></span>' : '') + t.name + '</span>' : '') +
         '</span></span></td>';
     }
-    return '<tr class="is-interactive is-clickable" data-id="' + r.id + '"' +
+    var sel = selected.has(r.id);
+    return '<tr class="is-interactive is-clickable' + (sel ? ' is-selected' : '') +
+      '" data-id="' + r.id + '"' +
       (pinned ? '' : ' data-letter="' + letterOf(r.name) + '"') + '>' +
+      '<td class="c-table-chk-col"><span class="c-checkbox-box' + (sel ? ' on' : '') +
+        '" role="checkbox" tabindex="0" aria-checked="' + sel + '" data-sel="' + r.id +
+        '" aria-label="Select ' + esc(r.name) + '">' + (sel ? '<i class="ph ph-check"></i>' : '') + '</span></td>' +
       '<td><span class="inf-rowcell">' +
         '<span class="c-card-profile-avatar">' + esc(initialsOf(r.name)) +
           '<img alt="" loading="lazy" data-avatar-for="' + r.id + '" /></span>' +
@@ -1065,8 +1115,17 @@
       return '<th class="c-table-sort-th' + (num ? ' num' : '') + '" data-sort="' + key + '" role="button" tabindex="0" aria-label="Sort by ' + label + '">' +
         label + ' ' + sortIcon(key) + '</th>';
     }
+    /* Header box carries the real three states: none / some (minus) /
+       all, scoped to the rows currently in view, not the whole roster. */
+    var ids = pinnedHits.concat(restHits).map(function(r){ return r.id; });
+    var on = ids.filter(function(id){ return selected.has(id); }).length;
+    var headCls = on ? 'c-checkbox-box on force-visible' : 'c-checkbox-box force-visible';
+    var headIcon = !on ? '' : (on === ids.length ? '<i class="ph ph-check"></i>' : '<i class="ph ph-minus"></i>');
     return '<div class="c-table-standalone-wrap c-table-scroll-x">' +
       '<table class="c-table c-table-standalone"><thead><tr>' +
+      '<th class="no-sort c-table-chk-col"><span class="' + headCls + '" role="checkbox" tabindex="0" ' +
+        'aria-checked="' + (on === ids.length && on ? 'true' : (on ? 'mixed' : 'false')) + '" ' +
+        'data-sel-all="1" aria-label="Select all shown">' + headIcon + '</span></th>' +
       sth('name', 'Influencer') + sth('age', 'Age') + sth('gender', 'Gender') + sth('location', 'Location') +
       sth('tiktok', 'TikTok', true) + sth('instagram', 'Instagram', true) + sth('xhs', 'XHS', true) +
       '<th class="no-sort c-table-action-col"><span class="sr-only">Actions</span></th>' +
@@ -1203,6 +1262,7 @@
     renderRail();
     if (!keepPills) renderPillbar();
     renderTray();
+    paintSelBar();
     spy();
   }
 
@@ -1986,6 +2046,65 @@
     untilt();
   });
 
+  /* ── Selection wiring. Toggling repaints just the one box and its
+     card/row — never a full render, which would be both wasteful and
+     visually noisy (the FLIP pass would fire on every tick). */
+  function paintSelBar(){
+    var n = selected.size;
+    document.getElementById('infSelBar').classList.toggle('is-on', !!n);
+    document.getElementById('infSelCount').textContent =
+      n === 1 ? '1 influencer selected' : n + ' influencers selected';
+  }
+  function paintBox(box, on){
+    box.classList.toggle('on', on);
+    box.setAttribute('aria-checked', String(on));
+    box.innerHTML = on ? '<i class="ph ph-check"></i>' : '';
+  }
+  /* The header box reflects the rows in view, so it is repainted from
+     the live selection rather than tracked separately. */
+  function paintHeadBox(){
+    var head = mainEl.querySelector('[data-sel-all]');
+    if (!head) return;
+    var ids = [].map.call(mainEl.querySelectorAll('tr[data-id]'), function(tr){ return tr.dataset.id; });
+    var on = ids.filter(function(id){ return selected.has(id); }).length;
+    head.classList.toggle('on', !!on);
+    head.setAttribute('aria-checked', on ? (on === ids.length ? 'true' : 'mixed') : 'false');
+    head.innerHTML = !on ? '' :
+      (on === ids.length ? '<i class="ph ph-check"></i>' : '<i class="ph ph-minus"></i>');
+  }
+  function toggleSelect(id){
+    var on = !selected.has(id);
+    if (on) selected.add(id); else selected.delete(id);
+    var host = mainEl.querySelector('.inf-card[data-id="' + id + '"], tr[data-id="' + id + '"]');
+    if (host) {
+      host.classList.toggle('is-selected', on);
+      var box = host.querySelector('[data-sel]');
+      if (box) paintBox(box, on);
+    }
+    paintHeadBox();
+    paintSelBar();
+  }
+  function selectAllShown(){
+    var ids = [].map.call(mainEl.querySelectorAll('tr[data-id]'), function(tr){ return tr.dataset.id; });
+    var everyOn = ids.length && ids.every(function(id){ return selected.has(id); });
+    ids.forEach(function(id){ if (everyOn) selected.delete(id); else selected.add(id); });
+    mainEl.querySelectorAll('tr[data-id]').forEach(function(tr){
+      var on = selected.has(tr.dataset.id);
+      tr.classList.toggle('is-selected', on);
+      var box = tr.querySelector('[data-sel]');
+      if (box) paintBox(box, on);
+    });
+    paintHeadBox();
+    paintSelBar();
+  }
+  document.getElementById('infSelClear').addEventListener('click', function(){
+    selected.clear();
+    mainEl.querySelectorAll('.is-selected').forEach(function(el){ el.classList.remove('is-selected'); });
+    mainEl.querySelectorAll('[data-sel]').forEach(function(b){ paintBox(b, false); });
+    paintHeadBox();
+    paintSelBar();
+  });
+
   /* ── Card interactions: kebab menus, menu actions, open drawer. */
   function closeMenus(){
     mainEl.querySelectorAll('.inf-kebab.is-open').forEach(function(m){
@@ -1993,6 +2112,11 @@
     });
   }
   mainEl.addEventListener('click', function(e){
+    /* Selection first: these sit inside the card/row, whose own click
+       opens the detail modal — that must not fire from a checkbox. */
+    var selBox = e.target.closest('[data-sel]');
+    if (selBox) { e.stopPropagation(); toggleSelect(selBox.dataset.sel); return; }
+    if (e.target.closest('[data-sel-all]')) { e.stopPropagation(); selectAllShown(); return; }
     var kebabBtn = e.target.closest('.inf-kebab-btn');
     if (kebabBtn) {
       e.stopPropagation();
@@ -2024,6 +2148,13 @@
     if (card) openDrawer(card.dataset.id, card);
   });
   mainEl.addEventListener('keydown', function(e){
+    /* Space and Enter both toggle a focused checkbox, the way a native
+       one behaves; Space is also suppressed from scrolling the page. */
+    if (e.key === ' ' || e.key === 'Enter') {
+      var box = e.target.closest('[data-sel]');
+      if (box) { e.preventDefault(); e.stopPropagation(); toggleSelect(box.dataset.sel); return; }
+      if (e.target.closest('[data-sel-all]')) { e.preventDefault(); e.stopPropagation(); selectAllShown(); return; }
+    }
     if (e.key !== 'Enter') return;
     var th = e.target.closest('th[data-sort]');
     if (th) { toggleSort(th.dataset.sort); return; }
