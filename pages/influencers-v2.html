@@ -348,15 +348,49 @@
   .inf-viewbtn.is-active{background:var(--color-obsidian); color:var(--color-neutral-1);}
   .inf-viewbtn:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:-2px;}
 
-  /* ── List view — the DLS standalone table. */
+  /* ── List view — the DLS standalone table.
+     Fixed layout so the browser honours the column widths below instead
+     of sizing to the longest name; every column then fits the viewport
+     and the table never scrolls sideways. The influencer column takes
+     what's left after the fixed ones, which is what lets it shrink. */
+  .inf-table{table-layout:fixed; width:100%;}
+  .inf-table th, .inf-table td{overflow:hidden;}
+  /* Proportional, not fixed-px: percentages always sum to the table's
+     own width, so the columns fit any viewport without a scroller, and
+     the influencer column stops swallowing all the leftover room the
+     way an `auto` column does on a wide screen. */
+  .inf-col-chk{width:40px;}
+  .inf-col-name{width:25%;}
+  .inf-col-age{width:8%;}
+  .inf-col-gender{width:9%;}
+  .inf-col-loc{width:13%;}
+  .inf-col-plat{width:15%;}
+  .inf-col-act{width:48px;}
   .inf-rowcell{display:flex; align-items:center; gap:var(--spacing-12); min-width:0;}
   .inf-rowcell .c-card-profile-avatar{width:28px; height:28px; flex:none;
     font-size:var(--text-label3-size);}
-  .inf-rowname{font-weight:700; color:var(--color-neutral-9); white-space:nowrap;
-    overflow:hidden; text-overflow:ellipsis; max-width:220px;}
+  .inf-rowcell > .inf-rowtext{min-width:0; flex:1; overflow:hidden;}
+  /* The marquee: the name is truncated at rest, and only a name that
+     genuinely overflows gets measured and scrolled — on row hover, not
+     perpetually, since 495 names looping at once would be unreadable.
+     --shift is the exact overflow in px, written by JS at hover time,
+     so every name travels only as far as it needs to. */
+  .inf-rowname{display:block; font-weight:700; color:var(--color-neutral-9);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .inf-rowname.is-marquee{text-overflow:clip;}
+  .inf-rowname.is-marquee > span{display:inline-block; will-change:transform;
+    animation:inf-marquee var(--dur, 4s) linear infinite;}
+  @keyframes inf-marquee{
+    0%, 12%{transform:translateX(0);}
+    58%, 70%{transform:translateX(calc(var(--shift, 0px) * -1));}
+    100%{transform:translateX(0);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .inf-rowname.is-marquee > span{animation:none;}
+  }
   .inf-rowsub{display:block; font-size:var(--text-caption-size);
     color:var(--color-neutral-5); font-weight:400; margin-top:2px;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;}
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .inf-rowpin{color:var(--color-neutral-5); font-size:var(--icon-micro); flex:none;}
   /* Platform cells: number and tier pill each get their own aligned
      sub-column, so the figures line up down the table. */
@@ -364,8 +398,12 @@
   .inf-plat{display:flex; align-items:center; justify-content:flex-end;
     gap:var(--spacing-8);}
   .inf-plat .pnum{font-variant-numeric:tabular-nums; font-weight:700;
-    min-width:52px; text-align:right; color:var(--color-neutral-9);}
-  .inf-plat .ptier{width:68px; flex:none; display:flex;}
+    min-width:46px; text-align:right; color:var(--color-neutral-9);}
+  .inf-plat .ptier{width:56px; flex:none; display:flex;}
+  /* The tier pill loses its side padding rather than its label: at this
+     column width the word is the payload, the pill is just its frame. */
+  .inf-plat .ptier .c-tag{padding-left:6px; padding-right:6px;
+    font-size:var(--text-footnote-size);}
   th.c-table-sort-th[data-sort]{cursor:pointer; user-select:none;
     white-space:nowrap;}
   .inf-sorticon{font-size:var(--icon-micro); color:var(--color-neutral-4);
@@ -1029,12 +1067,44 @@
        column sort breaks that order, so the rail steps aside with it. */
     railEl.style.display = (view === 'list' && !isDefaultSort()) ? 'none' : '';
   }
+  /* Switching views is a change of representation, not of content, so
+     it crossfades: the outgoing layout drops and settles back a few
+     pixels, the incoming one rises into place. Sequenced (out, swap,
+     in) rather than overlapped — both layouts are the same element, so
+     they cannot occupy it at once. */
+  function switchView(next){
+    view = next;
+    try { localStorage.setItem(VIEW_KEY, view); } catch (err) {}
+    applyViewButtons();
+    if (REDUCED || document.hidden || !mainEl.animate) { render(); return; }
+    var out = mainEl.animate(
+      [{opacity: 1, transform: 'none'},
+       {opacity: 0, transform: 'translateY(6px) scale(.995)'}],
+      {duration: 170, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards'});
+    /* The swap is driven by whichever of onfinish or the timer lands
+       first, and runs exactly once. A hidden or backgrounded tab
+       freezes animations, so onfinish alone would leave the page stuck
+       mid-fade showing the view you just switched away from. */
+    var swapped = false;
+    function swap(){
+      if (swapped) return;
+      swapped = true;
+      render();
+      /* Cancel before the entrance so the outgoing pose (held by
+         fill:forwards) doesn't fight the incoming keyframes. */
+      out.cancel();
+      mainEl.animate(
+        [{opacity: 0, transform: 'translateY(-6px) scale(.995)'},
+         {opacity: 1, transform: 'none'}],
+        {duration: 260, easing: 'cubic-bezier(.32,.72,.3,1)'});
+    }
+    out.onfinish = swap;
+    setTimeout(swap, 260);
+  }
   document.querySelector('.inf-viewseg').addEventListener('click', function(e){
     var b = e.target.closest('.inf-viewbtn');
     if (!b || b.dataset.view === view) return;
-    view = b.dataset.view;
-    try { localStorage.setItem(VIEW_KEY, view); } catch (err) {}
-    render();
+    switchView(b.dataset.view);
   });
 
   /* ── List sorting — name A→Z is the default (the rail's own order);
@@ -1101,7 +1171,8 @@
       '<td><span class="inf-rowcell">' +
         '<span class="c-card-profile-avatar">' + esc(initialsOf(r.name)) +
           '<img alt="" loading="lazy" data-avatar-for="' + r.id + '" /></span>' +
-        '<span style="min-width:0;"><span class="inf-rowname">' + esc(r.name) + '</span>' +
+        '<span class="inf-rowtext">' +
+          '<span class="inf-rowname" title="' + esc(r.name) + '"><span>' + esc(r.name) + '</span></span>' +
           '<span class="inf-rowsub">' + esc((r.niches || []).join(', ') || '—') + '</span></span>' +
         (pinned ? '<i class="ph-fill ph-push-pin inf-rowpin" title="Pinned"></i>' : '') +
       '</span></td>' +
@@ -1120,8 +1191,9 @@
   }
   function listHTML(pinnedHits, restHits){
     var rows = pinnedHits.concat(restHits).map(listRow).join('');
-    function sth(key, label, num){
-      return '<th class="c-table-sort-th' + (num ? ' num' : '') + '" data-sort="' + key + '" role="button" tabindex="0" aria-label="Sort by ' + label + '">' +
+    function sth(key, label, num, col){
+      return '<th class="c-table-sort-th' + (num ? ' num' : '') + ' ' + col +
+        '" data-sort="' + key + '" role="button" tabindex="0" aria-label="Sort by ' + label + '">' +
         label + ' ' + sortIcon(key) + '</th>';
     }
     /* Header box carries the real three states: none / some (minus) /
@@ -1130,14 +1202,21 @@
     var on = ids.filter(function(id){ return selected.has(id); }).length;
     var headCls = on ? 'c-checkbox-box on force-visible' : 'c-checkbox-box force-visible';
     var headIcon = !on ? '' : (on === ids.length ? '<i class="ph ph-check"></i>' : '<i class="ph ph-minus"></i>');
-    return '<div class="c-table-standalone-wrap c-table-scroll-x">' +
-      '<table class="c-table c-table-standalone"><thead><tr>' +
-      '<th class="no-sort c-table-chk-col"><span class="' + headCls + '" role="checkbox" tabindex="0" ' +
+    /* No c-table-scroll-x wrapper: the fixed layout fits the viewport,
+       so a horizontal scroller would only ever be dead chrome. */
+    return '<div class="c-table-standalone-wrap">' +
+      '<table class="c-table c-table-standalone inf-table"><thead><tr>' +
+      '<th class="no-sort c-table-chk-col inf-col-chk"><span class="' + headCls + '" role="checkbox" tabindex="0" ' +
         'aria-checked="' + (on === ids.length && on ? 'true' : (on ? 'mixed' : 'false')) + '" ' +
         'data-sel-all="1" aria-label="Select all shown">' + headIcon + '</span></th>' +
-      sth('name', 'Influencer') + sth('age', 'Age') + sth('gender', 'Gender') + sth('location', 'Location') +
-      sth('tiktok', 'TikTok', true) + sth('instagram', 'Instagram', true) + sth('xhs', 'XHS', true) +
-      '<th class="no-sort c-table-action-col"><span class="sr-only">Actions</span></th>' +
+      sth('name', 'Influencer', false, 'inf-col-name') +
+      sth('age', 'Age', false, 'inf-col-age') +
+      sth('gender', 'Gender', false, 'inf-col-gender') +
+      sth('location', 'Location', false, 'inf-col-loc') +
+      sth('tiktok', 'TikTok', true, 'inf-col-plat') +
+      sth('instagram', 'Instagram', true, 'inf-col-plat') +
+      sth('xhs', 'XHS', true, 'inf-col-plat') +
+      '<th class="no-sort c-table-action-col inf-col-act"><span class="sr-only">Actions</span></th>' +
       '</tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
 
@@ -2053,6 +2132,46 @@
     if (e.relatedTarget && e.relatedTarget.closest &&
         e.relatedTarget.closest('.inf-card[data-id]') === tiltCard) return;
     untilt();
+  });
+
+  /* ── Name marquee. A truncated name scrolls its hidden tail into view
+     while the row is hovered. Measured per row on enter (cheap, one
+     row) rather than for all 495 up front, and only started when the
+     text actually overflows — the pace is a constant px/sec so a long
+     name doesn't whip past faster than a short one. */
+  function startMarquee(row){
+    var name = row.querySelector('.inf-rowname');
+    if (!name || name.classList.contains('is-marquee')) return;
+    if (!name.firstElementChild) return;
+    /* Measured on the clipping box, not the inner span: the span is
+       still inline at this point and an inline element's scrollWidth
+       is not a reliable content width. */
+    var shift = name.scrollWidth - name.clientWidth;
+    if (shift <= 1) return;
+    name.style.setProperty('--shift', shift + 'px');
+    /* The keyframes spend 46% of the cycle travelling and the rest
+       paused at each end, so dividing by 41 lands the scroll itself at
+       roughly 90px/sec — brisk enough to finish while you're still
+       looking, slow enough to read. */
+    name.style.setProperty('--dur', Math.max(2.4, shift / 41).toFixed(1) + 's');
+    name.classList.add('is-marquee');
+  }
+  function stopMarquee(row){
+    var name = row.querySelector('.inf-rowname.is-marquee');
+    if (name) name.classList.remove('is-marquee');
+  }
+  mainEl.addEventListener('pointerover', function(e){
+    if (view !== 'list' || REDUCED || e.pointerType !== 'mouse') return;
+    var row = e.target.closest && e.target.closest('tr[data-id]');
+    if (row) startMarquee(row);
+  });
+  mainEl.addEventListener('pointerout', function(e){
+    if (view !== 'list') return;
+    var row = e.target.closest && e.target.closest('tr[data-id]');
+    if (!row) return;
+    if (e.relatedTarget && e.relatedTarget.closest &&
+        e.relatedTarget.closest('tr[data-id]') === row) return;
+    stopMarquee(row);
   });
 
   /* ── Selection wiring. Toggling repaints just the one box and its
