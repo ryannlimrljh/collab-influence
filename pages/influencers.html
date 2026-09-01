@@ -232,7 +232,7 @@
      never squish mid-animation. */
   .inf-cardmodal-panel{transition:opacity .3s var(--ease-standard),
     width .45s var(--ease-settle);}
-  .inf-cardmodal-panel.is-editing{width:min(860px, calc(100vw - var(--spacing-32)));}
+  .inf-cardmodal-panel.is-editing{width:min(940px, calc(100vw - var(--spacing-32)));}
   .inf-detail-cols{display:flex; flex:1; min-height:0;}
   .inf-detail-left{flex:1; min-width:0; display:flex; flex-direction:column;
     min-height:0;}
@@ -241,10 +241,11 @@
     transition:width .45s var(--ease-settle),
       opacity .3s var(--ease-standard),
       border-color .3s var(--ease-standard);}
-  .is-editing .inf-detail-right{width:380px; opacity:1;
+  .is-editing .inf-detail-right{width:440px; opacity:1;
     border-left:1px solid var(--color-neutral-3);}
-  .inf-detail-right-inner{width:380px; height:100%; overflow-y:auto;
-    padding:var(--spacing-24) var(--spacing-24) var(--spacing-32);}
+  .inf-detail-right-inner{width:440px; height:100%; overflow-y:auto;
+    box-sizing:border-box;
+    padding:var(--spacing-24) var(--spacing-32) var(--spacing-40);}
   /* Right margin clears the modal's close button; the eyebrow gets its
      own breathing room before the first field. */
   .inf-edit-eyebrow{margin:var(--spacing-4) var(--spacing-40) var(--spacing-20) 0;
@@ -252,19 +253,24 @@
     font-weight:700; text-transform:uppercase;
     letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
   .inf-detail-right .c-field{width:100%;}
-  /* Airier rhythm than the compact add-form: more row gap, and the
-     section eyebrows step clearly away from the group above. */
-  .inf-detail-right .inf-form-grid{gap:var(--spacing-16) var(--spacing-16);}
-  .inf-detail-right .inf-form-eyebrow{margin-top:var(--spacing-16);}
+  /* Airier rhythm than the compact add-form: more row gap, grid cells
+     guarded against overflow so inputs never spill past the pane, and
+     the section eyebrows step clearly away from the group above. */
+  .inf-detail-right .inf-form-grid{gap:var(--spacing-20) var(--spacing-16);}
+  .inf-detail-right .inf-form-grid > *{min-width:0;}
+  .inf-detail-right .c-field input,
+  .inf-detail-right .c-field select,
+  .inf-detail-right .c-field textarea{width:100%; max-width:100%;}
+  .inf-detail-right .inf-form-eyebrow{margin-top:var(--spacing-20);}
   #infEditCancel, #infEditSave{display:none;}
   .is-editing ~ .inf-drawer-foot #infEditCancel{display:inline-flex;}
   .inf-cardmodal-panel.is-editing #infDrawerRemove,
   .inf-cardmodal-panel.is-editing #infDrawerEdit{display:none;}
   .inf-cardmodal-panel.is-editing #infEditCancel,
   .inf-cardmodal-panel.is-editing #infEditSave{display:inline-flex;}
-  @media (max-width:760px){
-    /* No room for a live preview beside the fields: editing takes the
-       whole panel. */
+  @media (max-width:920px){
+    /* Not enough room for a healthy live preview beside the fields:
+       editing takes the whole panel instead of crushing the left pane. */
     .inf-cardmodal-panel.is-editing .inf-detail-left{display:none;}
     .is-editing .inf-detail-right{width:100%;}
     .inf-detail-right-inner{width:100%;}
