@@ -48,8 +48,9 @@
   .inf-letter-head .rule{flex:1; border-top:1px solid var(--color-neutral-3);
     align-self:center;}
   .inf-section{margin-bottom:var(--spacing-32);}
+  /* perspective feeds the hover tilt: without it rotateX/rotateY flatten. */
   .inf-grid{display:grid; grid-template-columns:repeat(4, 1fr);
-    gap:var(--spacing-20); align-items:stretch;}
+    gap:var(--spacing-20); align-items:stretch; perspective:900px;}
   @media (max-width:1180px){.inf-grid{grid-template-columns:repeat(3, 1fr);}}
   @media (max-width:880px){.inf-grid{grid-template-columns:repeat(2, 1fr);}}
 
@@ -64,6 +65,12 @@
     transition:box-shadow var(--duration-base) var(--ease-settle),
       transform var(--duration-base) var(--ease-settle);}
   .inf-card:hover{box-shadow:var(--shadow-2); transform:translateY(-2px);}
+  /* Pointer tilt (the landing hero cards' hover): JS writes the rotateX/
+     rotateY inline; this shorter transition makes the card chase the
+     pointer instead of lagging a quarter-second behind it. Dropping the
+     class hands the return trip back to the settle curve above. */
+  .inf-card.is-tilting{transition:transform .16s ease-out,
+    box-shadow var(--duration-base) var(--ease-settle); z-index:5;}
   .inf-card:focus-visible{box-shadow:var(--shadow-focus); outline:none;}
   @media (prefers-reduced-motion:reduce){.inf-card:hover{transform:none;}}
   /* Banner — the reference's three-image strip: three 4:5 tiles with a
@@ -405,10 +412,39 @@
   .inf-arriving .inf-section:nth-of-type(1) .inf-card:nth-child(4){animation-delay:280ms;}
   .inf-arriving .inf-section:nth-of-type(1) .inf-card:nth-child(5){animation-delay:320ms;}
   .inf-arriving .inf-section:nth-of-type(1) .inf-card:nth-child(6){animation-delay:360ms;}
+  .inf-arriving .inf-section:nth-of-type(1) .inf-card:nth-child(7){animation-delay:400ms;}
+  .inf-arriving .inf-section:nth-of-type(1) .inf-card:nth-child(8){animation-delay:440ms;}
   @media (prefers-reduced-motion:reduce){
     .inf-arriving .inf-controls, .inf-arriving .inf-rail,
     .inf-arriving .inf-section:nth-of-type(1) .inf-card{animation:none;}
     .inf-drawer, .inf-scrim{transition:none;}
+  }
+
+  /* ── Skeleton first paint — shaped exactly like the card (same banner
+     ratio, same avatar overlap, same paddings) so the real roster lands
+     in place with zero jump; bones pulse until the swap. */
+  .inf-sk-card{display:flex; flex-direction:column; align-items:center;
+    height:100%; padding:0 0 var(--spacing-20); overflow:hidden;}
+  .inf-sk-banner{width:100%; display:grid; grid-template-columns:1fr 1fr 1fr;
+    gap:2px; background:var(--color-neutral-1);}
+  .inf-sk-tile{aspect-ratio:4 / 5; background:var(--color-neutral-2);}
+  .inf-sk-ava{width:64px; height:64px; border-radius:var(--radius-pill);
+    background:var(--color-neutral-3); border:3px solid var(--color-neutral-1);
+    margin:-32px 0 var(--spacing-12); z-index:1;}
+  .inf-sk-bar{height:12px; border-radius:var(--radius-sm);
+    background:var(--color-neutral-2);}
+  .inf-sk-stats{display:flex; gap:var(--spacing-32); margin-top:auto;
+    padding-top:var(--spacing-24);}
+  .inf-sk-stats .inf-sk-bar{width:36px; height:20px;}
+  .inf-sk-head{width:120px;}
+  .inf-sk-row{display:flex; align-items:center; gap:var(--spacing-12);
+    padding:var(--spacing-12) var(--spacing-16);
+    border-bottom:1px solid var(--color-neutral-2);}
+  .inf-sk-row .inf-sk-ava{width:36px; height:36px; margin:0; border:0;}
+  @media (prefers-reduced-motion:no-preference){
+    .inf-sk-tile, .inf-sk-ava, .inf-sk-bar{
+      animation:inf-sk-pulse 1.4s var(--ease-standard) infinite;}
+    @keyframes inf-sk-pulse{0%,100%{opacity:1;} 50%{opacity:.45;}}
   }
 
   @media (max-width:900px){
@@ -878,7 +914,7 @@
     {key:'location', label:'Location', of:function(r){ return r.location ? [r.location] : []; }, top:10},
     {key:'niche', label:'Niche', of:function(r){ return r.niches || []; }, top:12}
   ];
-  var applied = {}, pending = {}, query = '';
+  var applied = {}, query = '';
   FACETS.forEach(function(f){ applied[f.key] = []; });
 
   var all = [], byId = {};
@@ -1098,8 +1134,57 @@
       '</tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
 
-  function render(){
+  /* ── The move (the feedback board's own logic): render() rebuilds the
+     DOM from scratch, so a filter or sort changed the board's shape in
+     one frame. snapshotRects() reads where every card/row was before
+     the rebuild; playMove() puts each survivor back there with a
+     transform and lets it travel to zero, staggered by reading order.
+     A card arriving from a filter fades in instead — it has nowhere to
+     travel from. Off-screen cards are skipped; so is the whole pass
+     when the view type changed (a card cannot morph into a table row). */
+  function snapshotRects(){
+    var map = {};
+    mainEl.querySelectorAll('.inf-card[data-id], tr[data-id]').forEach(function(el){
+      map[el.dataset.id] = el.getBoundingClientRect();
+    });
+    return map;
+  }
+  function playMove(before){
+    if (REDUCED || !before) return;
+    var hadAny = false;
+    for (var k in before) { hadAny = true; break; }
+    var moved = 0, appeared = 0, vh = window.innerHeight;
+    mainEl.querySelectorAll('.inf-card[data-id], tr[data-id]').forEach(function(el){
+      var was = before[el.dataset.id];
+      var now = el.getBoundingClientRect();
+      if (now.top > vh + 240 && (!was || was.top > vh + 240)) return;
+      if (!was) {
+        if (!hadAny) return; /* first real paint — the arrival CSS owns it */
+        el.animate([
+          {opacity: 0, transform: 'translateY(10px) scale(.98)'},
+          {opacity: 1, transform: 'none'}
+        ], {duration: 300, delay: Math.min(appeared * 14, 180),
+            easing: 'cubic-bezier(.32,.72,.3,1)', fill: 'backwards'});
+        appeared++;
+        return;
+      }
+      var dx = was.left - now.left, dy = was.top - now.top;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+      el.animate([
+        {transform: 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px)'},
+        {transform: 'translate(0,0)'}
+      ], {duration: 520, delay: Math.min(moved * 22, 220),
+          easing: 'cubic-bezier(.32,.72,.3,1)', fill: 'backwards'});
+      moved++;
+    });
+  }
+
+  var lastPaintView = view;
+  function render(keepPills){
     refreshData();
+    untilt(); /* a mid-tilt card would snapshot its rotated rect */
+    var before = view === lastPaintView ? snapshotRects() : null;
+    lastPaintView = view;
     var hits = all.filter(matches);
     var pinnedHits = hits.filter(function(r){ return influencerStore.isPinned(r.id); });
     var restHits = hits.filter(function(r){ return !influencerStore.isPinned(r.id); });
@@ -1112,6 +1197,7 @@
         : '<div class="c-empty"><i class="ph-fill ph-users-three"></i>' +
           '<h4>No influencers found</h4>' +
           '<p>Nothing matches. Clear the search or filters to see the full roster.</p></div>';
+      playMove(before);
       if (avatarIO) {
         mainEl.querySelectorAll('img[data-avatar-for]').forEach(function(img){
           avatarIO.observe(img);
@@ -1122,6 +1208,7 @@
         : all.length + ' influencers, A to Z.';
       applyViewButtons();
       renderRail();
+      if (!keepPills) renderPillbar();
       renderTray();
       spy();
       return;
@@ -1149,6 +1236,7 @@
         '<p>No profiles match ' + what + '. Clear the search or filters to see the full roster.</p></div>';
     }
     mainEl.innerHTML = html;
+    playMove(before);
 
     if (avatarIO) {
       mainEl.querySelectorAll('img[data-avatar-for]').forEach(function(img){
@@ -1162,8 +1250,43 @@
 
     applyViewButtons();
     renderRail();
+    if (!keepPills) renderPillbar();
     renderTray();
     spy();
+  }
+
+  /* ── Skeleton first paint — bones in the exact shape of the roster
+     (banner strip, avatar overlap, stat bars) shown for a beat before
+     the data lands, so the page opens composed instead of popping. */
+  function renderSkeleton(){
+    function skCard(){
+      return '<div class="c-card inf-sk-card">' +
+        '<div class="inf-sk-banner"><span class="inf-sk-tile"></span><span class="inf-sk-tile"></span><span class="inf-sk-tile"></span></div>' +
+        '<span class="inf-sk-ava"></span>' +
+        '<span class="inf-sk-bar" style="width:56%"></span>' +
+        '<span class="inf-sk-bar" style="width:38%; height:8px; margin-top:8px;"></span>' +
+        '<div class="inf-sk-stats"><span class="inf-sk-bar"></span><span class="inf-sk-bar"></span><span class="inf-sk-bar"></span></div>' +
+        '</div>';
+    }
+    function skRow(){
+      return '<div class="inf-sk-row"><span class="inf-sk-ava"></span>' +
+        '<span class="inf-sk-bar" style="width:22%"></span>' +
+        '<span class="inf-sk-bar" style="width:10%"></span>' +
+        '<span class="inf-sk-bar" style="width:12%"></span>' +
+        '<span class="inf-sk-bar" style="width:8%"></span></div>';
+    }
+    if (view === 'list') {
+      var rows = '';
+      for (var i = 0; i < 9; i++) rows += skRow();
+      mainEl.innerHTML = '<div class="c-table-standalone-wrap">' + rows + '</div>';
+    } else {
+      var cards = '';
+      for (var j = 0; j < 8; j++) cards += skCard();
+      mainEl.innerHTML = '<section class="inf-section">' +
+        '<div class="inf-letter-head"><span class="inf-sk-bar inf-sk-head"></span></div>' +
+        '<div class="inf-grid">' + cards + '</div></section>';
+    }
+    document.getElementById('infSub').textContent = 'Loading the roster…';
   }
 
   /* ── Export — the current filtered view as CSV, KULT export columns. */
@@ -1338,9 +1461,11 @@
     setTimeout(function(){ spyTick = false; spy(); }, 80);
   });
 
-  /* ── Filters — the live app's own read: one labelled trigger pill per
-     facet, each opening its own DS Compact filter panel; a facet applies
-     on Done, never per keystroke. Option lists come off the data. */
+  /* ── Filters — one labelled trigger pill per facet, each opening its
+     own DS Compact filter panel. Every toggle applies INSTANTLY: the
+     roster re-sorts under the open panel (with the FLIP move below), so
+     there is no Done button and no staging state. Option lists come off
+     the data. */
   var pillbar = document.getElementById('infPillbar');
   var openFacet = null;
   function facetOptions(f){
@@ -1357,7 +1482,7 @@
   }
   function optionRows(f){
     return facetOptions(f).map(function(o){
-      var on = pending[f.key].indexOf(o.v) > -1;
+      var on = applied[f.key].indexOf(o.v) > -1;
       return '<label class="c-filter-option" data-facet="' + f.key + '" data-v="' + esc(o.v) + '">' +
         '<span class="c-checkbox-box' + (on ? ' on' : '') + '">' + (on ? '<i class="ph ph-check"></i>' : '') + '</span>' +
         '<span class="label">' + esc(o.v) + ' <span style="color:var(--color-neutral-4)">' + o.n + '</span></span></label>';
@@ -1375,7 +1500,6 @@
           '<div data-options="' + f.key + '"></div>' +
           '<div class="c-filter-footer">' +
             '<button class="c-btn c-btn-ghost c-btn-sm" data-clear="' + f.key + '" type="button">Clear</button>' +
-            '<button class="c-btn c-btn-primary c-btn-sm" data-done="' + f.key + '" type="button">Done</button>' +
           '</div></div></div>';
     }).join('');
   }
@@ -1392,6 +1516,17 @@
       t.setAttribute('aria-expanded', 'false');
     });
   }
+  /* The trigger's count badge, updated in place so an open panel never
+     has to be rebuilt (rebuilding would close it mid-selection). */
+  function updateTrigger(k){
+    var trig = pillbar.querySelector('.c-filter-trigger[data-facet="' + k + '"]');
+    if (!trig) return;
+    var n = applied[k].length;
+    trig.classList.toggle('active', !!n);
+    trig.innerHTML = facetByKey(k).label +
+      (n ? '<span class="count">' + n + '</span>' : '') +
+      '<i class="ph ph-caret-down chev"></i>';
+  }
   pillbar.addEventListener('click', function(e){
     e.stopPropagation();
     var trig = e.target.closest('.c-filter-trigger');
@@ -1401,7 +1536,6 @@
       closePanels();
       if (!was) {
         openFacet = k;
-        pending[k] = applied[k].slice();
         pillbar.querySelector('[data-options="' + k + '"]').innerHTML = optionRows(facetByKey(k));
         pillbar.querySelector('[data-panel="' + k + '"]').classList.add('is-open');
         trig.classList.add('is-open');
@@ -1412,22 +1546,19 @@
     var opt = e.target.closest('.c-filter-option');
     if (opt) {
       var ok = opt.dataset.facet, v = opt.dataset.v;
-      var i = pending[ok].indexOf(v);
-      if (i > -1) pending[ok].splice(i, 1); else pending[ok].push(v);
+      var i = applied[ok].indexOf(v);
+      if (i > -1) applied[ok].splice(i, 1); else applied[ok].push(v);
       pillbar.querySelector('[data-options="' + ok + '"]').innerHTML = optionRows(facetByKey(ok));
+      updateTrigger(ok);
+      render(true);
       return;
     }
     var clr = e.target.closest('[data-clear]');
     if (clr) {
-      pending[clr.dataset.clear] = [];
+      applied[clr.dataset.clear] = [];
       pillbar.querySelector('[data-options="' + clr.dataset.clear + '"]').innerHTML = optionRows(facetByKey(clr.dataset.clear));
-      return;
-    }
-    var done = e.target.closest('[data-done]');
-    if (done) {
-      applied[done.dataset.done] = pending[done.dataset.done].slice();
-      closePanels();
-      render();
+      updateTrigger(clr.dataset.clear);
+      render(true);
     }
   });
   document.getElementById('infClearAll').addEventListener('click', function(){
@@ -1435,7 +1566,6 @@
     render();
   });
   function renderTray(){
-    renderPillbar();
     var n = FACETS.reduce(function(m, f){ return m + applied[f.key].length; }, 0);
     var tray = document.getElementById('infTray');
     tray.hidden = !n;
@@ -1493,6 +1623,7 @@
   var drawerScrim = document.getElementById('infDrawerScrim');
   var detailPanel = document.getElementById('infDetailPanel');
   var drawerId = null;
+  var isAdding = false; /* the same modal, folding out of the Add button */
   var swingSrcEl = null, swingSrcRect = null, hideTimer = null;
   var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function setSwingVars(){
@@ -1527,7 +1658,7 @@
     if (keepSrc) {
       img.classList.add('is-loaded');
       img.src = keepSrc;
-    } else {
+    } else if (r.id) { /* a brand-new draft has no id and no avatar yet */
       attachAvatar(img, r);
     }
 
@@ -1558,7 +1689,9 @@
   function openDrawer(id, sourceEl, startEditing){
     var r = byId[id];
     if (!r) return;
+    untilt(); /* the swing math needs the card's untransformed rect */
     drawerId = id;
+    isAdding = false;
     clearTimeout(hideTimer);
     swingSrcEl = sourceEl || null;
     swingSrcRect = sourceEl ? sourceEl.getBoundingClientRect() : null;
@@ -1578,6 +1711,7 @@
     }
     drawerScrim.classList.remove('is-shown');
     drawerId = null;
+    isAdding = false;
     clearTimeout(hideTimer);
     hideTimer = setTimeout(function(){
       drawerScrim.classList.remove('is-open');
@@ -1636,10 +1770,24 @@
         address: E('e-addr').value.trim(), nric: E('e-nric').value.trim()}
     };
   }
+  /* The live-preview draft: what the left panel shows while typing.
+     While adding, the record has no name yet — the preview needs a
+     stand-in so the head never renders blank. */
+  function previewDraft(){
+    var d = editDraft();
+    if (!d.name) d.name = 'New influencer';
+    return d;
+  }
+  function setEditLabels(){
+    document.querySelector('.inf-edit-eyebrow').textContent = isAdding ? 'New profile' : 'Edit profile';
+    E('infEditSave').textContent = isAdding ? 'Add influencer' : 'Save changes';
+  }
   function enterEdit(){
     var r = byId[drawerId];
     if (!r) return;
+    isAdding = false;
     fillEditFields(r);
+    setEditLabels();
     detailPanel.classList.add('is-editing');
     setTimeout(function(){ E('e-name').focus(); }, 300);
   }
@@ -1647,25 +1795,60 @@
     detailPanel.classList.remove('is-editing');
   }
   document.querySelector('.inf-detail-right').addEventListener('input', function(){
-    if (!drawerId) return;
-    renderDetailContent(editDraft(), true);
+    if (!drawerId && !isAdding) return;
+    renderDetailContent(previewDraft(), true);
   });
   document.getElementById('infDrawerEdit').addEventListener('click', enterEdit);
   document.getElementById('infEditCancel').addEventListener('click', function(){
+    if (isAdding) { closeDrawer(); return; }
     exitEditMode();
     if (byId[drawerId]) renderDetailContent(byId[drawerId], true);
   });
   document.getElementById('infEditSave').addEventListener('click', function(){
-    if (!drawerId) return;
+    if (!drawerId && !isAdding) return;
     var rec = editDraft();
-    if (!rec.name) { E('e-name').focus(); return; }
+    if (!E('e-name').value.trim()) { E('e-name').focus(); return; }
     delete rec.id;
-    influencerStore.update(drawerId, rec);
-    toast('Saved changes to ' + rec.name + '.');
+    if (isAdding) {
+      drawerId = influencerStore.add(rec);
+      isAdding = false;
+      toast(rec.name + ' added to the roster.');
+    } else {
+      influencerStore.update(drawerId, rec);
+      toast('Saved changes to ' + rec.name + '.');
+    }
     exitEditMode();
     render();
     if (byId[drawerId]) renderDetailContent(byId[drawerId], true);
+    /* Close should fold into the profile's own card now, not back into
+       whatever opened the modal (for a new profile, the Add button). */
+    var home = mainEl.querySelector('[data-id="' + drawerId + '"]');
+    if (home) { swingSrcEl = home; swingSrcRect = home.getBoundingClientRect(); }
   });
+
+  /* ── Add — the same fold-out, reverse-engineered: the panel swings out
+     of the Add button already in edit mode with blank fields; the left
+     pane previews the profile as it is typed, and Save collapses the
+     edit pane away, leaving the finished profile's detail card. */
+  function openAdd(sourceEl){
+    untilt();
+    isAdding = true;
+    drawerId = null;
+    clearTimeout(hideTimer);
+    swingSrcEl = sourceEl || null;
+    swingSrcRect = sourceEl ? sourceEl.getBoundingClientRect() : null;
+    fillEditFields({});
+    setEditLabels();
+    renderDetailContent(previewDraft(), false);
+    detailPanel.classList.add('is-editing');
+    drawerScrim.classList.add('is-open');
+    drawerScrim.setAttribute('aria-hidden', 'false');
+    if (!REDUCED && setSwingVars()) {
+      detailPanel.classList.add('is-swinging-open');
+    }
+    drawerScrim.classList.add('is-shown');
+    setTimeout(function(){ E('e-name').focus(); }, 300);
+  }
   document.getElementById('infDrawerRemove').addEventListener('click', function(){
     if (!drawerId) return;
     var id = drawerId;
@@ -1713,7 +1896,9 @@
   formScrim.addEventListener('click', function(e){
     if (e.target === formScrim) closeForm();
   });
-  F('infAddBtn').addEventListener('click', function(){ openForm(null); });
+  /* Add goes through the swing modal now (openAdd above), folding out of
+     the button itself; this form sheet stays only for legacy reference. */
+  F('infAddBtn').addEventListener('click', function(){ openAdd(this); });
 
   function numOrNull(v){
     var d = String(v).replace(/[^0-9]/g, '');
@@ -1787,6 +1972,46 @@
     setTimeout(render, 240);
   });
 
+  /* ── Hover tilt — the landing hero cards' pointer tilt, ported without
+     the Motion dependency: the tilt pose is written inline per move and
+     the .is-tilting transition supplies the chase; dropping both hands
+     the return trip to the card's own settle transition. The entry rect
+     is cached at pointerover because measuring a card mid-tilt returns
+     its ROTATED bounding box, which feeds the angle back into itself. */
+  var TILT_MAX = 10;
+  var tiltCard = null, tiltRect = null;
+  function untilt(){
+    if (!tiltCard) return;
+    tiltCard.classList.remove('is-tilting');
+    tiltCard.style.transform = '';
+    tiltCard = null; tiltRect = null;
+  }
+  mainEl.addEventListener('pointerover', function(e){
+    if (REDUCED || e.pointerType !== 'mouse' || view !== 'tile') return;
+    var card = e.target.closest('.inf-card[data-id]');
+    if (card === tiltCard) return;
+    untilt();
+    if (!card) return;
+    tiltCard = card;
+    tiltRect = card.getBoundingClientRect();
+  });
+  mainEl.addEventListener('pointermove', function(e){
+    if (!tiltCard || e.pointerType !== 'mouse') return;
+    if (!e.target.closest || e.target.closest('.inf-card[data-id]') !== tiltCard) return;
+    var px = (e.clientX - tiltRect.left) / tiltRect.width;
+    var py = (e.clientY - tiltRect.top) / tiltRect.height;
+    tiltCard.classList.add('is-tilting');
+    tiltCard.style.transform = 'translateY(-2px) scale(1.03)' +
+      ' rotateX(' + (-(py - 0.5) * 2 * TILT_MAX).toFixed(2) + 'deg)' +
+      ' rotateY(' + ((px - 0.5) * 2 * TILT_MAX).toFixed(2) + 'deg)';
+  });
+  mainEl.addEventListener('pointerout', function(e){
+    if (!tiltCard) return;
+    if (e.relatedTarget && e.relatedTarget.closest &&
+        e.relatedTarget.closest('.inf-card[data-id]') === tiltCard) return;
+    untilt();
+  });
+
   /* ── Card interactions: kebab menus, menu actions, open drawer. */
   function closeMenus(){
     mainEl.querySelectorAll('.inf-kebab.is-open').forEach(function(m){
@@ -1842,22 +2067,29 @@
     else if (bulkScrim.classList.contains('is-open')) closeBulk();
     else if (formScrim.classList.contains('is-open')) closeForm();
     else if (drawerScrim.classList.contains('is-open')) {
-      if (detailPanel.classList.contains('is-editing')) {
+      if (detailPanel.classList.contains('is-editing') && !isAdding) {
         exitEditMode();
         if (byId[drawerId]) renderDetailContent(byId[drawerId], true);
       } else {
+        /* Adding: there is no detail view behind the fields to fall
+           back to, so Escape folds the whole panel away. */
         closeDrawer();
       }
     }
   });
 
-  render();
-
-  /* The arrival ran once with the first paint; drop the class so later
-     renders (filter, search, saves) paint without replaying it. */
+  /* Boot: bones first, the roster a beat later with the arrival cascade.
+     The data is inline (nothing is actually fetched), so the skeleton
+     beat is short — enough to register as "loading", not a wait. */
+  renderSkeleton();
   setTimeout(function(){
-    document.getElementById('infContent').classList.remove('inf-arriving');
-  }, 900);
+    render();
+    /* The arrival ran once with the first real paint; drop the class so
+       later renders (filter, search, saves) paint without replaying it. */
+    setTimeout(function(){
+      document.getElementById('infContent').classList.remove('inf-arriving');
+    }, 900);
+  }, 420);
 })();
 </script>
 </body>
