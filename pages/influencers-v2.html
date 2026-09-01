@@ -32,8 +32,23 @@
   /* ── Body: the roster grid takes the full column; the A–Z rail pins
      itself to the screen's right edge (fixed, out of flow) so it costs
      the layout nothing but a sliver of breathing room. */
-  .inf-layout{display:block;}
-  .inf-main{min-width:0; padding-right:var(--spacing-16);}
+  .inf-layout{display:block; margin-top:var(--spacing-20);}
+  /* No right padding here. It used to hold the A–Z rail off the
+     content, but the rail is position:fixed and clears itself on the
+     shell's own gutter — all the padding actually did was make the
+     roster 16px narrower than the filter row directly above it, in
+     both views. Everything now shares one right edge. */
+  .inf-main{min-width:0;}
+  /* Rail clearance, applied at every width: the shell's own gutter
+     leaves as little as 2px beside the rail on a wide screen, so this
+     cannot be a narrow-viewport special case. It goes on EVERY element
+     in the column so they shift together and keep one shared edge —
+     putting it on the roster alone is what misaligned it originally. */
+  .inf-controls, .inf-layout, .c-filter-tray{padding-right:var(--spacing-16);}
+  /* The selection bar is a bordered box with its own inner padding, so
+     it shifts by margin — padding here would reshape the panel instead
+     of moving its edge. */
+  .inf-selbar{margin-right:var(--spacing-16);}
 
   /* ── Letter sections. The head is sticky against the scroll container
      and repaints on the warm canvas so cards slide under it cleanly. */
@@ -159,14 +174,14 @@
     padding:var(--spacing-16) var(--spacing-20);
     border-radius:var(--radius-lg); background:var(--color-neutral-1);
     /* Collapsed by default; height/opacity are animated on open. */
-    max-height:0; opacity:0; margin:0;
+    max-height:0; opacity:0; margin-top:0;
     padding-top:0; padding-bottom:0; border-radius:var(--radius-lg);
     transition:max-height .34s var(--ease-settle),
       opacity .24s var(--ease-standard),
       margin .34s var(--ease-settle),
       padding .34s var(--ease-settle);}
   .inf-selbar.is-on{max-height:120px; opacity:1;
-    margin:var(--spacing-12) 0 0;
+    margin-top:var(--spacing-12);
     padding-top:var(--spacing-16); padding-bottom:var(--spacing-16);}
   .inf-selbar::before, .inf-selbar::after{content:''; position:absolute;
     inset:0; border-radius:inherit; pointer-events:none;
@@ -440,6 +455,16 @@
      layout below is what keeps the columns inside the viewport now. */
   .c-table-standalone-wrap{overflow:visible;}
   .inf-table{table-layout:fixed; width:100%;}
+  /* Roomier than the DLS default (12/16): at this row height the cells
+     were reading cramped against their own borders, and the first and
+     last columns sat hard against the table edge. */
+  .inf-table th, .inf-table td{padding:var(--spacing-16);}
+  .inf-table th:first-child, .inf-table td:first-child{padding-left:var(--spacing-20);}
+  .inf-table th:last-child, .inf-table td:last-child{padding-right:var(--spacing-20);}
+  /* The checkbox column keeps its narrow gutter — padding there would
+     push the box off-centre in a 40px column. */
+  .inf-table th.c-table-chk-col, .inf-table td.c-table-chk-col{
+    padding-left:var(--spacing-20); padding-right:0;}
   /* Clipping is per-cell, never blanket: overflow:hidden on every td
      also clips the kebab's dropdown, which is far wider than its own
      48px cell. Only the text columns truncate. */
