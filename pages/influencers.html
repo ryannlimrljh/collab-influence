@@ -16,7 +16,13 @@
 <link rel="stylesheet" href="../shared/shell.css?v=0.9.44" />
 <style>
   /* Page-local. Composes tokens only — no new colors, radii, or spacing. */
-  .c-shell .c-pageheader{margin-bottom:var(--spacing-24);}
+  /* The shell's 120px top padding lives on the scroll container, and a
+     scroll container paints scrolled content inside its own padding —
+     which is exactly the strip cards were bleeding through above the
+     sticky letter heads. Moved into the flow (onto the pageheader) so
+     sticky top:0 really is the visible top. */
+  .c-shell .c-shell-content{padding-top:0;}
+  .c-shell .c-pageheader{padding-top:var(--spacing-120); margin-bottom:var(--spacing-24);}
   .inf-divider{border:none; border-top:1px solid var(--color-neutral-3);
     margin:0 0 var(--spacing-24);}
   .inf-controls{display:flex; flex-wrap:wrap; align-items:center;
@@ -45,9 +51,40 @@
   .inf-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
     gap:var(--spacing-16); align-items:stretch;}
 
-  /* ── Profile card page-local extras: the kebab replaces the DLS select
-     checkbox in the same reserved top-right slot; the avatar hosts the
-     resolved platform photo over the initials. */
+  /* ── Card — the reference-1 read: centered identity column (avatar,
+     name, quiet meta and niche lines) over a stat row of big follower
+     numbers with muted platform labels. Composes the base Card shell +
+     Profile card's avatar recipe; tier survives as a 6px element-color
+     dot on the stat label instead of a full Tag pill. */
+  .inf-card{display:flex; flex-direction:column; align-items:center;
+    text-align:center; height:100%; position:relative; cursor:pointer;
+    padding-top:var(--spacing-24); padding-bottom:var(--spacing-20);
+    transition:box-shadow var(--duration-base) var(--ease-settle);}
+  .inf-card:hover{box-shadow:var(--shadow-2);}
+  .inf-card:focus-visible{box-shadow:var(--shadow-focus); outline:none;}
+  .inf-card .c-card-profile-avatar{width:64px; height:64px;
+    font-size:var(--text-body1-size); margin-bottom:var(--spacing-12);}
+  .inf-name{margin:0; max-width:100%; font-size:var(--text-h5-size);
+    line-height:var(--text-h5-lh); font-weight:800;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    padding:0 var(--spacing-24);}
+  .inf-meta{margin:var(--spacing-4) 0 0; font-size:var(--text-caption-size);
+    line-height:var(--text-caption-lh); color:var(--color-neutral-5);}
+  .inf-nicheline{margin:var(--spacing-8) 0 0; max-width:100%;
+    font-size:var(--text-caption-size); line-height:var(--text-caption-lh);
+    color:var(--color-neutral-5); overflow:hidden; text-overflow:ellipsis;
+    white-space:nowrap; padding:0 var(--spacing-16);}
+  .inf-stats{display:flex; justify-content:center; gap:var(--spacing-32);
+    width:100%; margin-top:auto; padding-top:var(--spacing-20);}
+  .inf-stat{display:flex; flex-direction:column; align-items:center;
+    gap:2px; min-width:0; text-decoration:none; color:inherit;}
+  .inf-stat .num{font-size:var(--text-body1-size); font-weight:800;
+    font-variant-numeric:tabular-nums; color:var(--color-neutral-9);}
+  .inf-stat .lbl{display:inline-flex; align-items:center; gap:4px;
+    font-size:var(--text-footnote-size); line-height:var(--text-footnote-lh);
+    color:var(--color-neutral-5);}
+  .inf-stat .tdot{width:6px; height:6px; border-radius:var(--radius-pill); flex:none;}
+  a.inf-stat:hover .num{text-decoration:underline;}
   .c-card-profile-avatar{position:relative; overflow:hidden;}
   .c-card-profile-avatar img{position:absolute; inset:0; width:100%; height:100%;
     object-fit:cover; border-radius:var(--radius-pill); opacity:0;
@@ -84,32 +121,24 @@
     transition:opacity var(--duration-base) var(--ease-standard),
       transform var(--duration-base) var(--ease-standard);}
 
-  /* ── A–Z rail — the scrolling indicator. Each row pairs a count bar
-     with its letter (the reference's histogram read): bar length maps to
-     how many names live under that letter, the active letter and its bar
-     take Influence's own Earth green, empty letters dim out. */
-  .inf-rail{position:sticky; top:var(--spacing-8); flex:none;
-    height:calc(100dvh - 180px); min-height:420px;
+  /* ── A–Z rail — the scrolling indicator, kept quiet: just small grey
+     letters, the current one in ink, letters with nothing to jump to
+     faded near-out. Functional weight, whisper visual weight. */
+  .inf-rail{position:sticky; top:var(--spacing-8); flex:none; width:20px;
+    height:calc(100dvh - 120px); min-height:420px;
     display:flex; flex-direction:column; justify-content:space-between;
     padding:var(--spacing-8) 0;}
-  .inf-rail-row{display:flex; align-items:center; justify-content:flex-end;
-    gap:6px; border:0; background:none; padding:0 2px; cursor:pointer;
+  .inf-rail-row{display:flex; align-items:center; justify-content:center;
+    border:0; background:none; padding:0; cursor:pointer;
     font-family:inherit; line-height:1;}
-  .inf-rail-bar{height:5px; border-radius:var(--radius-pill);
-    background:var(--color-neutral-3); flex:none;
-    transition:background-color var(--duration-fast) var(--ease-standard),
-      width var(--duration-base) var(--ease-flow);}
-  .inf-rail-letter{width:14px; text-align:center;
-    font-size:var(--text-footnote-size); font-weight:700;
-    color:var(--color-neutral-5);
+  .inf-rail-letter{width:16px; text-align:center; font-size:10px;
+    font-weight:600; color:var(--color-neutral-4);
     transition:color var(--duration-fast) var(--ease-standard);}
   .inf-rail-row:hover .inf-rail-letter{color:var(--color-neutral-9);}
-  .inf-rail-row:hover .inf-rail-bar{background:var(--color-neutral-4);}
-  .inf-rail-row.is-active .inf-rail-letter{color:var(--color-green);}
-  .inf-rail-row.is-active .inf-rail-bar{background:var(--color-green);}
+  .inf-rail-row.is-active .inf-rail-letter{color:var(--color-neutral-9);
+    font-weight:800;}
   .inf-rail-row.is-empty{cursor:default; pointer-events:none;}
-  .inf-rail-row.is-empty .inf-rail-letter{color:var(--color-neutral-4);}
-  .inf-rail-row.is-empty .inf-rail-bar{opacity:0;}
+  .inf-rail-row.is-empty .inf-rail-letter{color:var(--color-neutral-3);}
   .inf-rail-row:focus-visible{outline:2px solid var(--color-obsidian);
     outline-offset:1px; border-radius:var(--radius-sm);}
 
@@ -199,29 +228,29 @@
     animation-delay:60ms;}
   .inf-arriving .inf-rail{animation:inf-arrive 420ms var(--ease-settle) both;
     animation-delay:200ms;}
-  .inf-arriving .inf-section:nth-of-type(1) .c-card-profile{
+  .inf-arriving .inf-section:nth-of-type(1) .inf-card{
     animation:inf-arrive 380ms var(--ease-settle) both;}
-  .inf-arriving .inf-section:nth-of-type(1) .c-card-profile:nth-child(1){animation-delay:160ms;}
-  .inf-arriving .inf-section:nth-of-type(1) .c-card-profile:nth-child(2){animation-delay:200ms;}
-  .inf-arriving .inf-section:nth-of-type(1) .c-card-profile:nth-child(3){animation-delay:240ms;}
-  .inf-arriving .inf-section:nth-of-type(1) .c-card-profile:nth-child(4){animation-delay:280ms;}
-  .inf-arriving .inf-section:nth-of-type(1) .c-card-profile:nth-child(5){animation-delay:320ms;}
-  .inf-arriving .inf-section:nth-of-type(1) .c-card-profile:nth-child(6){animation-delay:360ms;}
+  .inf-arriving .inf-section:nth-of-type(1) .inf-card:nth-child(1){animation-delay:160ms;}
+  .inf-arriving .inf-section:nth-of-type(1) .inf-card:nth-child(2){animation-delay:200ms;}
+  .inf-arriving .inf-section:nth-of-type(1) .inf-card:nth-child(3){animation-delay:240ms;}
+  .inf-arriving .inf-section:nth-of-type(1) .inf-card:nth-child(4){animation-delay:280ms;}
+  .inf-arriving .inf-section:nth-of-type(1) .inf-card:nth-child(5){animation-delay:320ms;}
+  .inf-arriving .inf-section:nth-of-type(1) .inf-card:nth-child(6){animation-delay:360ms;}
   @media (prefers-reduced-motion:reduce){
     .inf-arriving .inf-controls, .inf-arriving .inf-rail,
-    .inf-arriving .inf-section:nth-of-type(1) .c-card-profile{animation:none;}
+    .inf-arriving .inf-section:nth-of-type(1) .inf-card{animation:none;}
     .inf-drawer, .inf-scrim{transition:none;}
   }
 
   @media (max-width:900px){
     .inf-rail{min-height:0; height:calc(100dvh - 140px);}
-    .inf-rail-bar{display:none;}
   }
   @media (max-width:640px){
     .inf-grid{grid-template-columns:1fr;}
     .inf-form-grid, .inf-platrow{grid-template-columns:1fr;}
     .c-pageheader-row{flex-wrap:wrap; gap:var(--spacing-12);}
     .c-pageheader-text{width:100%;}
+    .c-shell .c-pageheader{padding-top:var(--spacing-24);}
   }
 </style>
 </head>
@@ -582,41 +611,41 @@
     return true;
   }
 
-  /* ── Card render. */
+  /* ── Card render — reference-1 anatomy: centered avatar, name, quiet
+     meta/niche lines, then the follower-number stat row. Tier shows as
+     a small element-color dot on the stat label. */
+  var TIER_DOT = {
+    'c-tag-wood': 'var(--color-salmon-pink)', 'c-tag-earth': 'var(--color-green)',
+    'c-tag-water': 'var(--color-navy)', 'c-tag-fire': 'var(--color-orange)',
+    'c-tag-gold': 'var(--color-amber)', '': 'var(--color-neutral-4)'
+  };
   function cardHTML(r){
     var meta = [r.age, r.gender, r.location].filter(Boolean).join(' · ') || '—';
-    var badges = (r.niches || []).slice(0, 4).map(function(n){
-      return '<span class="c-badge c-badge-neutral">' + esc(n) + '</span>';
-    }).join('');
-    var rows = (r.platforms || []).map(function(p){
+    var nicheline = (r.niches || []).join(' · ');
+    var stats = (r.platforms || []).map(function(p){
       var t = tierOf(p.followers);
-      var handle = p.handle
-        ? (p.link
-            ? '<a class="c-card-profile-handle" href="' + esc(p.link) + '" target="_blank" rel="noopener">@' + esc(p.handle) + '</a>'
-            : '<span class="c-card-profile-handle">@' + esc(p.handle) + '</span>')
-        : '<span class="c-card-profile-handle">—</span>';
-      return '<li class="c-card-profile-row">' + PLATFORM_ICON[p.platform] +
-        '<div class="c-card-profile-stack">' +
-          '<p class="c-card-profile-platform">' + esc(p.label) + '</p>' + handle + '</div>' +
-        '<div class="c-card-profile-trailing">' +
-          (t ? '<span class="c-tag ' + t.cls + '">' + (t.cls ? '<span class="dot"></span>' : '') + t.name + '</span>' : '') +
-          '<span class="c-card-profile-followers">' + fmtFollowers(p.followers) + '</span>' +
-        '</div></li>';
+      var inner = '<span class="num">' + (p.followers != null ? fmtFollowers(p.followers) : '—') + '</span>' +
+        '<span class="lbl">' +
+        (t ? '<span class="tdot" style="background:' + TIER_DOT[t.cls] + '"></span>' : '') +
+        esc(p.platform === 'xhs' ? 'XHS' : p.label) + '</span>';
+      var title = (p.handle ? '@' + esc(p.handle) + ' · ' : '') + (t ? t.name : '');
+      return p.link
+        ? '<a class="inf-stat" href="' + esc(p.link) + '" target="_blank" rel="noopener" title="' + title + '">' + inner + '</a>'
+        : '<span class="inf-stat" title="' + title + '">' + inner + '</span>';
     }).join('');
-    return '<article class="c-card c-card-profile is-interactive" tabindex="0" data-id="' + r.id + '" aria-label="' + esc(r.name) + '">' +
-      '<div class="c-card-profile-header">' +
-        '<span class="c-card-profile-avatar">' + esc(initialsOf(r.name)) +
-          '<img alt="" loading="lazy" data-avatar-for="' + r.id + '" /></span>' +
-        '<div class="c-card-profile-identity"><h4>' + esc(r.name) + '</h4><p>' + esc(meta) + '</p></div>' +
-      '</div>' +
+    return '<article class="c-card inf-card" tabindex="0" data-id="' + r.id + '" aria-label="' + esc(r.name) + '">' +
       '<span class="inf-kebab"><button class="c-btn c-btn-ghost c-btn-sm c-btn-icon inf-kebab-btn" type="button" aria-label="Options for ' + esc(r.name) + '" aria-haspopup="true"><i class="ph ph-dots-three-vertical"></i></button>' +
         '<span class="inf-menu">' +
           '<button class="inf-menu-item" type="button" data-act="view" data-id="' + r.id + '"><i class="ph ph-user-circle"></i> View details</button>' +
           '<button class="inf-menu-item" type="button" data-act="edit" data-id="' + r.id + '"><i class="ph ph-pencil-simple"></i> Edit</button>' +
           '<button class="inf-menu-item is-danger" type="button" data-act="remove" data-id="' + r.id + '"><i class="ph ph-trash"></i> Remove</button>' +
         '</span></span>' +
-      (badges ? '<hr class="c-card-profile-divider" /><div class="c-card-profile-personas">' + badges + '</div>' : '') +
-      (rows ? '<hr class="c-card-profile-divider" /><ul class="c-card-profile-platforms">' + rows + '</ul>' : '') +
+      '<span class="c-card-profile-avatar">' + esc(initialsOf(r.name)) +
+        '<img alt="" loading="lazy" data-avatar-for="' + r.id + '" /></span>' +
+      '<h4 class="inf-name">' + esc(r.name) + '</h4>' +
+      '<p class="inf-meta">' + esc(meta) + '</p>' +
+      (nicheline ? '<p class="inf-nicheline">' + esc(nicheline) + '</p>' : '') +
+      (stats ? '<div class="inf-stats">' + stats + '</div>' : '') +
     '</article>';
   }
 
@@ -664,17 +693,13 @@
     spy();
   }
 
-  /* ── A–Z rail. Bar length scales on the letter's share of the largest
-     bucket so the histogram stays readable at any filter depth. */
+  /* ── A–Z rail — letters only, count carried in the accessible label
+     and the title tooltip rather than any visual weight. */
   function renderRail(){
-    var max = 1;
-    LETTERS.forEach(function(L){ if (letterCounts[L] > max) max = letterCounts[L]; });
     railEl.innerHTML = LETTERS.map(function(L){
       var n = letterCounts[L] || 0;
-      var w = n ? Math.max(6, Math.round(6 + 22 * n / max)) : 6;
       return '<button class="inf-rail-row' + (n ? '' : ' is-empty') + '" type="button" data-letter="' + L + '"' +
-        (n ? ' aria-label="Jump to ' + (L === '#' ? 'symbols' : L) + ', ' + n + ' influencers"' : ' tabindex="-1" aria-hidden="true"') + '>' +
-        '<span class="inf-rail-bar" style="width:' + w + 'px"></span>' +
+        (n ? ' title="' + n + '" aria-label="Jump to ' + (L === '#' ? 'symbols' : L) + ', ' + n + ' influencers"' : ' tabindex="-1" aria-hidden="true"') + '>' +
         '<span class="inf-rail-letter">' + L + '</span></button>';
     }).join('');
   }
@@ -1001,7 +1026,7 @@
     var r = byId[removingId];
     influencerStore.remove(removingId);
     closeRemove();
-    var card = mainEl.querySelector('.c-card-profile[data-id="' + r.id + '"]');
+    var card = mainEl.querySelector('.inf-card[data-id="' + r.id + '"]');
     if (card) card.classList.add('inf-card-leaving');
     toast(r.name + ' removed.', 'danger');
     setTimeout(render, 240);
@@ -1033,12 +1058,12 @@
       return;
     }
     if (e.target.closest('a')) return;
-    var card = e.target.closest('.c-card-profile[data-id]');
+    var card = e.target.closest('.inf-card[data-id]');
     if (card) openDrawer(card.dataset.id);
   });
   mainEl.addEventListener('keydown', function(e){
     if (e.key !== 'Enter') return;
-    var card = e.target.closest('.c-card-profile[data-id]');
+    var card = e.target.closest('.inf-card[data-id]');
     if (card && e.target === card) openDrawer(card.dataset.id);
   });
   document.addEventListener('click', function(e){
