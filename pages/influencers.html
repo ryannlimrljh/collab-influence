@@ -172,14 +172,53 @@
   .inf-rail-row:focus-visible{outline:2px solid var(--color-obsidian);
     outline-offset:1px; border-radius:var(--radius-sm);}
 
-  /* ── Detail modal — the cbrief fold-open shell (scrim + perspective
-     entrance are the DLS's own); head/body/foot compose inside it. The
-     generic scrim class stays for the remove-confirm dialog. */
+  /* ── Detail modal — the mothership landing's hero-card overlay,
+     ported: warm-canvas backdrop at .88 (not a black veil), and the
+     panel swings open FROM the clicked card's own rect via the same
+     parameterized FLIP keyframes (--sw-dx/-dy/-sx/-sy/-dir set from JS
+     at open and close). The generic scrim class stays for the
+     remove-confirm dialog. */
   .inf-scrim{position:fixed; inset:0; z-index:400; background:var(--shadow-overlay);
     opacity:0; pointer-events:none;
     transition:opacity var(--duration-base) var(--ease-standard);}
   .inf-scrim.is-open{opacity:1; pointer-events:auto;}
-  .inf-detail{width:min(480px, calc(100vw - var(--spacing-32))); gap:0; padding:0;}
+  .inf-cardmodal{position:fixed; inset:0; z-index:400; display:none;
+    align-items:center; justify-content:center; perspective:1200px;}
+  .inf-cardmodal.is-open{display:flex;}
+  .inf-cardmodal-backdrop{position:absolute; inset:0;
+    background:var(--color-canvas-warm); opacity:0;
+    transition:opacity .32s var(--ease-standard);}
+  .inf-cardmodal.is-shown .inf-cardmodal-backdrop{opacity:.88;
+    transition-duration:.5s;}
+  .inf-cardmodal-panel{position:relative; display:flex; flex-direction:column;
+    width:min(480px, calc(100vw - var(--spacing-32)));
+    max-height:min(680px, calc(100dvh - var(--spacing-60)));
+    background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
+    border-radius:var(--radius-lg); box-shadow:0 25px 50px -12px rgba(0,0,0,.25);
+    transform-origin:top left; opacity:0;
+    transition:opacity .3s var(--ease-standard);}
+  .inf-cardmodal.is-shown .inf-cardmodal-panel{opacity:1;}
+  .inf-cardmodal-panel.is-swinging-open{animation:inf-swing-open .8s cubic-bezier(.25,.9,.35,1) both;}
+  .inf-cardmodal-panel.is-swinging-closed{animation:inf-swing-close .55s cubic-bezier(.3,.6,.35,1) both;}
+  @keyframes inf-swing-open{
+    0%{transform:translate(var(--sw-dx, 0px), var(--sw-dy, 0px)) scale(var(--sw-sx, 1), var(--sw-sy, 1)); opacity:.4;}
+    45%{transform:translate(calc(var(--sw-dx, 0px) * .5), calc(var(--sw-dy, 0px) * .5)) scale(.7) rotateY(calc(48deg * var(--sw-dir, 1))) rotateZ(calc(-7deg * var(--sw-dir, 1))); opacity:1;}
+    78%{transform:translate(0px, 0px) scale(1) rotateY(calc(-7deg * var(--sw-dir, 1))) rotateZ(calc(1deg * var(--sw-dir, 1)));}
+    100%{transform:none; opacity:1;}
+  }
+  @keyframes inf-swing-close{
+    0%{transform:none; opacity:1;}
+    50%{transform:translate(calc(var(--sw-dx, 0px) * .5), calc(var(--sw-dy, 0px) * .5)) scale(.7) rotateY(calc(45deg * var(--sw-dir, 1))) rotateZ(calc(-6deg * var(--sw-dir, 1))); opacity:1;}
+    100%{transform:translate(var(--sw-dx, 0px), var(--sw-dy, 0px)) scale(var(--sw-sx, 1), var(--sw-sy, 1)); opacity:.35;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .inf-cardmodal-panel.is-swinging-open,
+    .inf-cardmodal-panel.is-swinging-closed{animation:none;}
+  }
+  .inf-cardmodal-close{position:absolute; top:var(--spacing-16);
+    right:var(--spacing-16); z-index:2; background:none; border:none;
+    cursor:pointer; padding:0; line-height:1; color:var(--color-neutral-5);
+    font-size:20px;}
   .inf-drawer-head{display:flex; align-items:flex-start; gap:var(--spacing-12);
     padding:var(--spacing-24) var(--spacing-24) var(--spacing-16); flex:none;}
   .inf-drawer-head .c-card-profile-avatar{width:48px; height:48px;
@@ -218,8 +257,20 @@
     color:var(--color-neutral-5); font-weight:400; margin-top:2px;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;}
   .inf-rowpin{color:var(--color-neutral-5); font-size:var(--icon-micro); flex:none;}
+  /* Platform cells: number and tier pill each get their own aligned
+     sub-column, so the figures line up down the table. */
   .inf-list-plat{white-space:nowrap;}
-  .inf-list-plat .c-tag{margin-left:var(--spacing-4);}
+  .inf-plat{display:flex; align-items:center; justify-content:flex-end;
+    gap:var(--spacing-8);}
+  .inf-plat .pnum{font-variant-numeric:tabular-nums; font-weight:700;
+    min-width:52px; text-align:right; color:var(--color-neutral-9);}
+  .inf-plat .ptier{width:68px; flex:none; display:flex;}
+  th.c-table-sort-th[data-sort]{cursor:pointer; user-select:none;
+    white-space:nowrap;}
+  .inf-sorticon{font-size:var(--icon-micro); color:var(--color-neutral-4);
+    vertical-align:middle;}
+  .inf-sorticon.is-on{color:var(--color-neutral-9);}
+  th[data-sort]:hover .inf-sorticon{color:var(--color-neutral-9);}
   td .inf-kebab{position:relative; top:auto; right:auto; display:inline-flex;}
   td .inf-kebab .inf-menu{right:calc(100% + 4px); top:50%;
     transform:translateY(-50%) translateX(4px);}
@@ -441,10 +492,11 @@
   </div>
 </div>
 
-<!-- Detail modal — the cbrief fold-open shell -->
-<div class="c-cbrief-scrim" id="infDrawerScrim">
-  <div class="c-cbrief inf-detail" role="dialog" aria-modal="true" aria-label="Influencer details">
-    <button class="c-cbrief-close" type="button" id="infDrawerClose" aria-label="Close details"><i class="ph ph-x"></i></button>
+<!-- Detail modal — the landing's hero-card swing overlay -->
+<div class="inf-cardmodal" id="infDrawerScrim" aria-hidden="true">
+  <div class="inf-cardmodal-backdrop"></div>
+  <div class="inf-cardmodal-panel" id="infDetailPanel" role="dialog" aria-modal="true" aria-label="Influencer details">
+    <button class="inf-cardmodal-close" type="button" id="infDrawerClose" aria-label="Close details"><i class="ph ph-x"></i></button>
     <div class="inf-drawer-head" id="infDrawerHead"></div>
     <div class="inf-drawer-body" id="infDrawerBody"></div>
     <div class="inf-drawer-foot">
@@ -767,7 +819,9 @@
     document.querySelectorAll('.inf-viewbtn').forEach(function(b){
       b.classList.toggle('is-active', b.dataset.view === view);
     });
-    railEl.style.display = view === 'list' ? 'none' : '';
+    /* The rail stays up in both views while the order IS A–Z; a manual
+       column sort breaks that order, so the rail steps aside with it. */
+    railEl.style.display = (view === 'list' && !isDefaultSort()) ? 'none' : '';
   }
   document.querySelector('.inf-viewseg').addEventListener('click', function(e){
     var b = e.target.closest('.inf-viewbtn');
@@ -777,18 +831,62 @@
     render();
   });
 
+  /* ── List sorting — name A→Z is the default (the rail's own order);
+     any other column, or a reversed name, counts as a manual sort and
+     the rail steps aside. */
+  var sortKey = 'name', sortDir = 1;
+  function isDefaultSort(){ return sortKey === 'name' && sortDir === 1; }
+  function followersOf(r, key){
+    var hit = (r.platforms || []).filter(function(p){ return p.platform === key; })[0];
+    return hit && hit.followers != null ? hit.followers : null;
+  }
+  function sortRecords(list){
+    var plat = {tiktok: 1, instagram: 1, xhs: 1}[sortKey];
+    return list.slice().sort(function(a, b){
+      if (plat) {
+        var fa = followersOf(a, sortKey), fb = followersOf(b, sortKey);
+        if (fa == null && fb == null) return a.name.localeCompare(b.name);
+        if (fa == null) return 1;
+        if (fb == null) return -1;
+        return (fa - fb) * sortDir;
+      }
+      if (sortKey === 'name') {
+        /* The # bucket files after Z here too, matching the sections. */
+        var la = LETTERS.indexOf(letterOf(a.name)), lb = LETTERS.indexOf(letterOf(b.name));
+        if (la !== lb) return (la - lb) * sortDir;
+      }
+      var va = String(a[sortKey] || ''), vb = String(b[sortKey] || '');
+      if (!va && vb) return 1;
+      if (va && !vb) return -1;
+      var c = va.localeCompare(vb, undefined, {sensitivity: 'base'});
+      return (c || a.name.localeCompare(b.name)) * sortDir;
+    });
+  }
+  function toggleSort(key){
+    if (sortKey === key) sortDir = -sortDir;
+    else { sortKey = key; sortDir = key === 'tiktok' || key === 'instagram' || key === 'xhs' ? -1 : 1; }
+    render();
+  }
+  function sortIcon(key){
+    if (sortKey !== key) return '<i class="ph ph-arrows-down-up inf-sorticon"></i>';
+    return '<i class="ph ' + (sortDir === 1 ? 'ph-caret-up' : 'ph-caret-down') + ' inf-sorticon is-on"></i>';
+  }
+
   function listRow(r){
     var pinned = influencerStore.isPinned(r.id);
     var plat = {};
     (r.platforms || []).forEach(function(p){ plat[p.platform] = p; });
     function platCell(key){
       var p = plat[key];
-      if (!p || p.followers == null) return '<td class="inf-list-plat">—</td>';
-      var t = tierOf(p.followers);
-      return '<td class="inf-list-plat num">' + fmtFollowers(p.followers) +
-        (t ? '<span class="c-tag ' + t.cls + '">' + (t.cls ? '<span class="dot"></span>' : '') + t.name + '</span>' : '') + '</td>';
+      var t = p ? tierOf(p.followers) : null;
+      return '<td class="inf-list-plat"><span class="inf-plat">' +
+        '<span class="pnum">' + (p && p.followers != null ? fmtFollowers(p.followers) : '—') + '</span>' +
+        '<span class="ptier">' +
+        (t ? '<span class="c-tag ' + t.cls + '">' + (t.cls ? '<span class="dot"></span>' : '') + t.name + '</span>' : '') +
+        '</span></span></td>';
     }
-    return '<tr class="is-interactive is-clickable" data-id="' + r.id + '">' +
+    return '<tr class="is-interactive is-clickable" data-id="' + r.id + '"' +
+      (pinned ? '' : ' data-letter="' + letterOf(r.name) + '"') + '>' +
       '<td><span class="inf-rowcell">' +
         '<span class="c-card-profile-avatar">' + esc(initialsOf(r.name)) +
           '<img alt="" loading="lazy" data-avatar-for="' + r.id + '" /></span>' +
@@ -811,10 +909,14 @@
   }
   function listHTML(pinnedHits, restHits){
     var rows = pinnedHits.concat(restHits).map(listRow).join('');
+    function sth(key, label, num){
+      return '<th class="c-table-sort-th' + (num ? ' num' : '') + '" data-sort="' + key + '" role="button" tabindex="0" aria-label="Sort by ' + label + '">' +
+        label + ' ' + sortIcon(key) + '</th>';
+    }
     return '<div class="c-table-standalone-wrap c-table-scroll-x">' +
       '<table class="c-table c-table-standalone"><thead><tr>' +
-      '<th>Influencer</th><th>Age</th><th>Gender</th><th>Location</th>' +
-      '<th class="num">TikTok</th><th class="num">Instagram</th><th class="num">XHS</th>' +
+      sth('name', 'Influencer') + sth('age', 'Age') + sth('gender', 'Gender') + sth('location', 'Location') +
+      sth('tiktok', 'TikTok', true) + sth('instagram', 'Instagram', true) + sth('xhs', 'XHS', true) +
       '<th class="no-sort c-table-action-col"><span class="sr-only">Actions</span></th>' +
       '</tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
@@ -829,7 +931,7 @@
     restHits.forEach(function(r){ letterCounts[letterOf(r.name)] += 1; });
 
     if (view === 'list') {
-      mainEl.innerHTML = hits.length ? listHTML(pinnedHits, restHits)
+      mainEl.innerHTML = hits.length ? listHTML(sortRecords(pinnedHits), sortRecords(restHits))
         : '<div class="c-empty"><i class="ph-fill ph-users-three"></i>' +
           '<h4>No influencers found</h4>' +
           '<p>Nothing matches. Clear the search or filters to see the full roster.</p></div>';
@@ -842,7 +944,9 @@
         ? 'Showing ' + hits.length + ' of ' + all.length + ' influencers.'
         : all.length + ' influencers, A to Z.';
       applyViewButtons();
+      renderRail();
       renderTray();
+      spy();
       return;
     }
 
@@ -1025,22 +1129,26 @@
   railEl.addEventListener('click', function(e){
     var row = e.target.closest('.inf-rail-row');
     if (!row || row.classList.contains('is-empty')) return;
-    var sect = document.getElementById('letter-' + (row.dataset.letter === '#' ? 'hash' : row.dataset.letter));
-    if (!sect) return;
     /* Scroll math on the shell's own scroll container; smooth only when
        the tab is actually being painted (hidden panes stall rAF). */
-    var top = sect.offsetTop - scroller.offsetTop - 4;
+    var target = view === 'list'
+      ? mainEl.querySelector('tr[data-letter="' + row.dataset.letter + '"]')
+      : document.getElementById('letter-' + (row.dataset.letter === '#' ? 'hash' : row.dataset.letter));
+    if (!target) return;
+    var top = (target.getBoundingClientRect().top - scroller.getBoundingClientRect().top)
+      + scroller.scrollTop - (view === 'list' ? 56 : 4);
     scroller.scrollTo({top: top, behavior: document.hidden ? 'auto' : 'smooth'});
   });
 
   /* Scroll-spy — the letter whose section owns the current viewport top. */
   var spyTick = false;
   function spy(){
-    var sections = mainEl.querySelectorAll('.inf-section[data-letter]');
-    var pos = scroller.scrollTop + 90;
+    var sections = mainEl.querySelectorAll(view === 'list'
+      ? 'tr[data-letter]' : '.inf-section[data-letter]');
+    var topEdge = scroller.getBoundingClientRect().top + 90;
     var current = null;
     sections.forEach(function(s){
-      if (s.offsetTop - scroller.offsetTop <= pos) current = s.dataset.letter;
+      if (s.getBoundingClientRect().top <= topEdge) current = s.dataset.letter;
     });
     if (!current && sections.length) current = sections[0].dataset.letter;
     railEl.querySelectorAll('.inf-rail-row').forEach(function(r){
@@ -1201,13 +1309,37 @@
     }, 2600);
   }
 
-  /* ── Detail drawer. */
+  /* ── Detail modal — the landing's hero-card swing. The panel flies
+     out of the clicked card's rect and folds back into it on close;
+     the source rect is frozen at open time in case a re-render swaps
+     the card out from under the modal. */
   var drawerScrim = document.getElementById('infDrawerScrim');
+  var detailPanel = document.getElementById('infDetailPanel');
   var drawerId = null;
-  function openDrawer(id){
+  var swingSrcEl = null, swingSrcRect = null, hideTimer = null;
+  var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function setSwingVars(){
+    detailPanel.classList.remove('is-swinging-open', 'is-swinging-closed');
+    void detailPanel.offsetWidth;
+    var from = (swingSrcEl && swingSrcEl.isConnected)
+      ? swingSrcEl.getBoundingClientRect() : swingSrcRect;
+    if (!from) return false;
+    var to = detailPanel.getBoundingClientRect();
+    detailPanel.style.setProperty('--sw-dx', (from.left - to.left).toFixed(1) + 'px');
+    detailPanel.style.setProperty('--sw-dy', (from.top - to.top).toFixed(1) + 'px');
+    detailPanel.style.setProperty('--sw-sx', (from.width / to.width).toFixed(4));
+    detailPanel.style.setProperty('--sw-sy', (from.height / to.height).toFixed(4));
+    detailPanel.style.setProperty('--sw-dir',
+      (from.left + from.width / 2) <= window.innerWidth / 2 ? '1' : '-1');
+    return true;
+  }
+  function openDrawer(id, sourceEl){
     var r = byId[id];
     if (!r) return;
     drawerId = id;
+    clearTimeout(hideTimer);
+    swingSrcEl = sourceEl || null;
+    swingSrcRect = sourceEl ? sourceEl.getBoundingClientRect() : null;
     var meta = [r.age, r.gender, r.ethnicity, r.location].filter(Boolean).join(' · ');
     document.getElementById('infDrawerHead').innerHTML =
       '<span class="c-card-profile-avatar">' + esc(initialsOf(r.name)) +
@@ -1239,14 +1371,30 @@
         '<div class="inf-kv"><dt>NRIC</dt><dd>' + esc(pii.nric || '—') + '</dd></div>' +
         '</dl></div></div>';
     drawerScrim.classList.add('is-open');
+    drawerScrim.setAttribute('aria-hidden', 'false');
+    if (!REDUCED && setSwingVars()) {
+      detailPanel.classList.add('is-swinging-open');
+    }
+    drawerScrim.classList.add('is-shown');
   }
   function closeDrawer(){
-    drawerScrim.classList.remove('is-open');
+    if (!drawerScrim.classList.contains('is-open')) return;
+    if (!REDUCED && setSwingVars()) {
+      detailPanel.classList.add('is-swinging-closed');
+    }
+    drawerScrim.classList.remove('is-shown');
     drawerId = null;
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function(){
+      drawerScrim.classList.remove('is-open');
+      drawerScrim.setAttribute('aria-hidden', 'true');
+      detailPanel.classList.remove('is-swinging-open', 'is-swinging-closed');
+      swingSrcEl = null; swingSrcRect = null;
+    }, REDUCED ? 320 : 600);
   }
   document.getElementById('infDrawerClose').addEventListener('click', closeDrawer);
   drawerScrim.addEventListener('click', function(e){
-    if (e.target === drawerScrim) closeDrawer();
+    if (e.target.closest('.inf-cardmodal-backdrop')) closeDrawer();
   });
   document.getElementById('infDrawerEdit').addEventListener('click', function(){
     if (!drawerId) return;
@@ -1401,19 +1549,23 @@
         toast(who ? who.name + (now ? ' pinned to top.' : ' unpinned.') : 'Updated.');
         render();
       }
-      if (item.dataset.act === 'view') openDrawer(item.dataset.id);
+      if (item.dataset.act === 'view') openDrawer(item.dataset.id, item.closest('.inf-card, tr'));
       if (item.dataset.act === 'edit') openForm(item.dataset.id);
       if (item.dataset.act === 'remove') askRemove(item.dataset.id);
       return;
     }
+    var th = e.target.closest('th[data-sort]');
+    if (th) { toggleSort(th.dataset.sort); return; }
     if (e.target.closest('a')) return;
     var card = e.target.closest('.inf-card[data-id], tr[data-id]');
-    if (card) openDrawer(card.dataset.id);
+    if (card) openDrawer(card.dataset.id, card);
   });
   mainEl.addEventListener('keydown', function(e){
     if (e.key !== 'Enter') return;
+    var th = e.target.closest('th[data-sort]');
+    if (th) { toggleSort(th.dataset.sort); return; }
     var card = e.target.closest('.inf-card[data-id]');
-    if (card && e.target === card) openDrawer(card.dataset.id);
+    if (card && e.target === card) openDrawer(card.dataset.id, card);
   });
   document.addEventListener('click', function(e){
     if (!e.target.closest('.inf-kebab')) closeMenus();
