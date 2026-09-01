@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Collab:Influence · Influencers</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- Earth is Collab:Influence's element, so the mound is the tab mark. -->
+<link rel="icon" type="image/svg+xml" href="../collabrium-dls/SVG/earth.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700;800;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+<link rel="stylesheet" href="../collabrium-dls/tokens.css?v=0.9.41c" />
+<link rel="stylesheet" href="../collabrium-dls/components.css?v=0.9.41c" />
+<link rel="stylesheet" href="../shared/shell.css?v=0.9.44" />
+<style>
+  /* Page-local. Composes tokens only — no new colors, radii, or spacing. */
+  .c-shell .c-pageheader{margin-bottom:var(--spacing-24);}
+  .inf-divider{border:none; border-top:1px solid var(--color-neutral-3);
+    margin:0 0 var(--spacing-24);}
+  .inf-controls{display:flex; flex-wrap:wrap; align-items:center;
+    gap:var(--spacing-8); margin-bottom:var(--spacing-16);}
+  .c-filter-tray{margin-bottom:var(--spacing-16);}
+
+  /* ── Two-column body: the roster grid plus the A–Z rail. The rail is
+     sticky inside .c-shell-content (the shell's real scroll container),
+     so it holds its place while the sections scroll past it. */
+  .inf-layout{display:flex; gap:var(--spacing-16); align-items:flex-start;}
+  .inf-main{flex:1; min-width:0;}
+
+  /* ── Letter sections. The head is sticky against the scroll container
+     and repaints on the warm canvas so cards slide under it cleanly. */
+  .inf-letter-head{position:sticky; top:0; z-index:3;
+    display:flex; align-items:baseline; gap:var(--spacing-8);
+    background:var(--color-canvas-warm);
+    padding:var(--spacing-8) 0; margin:0 0 var(--spacing-8);}
+  .inf-letter-head h3{margin:0; font-size:var(--text-h3-size);
+    line-height:var(--text-h3-lh); font-weight:var(--text-h3-weight);}
+  .inf-letter-head .cnt{font-size:var(--text-caption-size);
+    color:var(--color-neutral-5);}
+  .inf-letter-head .rule{flex:1; border-top:1px solid var(--color-neutral-3);
+    align-self:center;}
+  .inf-section{margin-bottom:var(--spacing-24);}
+  .inf-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+    gap:var(--spacing-16); align-items:stretch;}
+
+  /* ── Profile card page-local extras: the kebab replaces the DLS select
+     checkbox in the same reserved top-right slot; the avatar hosts the
+     resolved platform photo over the initials. */
+  .c-card-profile-avatar{position:relative; overflow:hidden;}
+  .c-card-profile-avatar img{position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; border-radius:var(--radius-pill); opacity:0;
+    transition:opacity var(--duration-base) var(--ease-standard);}
+  .c-card-profile-avatar img.is-loaded{opacity:1;}
+  .inf-kebab{position:absolute; top:var(--spacing-8); right:var(--spacing-8);}
+  .inf-kebab-btn{color:var(--color-neutral-5); width:32px; height:32px;}
+  .inf-kebab:hover .inf-kebab-btn, .inf-kebab.is-open .inf-kebab-btn{
+    color:var(--color-neutral-9); background:var(--color-neutral-2);}
+  .inf-menu{position:absolute; right:0; top:calc(100% + 4px);
+    background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
+    border-radius:var(--radius-md); box-shadow:var(--shadow-3);
+    padding:4px; white-space:nowrap; z-index:6; min-width:150px;
+    opacity:0; visibility:hidden; pointer-events:none;
+    transform:translateY(-4px);
+    transition:opacity var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-standard),
+      visibility 0s linear var(--duration-fast);}
+  .inf-kebab.is-open .inf-menu{opacity:1; visibility:visible;
+    pointer-events:auto; transform:none; transition-delay:0s;}
+  .inf-menu-item{display:flex; align-items:center; gap:var(--spacing-8);
+    width:100%; border:0; background:transparent; cursor:pointer; font:inherit;
+    font-size:var(--text-body2-size); color:var(--color-neutral-9);
+    padding:8px 10px; border-radius:var(--radius-sm); text-align:left;}
+  .inf-menu-item:hover{background:var(--color-neutral-2);}
+  .inf-menu-item i{font-size:var(--icon-sm); color:var(--color-neutral-5);}
+  .inf-menu-item.is-danger, .inf-menu-item.is-danger i{color:var(--color-red);}
+  .inf-menu-item.is-danger:hover{background:rgba(253,51,67,.08);}
+  .c-card-profile .c-card-profile-handle:hover{text-decoration:underline;}
+  .inf-xhs{flex:none; width:var(--icon-sm); height:var(--icon-sm); object-fit:contain;}
+  .c-card-profile-personas .c-badge{max-width:100%; overflow:hidden;
+    text-overflow:ellipsis; display:inline-block; line-height:16px;}
+  .inf-card-leaving{opacity:0; transform:scale(.98);
+    transition:opacity var(--duration-base) var(--ease-standard),
+      transform var(--duration-base) var(--ease-standard);}
+
+  /* ── A–Z rail — the scrolling indicator. Each row pairs a count bar
+     with its letter (the reference's histogram read): bar length maps to
+     how many names live under that letter, the active letter and its bar
+     take Influence's own Earth green, empty letters dim out. */
+  .inf-rail{position:sticky; top:var(--spacing-8); flex:none;
+    height:calc(100dvh - 180px); min-height:420px;
+    display:flex; flex-direction:column; justify-content:space-between;
+    padding:var(--spacing-8) 0;}
+  .inf-rail-row{display:flex; align-items:center; justify-content:flex-end;
+    gap:6px; border:0; background:none; padding:0 2px; cursor:pointer;
+    font-family:inherit; line-height:1;}
+  .inf-rail-bar{height:5px; border-radius:var(--radius-pill);
+    background:var(--color-neutral-3); flex:none;
+    transition:background-color var(--duration-fast) var(--ease-standard),
+      width var(--duration-base) var(--ease-flow);}
+  .inf-rail-letter{width:14px; text-align:center;
+    font-size:var(--text-footnote-size); font-weight:700;
+    color:var(--color-neutral-5);
+    transition:color var(--duration-fast) var(--ease-standard);}
+  .inf-rail-row:hover .inf-rail-letter{color:var(--color-neutral-9);}
+  .inf-rail-row:hover .inf-rail-bar{background:var(--color-neutral-4);}
+  .inf-rail-row.is-active .inf-rail-letter{color:var(--color-green);}
+  .inf-rail-row.is-active .inf-rail-bar{background:var(--color-green);}
+  .inf-rail-row.is-empty{cursor:default; pointer-events:none;}
+  .inf-rail-row.is-empty .inf-rail-letter{color:var(--color-neutral-4);}
+  .inf-rail-row.is-empty .inf-rail-bar{opacity:0;}
+  .inf-rail-row:focus-visible{outline:2px solid var(--color-obsidian);
+    outline-offset:1px; border-radius:var(--radius-sm);}
+
+  /* ── Detail drawer — a right-hand panel on modal chrome (the DLS has no
+     drawer primitive; this composes Card surface + Modal scrim tokens). */
+  .inf-scrim{position:fixed; inset:0; z-index:400; background:var(--shadow-overlay);
+    opacity:0; pointer-events:none;
+    transition:opacity var(--duration-base) var(--ease-standard);}
+  .inf-scrim.is-open{opacity:1; pointer-events:auto;}
+  .inf-drawer{position:fixed; top:0; right:0; bottom:0; z-index:401;
+    width:min(420px, calc(100vw - var(--spacing-32)));
+    background:var(--color-neutral-1); box-shadow:var(--shadow-4);
+    border-radius:var(--radius-lg) 0 0 var(--radius-lg);
+    display:flex; flex-direction:column;
+    transform:translateX(calc(100% + var(--spacing-16)));
+    transition:transform var(--duration-slow) var(--ease-settle);}
+  .inf-scrim.is-open .inf-drawer{transform:none;}
+  .inf-drawer-head{display:flex; align-items:flex-start; gap:var(--spacing-12);
+    padding:var(--spacing-24) var(--spacing-24) var(--spacing-16);}
+  .inf-drawer-head .c-card-profile-avatar{width:48px; height:48px;
+    font-size:var(--text-body1-size);}
+  .inf-drawer-head h3{margin:0; font-size:var(--text-h4-size);
+    line-height:var(--text-h4-lh); font-weight:var(--text-h4-weight);}
+  .inf-drawer-head p{margin:4px 0 0; font-size:var(--text-body2-size);
+    color:var(--color-neutral-5);}
+  .inf-drawer-body{flex:1; overflow-y:auto;
+    padding:0 var(--spacing-24) var(--spacing-24);}
+  .inf-drawer-foot{display:flex; gap:var(--spacing-8); justify-content:flex-end;
+    padding:var(--spacing-16) var(--spacing-24);
+    border-top:1px solid var(--color-neutral-3);}
+  .inf-sect{margin-top:var(--spacing-20);}
+  .inf-sect > h5{margin:0 0 var(--spacing-8);
+    font-size:var(--text-caption-size); line-height:var(--text-caption-lh);
+    font-weight:700; text-transform:uppercase;
+    letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
+  .inf-kv{display:flex; gap:var(--spacing-12); padding:6px 0;
+    font-size:var(--text-body2-size); line-height:var(--text-body2-lh);}
+  .inf-kv dt{flex:none; width:88px; color:var(--color-neutral-5); margin:0;}
+  .inf-kv dd{flex:1; margin:0; color:var(--color-neutral-9);
+    overflow-wrap:anywhere;}
+  dl.inf-kvs{margin:0;}
+  .inf-pii{background:var(--color-gold-bg); border-radius:var(--radius-md);
+    padding:var(--spacing-12) var(--spacing-16);}
+  .inf-pii-note{display:flex; align-items:center; gap:6px;
+    font-size:var(--text-footnote-size); color:var(--color-neutral-5);
+    margin-bottom:var(--spacing-4);}
+  .inf-close{position:absolute; top:var(--spacing-16); right:var(--spacing-16);}
+
+  /* ── Add / edit sheet — the cbrief modal shell with a form inside. */
+  .inf-form{width:min(640px, calc(100vw - var(--spacing-32)));}
+  .inf-form-grid{display:grid; grid-template-columns:1fr 1fr;
+    gap:var(--spacing-12);}
+  .inf-form-grid .span2{grid-column:1 / -1;}
+  .inf-form .c-field{width:100%;}
+  .c-field select{height:40px; border-radius:var(--radius-sm);
+    border:1px solid var(--color-neutral-3); padding:0 var(--spacing-8);
+    font-size:var(--text-body2-size); font-family:inherit;
+    color:var(--color-neutral-9); background:var(--color-neutral-1);}
+  .c-field select:focus{outline:none; border:2px solid var(--color-obsidian);
+    padding:0 7px;}
+  .c-field textarea{border-radius:var(--radius-sm);
+    border:1px solid var(--color-neutral-3);
+    padding:var(--spacing-8) var(--spacing-12);
+    font-size:var(--text-body2-size); font-family:inherit;
+    color:var(--color-neutral-9); resize:vertical; min-height:56px;}
+  .c-field textarea:focus{outline:none; border:2px solid var(--color-obsidian);
+    padding:7px 11px;}
+  .inf-form-eyebrow{grid-column:1 / -1; margin:var(--spacing-8) 0 0;
+    font-size:var(--text-caption-size); font-weight:700;
+    text-transform:uppercase; letter-spacing:var(--tracking-eyebrow);
+    color:var(--color-neutral-5);}
+  .inf-platrow{display:grid; grid-template-columns:1.4fr 1fr;
+    gap:var(--spacing-12); grid-column:1 / -1;}
+
+  /* ── Filter panel: grouped sections inside the one compact panel. */
+  .c-filter-panel{max-height:min(480px, 60vh); overflow-y:auto; min-width:240px;}
+  .inf-filter-group + .inf-filter-group{margin-top:var(--spacing-8);}
+
+  /* ── Toasts. */
+  .c-toast-host{position:fixed; bottom:var(--spacing-24); right:var(--spacing-24);
+    z-index:500; display:flex; flex-direction:column; gap:var(--spacing-8);}
+
+  /* ── Arrival — controls first, then the first rows of cards cascade. */
+  @keyframes inf-arrive{from{opacity:0; transform:translateY(12px);}
+    to{opacity:1; transform:none;}}
+  .inf-arriving .inf-controls{animation:inf-arrive 420ms var(--ease-settle) both;
+    animation-delay:60ms;}
+  .inf-arriving .inf-rail{animation:inf-arrive 420ms var(--ease-settle) both;
+    animation-delay:200ms;}
+  .inf-arriving .inf-section:nth-of-type(1) .c-card-profile{
+    animation:inf-arrive 380ms var(--ease-settle) both;}
+  .inf-arriving .inf-section:nth-of-type(1) .c-card-profile:nth-child(1){animation-delay:160ms;}
+  .inf-arriving .inf-section:nth-of-type(1) .c-card-profile:nth-child(2){animation-delay:200ms;}
+  .inf-arriving .inf-section:nth-of-type(1) .c-card-profile:nth-child(3){animation-delay:240ms;}
+  .inf-arriving .inf-section:nth-of-type(1) .c-card-profile:nth-child(4){animation-delay:280ms;}
+  .inf-arriving .inf-section:nth-of-type(1) .c-card-profile:nth-child(5){animation-delay:320ms;}
+  .inf-arriving .inf-section:nth-of-type(1) .c-card-profile:nth-child(6){animation-delay:360ms;}
+  @media (prefers-reduced-motion:reduce){
+    .inf-arriving .inf-controls, .inf-arriving .inf-rail,
+    .inf-arriving .inf-section:nth-of-type(1) .c-card-profile{animation:none;}
+    .inf-drawer, .inf-scrim{transition:none;}
+  }
+
+  @media (max-width:900px){
+    .inf-rail{min-height:0; height:calc(100dvh - 140px);}
+    .inf-rail-bar{display:none;}
+  }
+  @media (max-width:640px){
+    .inf-grid{grid-template-columns:1fr;}
+    .inf-form-grid, .inf-platrow{grid-template-columns:1fr;}
+    .c-pageheader-row{flex-wrap:wrap; gap:var(--spacing-12);}
+    .c-pageheader-text{width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div class="c-shell">
+  <div class="c-sidebar-shell" id="shellSidebarShell">
+    <nav class="c-sidebar" id="shellSidebarNav">
+      <div class="c-sidebar-header">
+        <button class="c-dept-trigger js-dept-trigger" type="button" aria-haspopup="listbox"
+                aria-expanded="false" aria-label="Switch department, Influence" aria-controls="deptDropdown">
+          <span class="c-sidebar-logo-live-wrap js-dept-logo-live" style="display:none"><iframe src="../collabrium-dls/logo.html" title="Collabrium" scrolling="no"></iframe></span>
+          <img class="c-dept-logo-static js-dept-logo-static" src="../collabrium-dls/logo-lockups/collabInfluence.svg" alt="Influence" />
+          <i class="ph ph-caret-down js-dept-chevron c-dept-chevron"></i>
+        </button>
+        <span class="c-badge c-badge-neutral c-sidebar-beta">Beta</span>
+        <img class="c-sidebar-logo-collapsed js-dept-logo-collapsed" src="../collabrium-dls/SVG/earth.svg" alt="Collab:Influence" />
+      </div>
+      <a class="c-sidebar-item" href="#"><i class="ph-fill ph-house"></i><span class="label">Home</span><span class="c-sidebar-hover-text">Home</span></a>
+      <div class="c-sidebar-section">Workspace</div>
+      <a class="c-sidebar-item active" href="influencers.html" aria-current="page"><i class="ph-fill ph-users-three"></i><span class="label">Influencers</span><span class="c-sidebar-hover-text">Influencers</span></a>
+      <a class="c-sidebar-item" href="#"><i class="ph-fill ph-folder-open"></i><span class="label">Campaigns</span><span class="c-sidebar-hover-text">Campaigns</span></a>
+      <div class="c-sidebar-section">General</div>
+      <a class="c-sidebar-item" href="#"><i class="ph-fill ph-buildings"></i><span class="label">Agencies</span><span class="c-sidebar-hover-text">Agencies</span></a>
+      <a class="c-sidebar-item" href="#"><i class="ph-fill ph-tag"></i><span class="label">Brands</span><span class="c-sidebar-hover-text">Brands</span></a>
+      <div class="c-sidebar-footer">
+        <button class="c-sidebar-account" type="button" id="accountMenuTrigger"
+                aria-haspopup="menu" aria-expanded="false" aria-controls="accountMenu">
+          <span class="c-search-input-avatar">DT</span>
+          <span class="c-search-input-text">
+            <span class="c-search-input-title">Digital Team</span>
+            <span class="c-search-input-subtitle">Admin</span>
+          </span>
+        </button>
+      </div>
+    </nav>
+    <button class="c-sidebar-toggle" type="button" aria-label="Collapse sidebar" id="sidebarToggle">
+      <svg viewBox="0 0 20 20" fill="none">
+        <rect x="2.5" y="3.5" width="15" height="13" rx="2" stroke="currentColor" stroke-width="1.4"/>
+        <line x1="9" y1="3.5" x2="9" y2="16.5" stroke="currentColor" stroke-width="1.4"/>
+        <path id="sidebarArrow" d="M13.5 7 11 10l2.5 3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="c-shell-main">
+    <div class="c-shell-content inf-arriving" id="infContent">
+
+      <header class="c-pageheader">
+        <div class="c-pageheader-row">
+          <div class="c-pageheader-text">
+            <h1>Influencers</h1>
+            <p class="sub" id="infSub">The full talent roster, A to Z.</p>
+          </div>
+          <div class="c-pageheader-actions">
+            <button class="c-btn c-btn-primary c-btn-md" type="button" id="infAddBtn">
+              <i class="ph ph-plus"></i> Add influencer
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <hr class="inf-divider" />
+
+      <div class="inf-controls">
+        <div class="c-filterbar" style="flex:1;">
+          <div class="c-filter-search">
+            <i class="ph ph-magnifying-glass icon-leading"></i>
+            <input type="text" id="infSearch" placeholder="Search name, handle, or niche" aria-label="Search influencers" />
+            <button class="c-filter-search-clear" id="infSearchClear" aria-label="Clear search" hidden><i class="ph ph-x"></i></button>
+          </div>
+          <span class="c-filter-search-divider" aria-hidden="true"></span>
+          <div style="position:relative;">
+            <button class="c-filter-trigger" id="infFilterTrigger" type="button" aria-haspopup="true" aria-expanded="false">
+              <i class="ph ph-funnel leading"></i> Filter
+              <span class="count" id="infFilterCount" hidden></span>
+              <i class="ph ph-caret-down chev"></i>
+            </button>
+            <div class="c-filter-panel" id="infFilterPanel">
+              <div id="infFilterGroups"></div>
+              <div class="c-filter-footer">
+                <button class="c-btn c-btn-ghost c-btn-sm" id="infFilterClear" type="button">Clear</button>
+                <button class="c-btn c-btn-primary c-btn-sm" id="infFilterDone" type="button">Done</button>
+              </div>
+            </div>
+          </div>
+          <button class="c-btn c-btn-ghost c-btn-sm c-filter-clear-bar" id="infClearAll" type="button" hidden>Clear all</button>
+        </div>
+      </div>
+      <div class="c-filter-tray" id="infTray" hidden></div>
+
+      <div class="inf-layout">
+        <div class="inf-main" id="infMain"></div>
+        <nav class="inf-rail" id="infRail" aria-label="Jump to letter"></nav>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="c-sidebar-hover-label" id="shellSidebarHoverLabel" role="tooltip"></div>
+
+<div class="c-account-menu" id="accountMenu" role="menu" aria-hidden="true">
+  <button class="c-account-menu-item" type="button" role="menuitem"><i class="ph-fill ph-gear"></i><span>Settings</span></button>
+  <button class="c-account-menu-item" type="button" role="menuitem"><i class="ph-fill ph-sign-out"></i><span>Log out</span></button>
+</div>
+
+<div class="c-dept-dropdown" id="deptDropdown" role="listbox" aria-label="Departments" hidden>
+  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Collabrium (Default)" data-dept="default" data-name="Collabrium (Default)" data-element-icon="../collabrium-dls/SVG/coin.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabrium-default-logo.svg" alt="" style="--logo-scale:0.6" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Studio" data-dept="studio" data-name="Studio" data-logo="../collabrium-dls/logo-lockups/collabStudio.svg" data-element-icon="../collabrium-dls/SVG/fire.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabStudio.svg" alt="" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Sales" data-dept="sales" data-name="Sales" data-logo="../collabrium-dls/logo-lockups/collabSales.svg" data-element-icon="../collabrium-dls/SVG/gold.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabSales.svg" alt="" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Media" data-dept="media" data-name="Media" data-logo="../collabrium-dls/logo-lockups/collabMedia.svg" data-element-icon="../collabrium-dls/SVG/water.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabMedia.svg" alt="" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+  <div class="c-dept-option is-active" role="option" aria-selected="true" aria-label="Influence" data-dept="influence" data-name="Influence" data-logo="../collabrium-dls/logo-lockups/collabInfluence.svg" data-element-icon="../collabrium-dls/SVG/earth.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabInfluence.svg" alt="" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Content" data-dept="content" data-name="Content" data-logo="../collabrium-dls/logo-lockups/collabContent.svg" data-element-icon="../collabrium-dls/SVG/wood.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabContent.svg" alt="" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+</div>
+
+<!-- Detail drawer -->
+<div class="inf-scrim" id="infDrawerScrim">
+  <aside class="inf-drawer" id="infDrawer" role="dialog" aria-modal="true" aria-label="Influencer details">
+    <button class="c-btn c-btn-ghost c-btn-sm c-btn-icon inf-close" type="button" id="infDrawerClose" aria-label="Close details"><i class="ph ph-x"></i></button>
+    <div class="inf-drawer-head" id="infDrawerHead"></div>
+    <div class="inf-drawer-body" id="infDrawerBody"></div>
+    <div class="inf-drawer-foot">
+      <button class="c-btn c-btn-ghost c-btn-md" type="button" id="infDrawerRemove" style="color:var(--color-red);"><i class="ph ph-trash"></i> Remove</button>
+      <button class="c-btn c-btn-secondary c-btn-md" type="button" id="infDrawerEdit"><i class="ph ph-pencil-simple"></i> Edit</button>
+    </div>
+  </aside>
+</div>
+
+<!-- Add / edit sheet -->
+<div class="c-cbrief-scrim" id="infFormScrim">
+  <div class="c-cbrief inf-form" role="dialog" aria-modal="true" aria-labelledby="infFormTitle">
+    <button class="c-cbrief-close" type="button" id="infFormClose" aria-label="Close form"><i class="ph ph-x"></i></button>
+    <span class="c-herocard-eyebrow" id="infFormEyebrow">New profile</span>
+    <h3 style="margin:0; font-size:var(--text-h4-size); line-height:var(--text-h4-lh); font-weight:var(--text-h4-weight);" id="infFormTitle">Add influencer</h3>
+    <div class="inf-form-grid">
+      <div class="c-field span2" id="infFieldName"><label for="f-name">Name<span class="required-mark">*</span></label>
+        <input id="f-name" placeholder="Full name" /><span class="c-helper" hidden id="infNameHelp">A name is required.</span></div>
+      <div class="c-field span2"><label for="f-niche">Niches</label>
+        <input id="f-niche" placeholder="e.g. Lifestyle, Parenting — comma separated" /></div>
+      <div class="c-field"><label for="f-age">Age group</label>
+        <select id="f-age"><option value="">—</option><option>20-30</option><option>30-40</option><option>40-50</option><option>50-60</option></select></div>
+      <div class="c-field"><label for="f-gender">Gender</label>
+        <select id="f-gender"><option value="">—</option><option>Female</option><option>Male</option></select></div>
+      <div class="c-field"><label for="f-eth">Ethnicity</label>
+        <select id="f-eth"><option value="">—</option><option>Malay</option><option>Chinese</option><option>Indian</option><option>Other</option></select></div>
+      <div class="c-field"><label for="f-loc">Location</label>
+        <input id="f-loc" placeholder="e.g. Klang Valley" /></div>
+
+      <p class="inf-form-eyebrow">Platforms</p>
+      <div class="inf-platrow">
+        <div class="c-field"><label for="f-tt">TikTok handle</label>
+          <input id="f-tt" placeholder="@handle" /></div>
+        <div class="c-field"><label for="f-ttf">Followers</label>
+          <input id="f-ttf" inputmode="numeric" placeholder="e.g. 12000" /></div>
+      </div>
+      <div class="inf-platrow">
+        <div class="c-field"><label for="f-ig">Instagram handle</label>
+          <input id="f-ig" placeholder="@handle" /></div>
+        <div class="c-field"><label for="f-igf">Followers</label>
+          <input id="f-igf" inputmode="numeric" placeholder="e.g. 8000" /></div>
+      </div>
+      <div class="inf-platrow">
+        <div class="c-field"><label for="f-xhs">Xiaohongshu handle</label>
+          <input id="f-xhs" placeholder="@handle" /></div>
+        <div class="c-field"><label for="f-xhsf">Followers</label>
+          <input id="f-xhsf" inputmode="numeric" placeholder="e.g. 5000" /></div>
+      </div>
+
+      <p class="inf-form-eyebrow">Contact — internal only</p>
+      <div class="c-field"><label for="f-email">Email</label>
+        <input id="f-email" type="email" placeholder="name@example.com" /></div>
+      <div class="c-field"><label for="f-phone">Phone</label>
+        <input id="f-phone" placeholder="01x-xxxxxxx" /></div>
+      <div class="c-field span2"><label for="f-addr">Address</label>
+        <textarea id="f-addr" rows="2" placeholder="Mailing address for seeding"></textarea></div>
+      <div class="c-field"><label for="f-nric">NRIC</label>
+        <input id="f-nric" placeholder="For contracts and payment" /></div>
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:var(--spacing-8);">
+      <button class="c-btn c-btn-ghost c-btn-md" type="button" id="infFormCancel">Cancel</button>
+      <button class="c-btn c-btn-primary c-btn-md" type="button" id="infFormSave">Save influencer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Remove confirmation -->
+<div class="inf-scrim" id="infDelScrim" style="display:flex; align-items:center; justify-content:center;">
+  <div class="c-modal" role="alertdialog" aria-modal="true" aria-labelledby="infDelTitle" style="margin:var(--spacing-16);">
+    <div class="c-modal-head"><h4 id="infDelTitle">Remove influencer?</h4>
+      <button class="c-icon-btn" type="button" id="infDelClose" aria-label="Close"><i class="ph ph-x"></i></button></div>
+    <div class="c-modal-body" id="infDelBody"></div>
+    <div class="c-modal-foot">
+      <button class="c-btn c-btn-ghost c-btn-md" type="button" id="infDelCancel">Cancel</button>
+      <button class="c-btn c-btn-primary c-btn-md" type="button" id="infDelConfirm" style="background:var(--color-red); border-color:var(--color-red);"><i class="ph ph-trash"></i> Remove</button>
+    </div>
+  </div>
+</div>
+
+<div class="c-toast-host" id="infToasts"></div>
+
+<script src="../shared/shell.js?v=0.9.46"></script>
+<script src="../shared/influencers-data.js"></script>
+<script src="../shared/influencer-store.js?v=1"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ── Formatting + tiers. Tier brackets read off the live app's own
+     labels: Seeder under 1K, Nano to 5K, Micro to 20K, Mid to 100K,
+     Macro to 500K, Mega beyond. Tag recipes per the DLS tier table. */
+  function fmtFollowers(n){
+    if (n == null) return '';
+    if (n >= 1e6) return (n / 1e6).toFixed(n % 1e6 ? 1 : 0).replace(/\.0$/, '') + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(n % 1e3 ? 1 : 0).replace(/\.0$/, '') + 'K';
+    return String(n);
+  }
+  var TIERS = [
+    {max:1e3,  name:'Seeder', cls:''},
+    {max:5e3,  name:'Nano',   cls:'c-tag-wood'},
+    {max:2e4,  name:'Micro',  cls:'c-tag-earth'},
+    {max:1e5,  name:'Mid',    cls:'c-tag-water'},
+    {max:5e5,  name:'Macro',  cls:'c-tag-fire'},
+    {max:Infinity, name:'Mega', cls:'c-tag-gold'}
+  ];
+  function tierOf(n){
+    if (n == null) return null;
+    for (var i = 0; i < TIERS.length; i++) if (n < TIERS[i].max) return TIERS[i];
+    return null;
+  }
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function initialsOf(name){
+    var parts = name.replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/);
+    if (!parts[0]) return '?';
+    return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+  }
+  function letterOf(name){
+    var c = (name || '').trim().charAt(0).toUpperCase();
+    return /[A-Z]/.test(c) ? c : '#';
+  }
+  var PLATFORM_ICON = {
+    tiktok: '<i class="ph ph-tiktok-logo" aria-hidden="true"></i>',
+    instagram: '<i class="ph ph-instagram-logo" aria-hidden="true"></i>',
+    xhs: '<img class="inf-xhs" src="../collabrium-dls/SVG/Xiaohongshu-word-icon.svg" alt="" />'
+  };
+
+  /* ── Avatar resolver — same fallback-chain idea as collabBrand:
+     unavatar's TikTok source first (verified working), Instagram second,
+     initials stay when the chain dries out. Winner cached per profile. */
+  var AVA_KEY = 'collab-avatar-cache';
+  function avaCache(){
+    try { return JSON.parse(localStorage.getItem(AVA_KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+  function avaSet(id, url){
+    try {
+      var c = avaCache(); c[id] = url;
+      localStorage.setItem(AVA_KEY, JSON.stringify(c));
+    } catch (e) {}
+  }
+  function avatarCandidates(rec){
+    var out = [];
+    (rec.platforms || []).forEach(function (p) {
+      if (!p.handle) return;
+      if (p.platform === 'tiktok') out.unshift('https://unavatar.io/tiktok/' + encodeURIComponent(p.handle) + '?fallback=false');
+      if (p.platform === 'instagram') out.push('https://unavatar.io/instagram/' + encodeURIComponent(p.handle) + '?fallback=false');
+    });
+    return out;
+  }
+  function attachAvatar(img, rec){
+    var cached = avaCache()[rec.id];
+    if (cached === 'none') return;
+    var list = cached ? [cached] : avatarCandidates(rec);
+    if (!list.length) { avaSet(rec.id, 'none'); return; }
+    var i = 0;
+    img.onerror = function () {
+      i += 1;
+      if (i < list.length) { img.src = list[i]; return; }
+      if (!cached) avaSet(rec.id, 'none');
+    };
+    img.onload = function () {
+      if (!cached) avaSet(rec.id, list[i]);
+      img.classList.add('is-loaded');
+    };
+    img.src = list[0];
+  }
+  var avatarIO = ('IntersectionObserver' in window)
+    ? new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          avatarIO.unobserve(en.target);
+          var rec = byId[en.target.dataset.avatarFor];
+          if (rec) attachAvatar(en.target, rec);
+        });
+      }, {rootMargin: '300px'})
+    : null;
+
+  /* ── State. */
+  var LETTERS = '#ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  var FACETS = [
+    {key:'gender', label:'Gender', of:function(r){ return r.gender ? [r.gender] : []; }},
+    {key:'age', label:'Age group', of:function(r){ return r.age ? [r.age] : []; }},
+    {key:'ethnicity', label:'Ethnicity', of:function(r){ return r.ethnicity ? [r.ethnicity] : []; }},
+    {key:'tier', label:'Tier', of:function(r){
+      return (r.platforms || []).map(function(p){ var t = tierOf(p.followers); return t && t.name; }).filter(Boolean);
+    }},
+    {key:'location', label:'Location', of:function(r){ return r.location ? [r.location] : []; }, top:10},
+    {key:'niche', label:'Niche', of:function(r){ return r.niches || []; }, top:12}
+  ];
+  var applied = {}, pending = {}, query = '';
+  FACETS.forEach(function(f){ applied[f.key] = []; });
+
+  var all = [], byId = {};
+  function refreshData(){
+    all = window.influencerStore ? influencerStore.merged(INFLUENCERS) : INFLUENCERS.slice();
+    all.sort(function(a, b){
+      return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1;
+    });
+    byId = {};
+    all.forEach(function(r){ byId[r.id] = r; });
+  }
+
+  function matches(r){
+    for (var i = 0; i < FACETS.length; i++) {
+      var f = FACETS[i], want = applied[f.key];
+      if (!want.length) continue;
+      var have = f.of(r);
+      if (!want.some(function(v){ return have.indexOf(v) > -1; })) return false;
+    }
+    if (query) {
+      var q = query.toLowerCase();
+      var hay = [r.name].concat(r.niches || [],
+        (r.platforms || []).map(function(p){ return p.handle; })).join(' ').toLowerCase();
+      if (hay.indexOf(q) < 0) return false;
+    }
+    return true;
+  }
+
+  /* ── Card render. */
+  function cardHTML(r){
+    var meta = [r.age, r.gender, r.location].filter(Boolean).join(' · ') || '—';
+    var badges = (r.niches || []).slice(0, 4).map(function(n){
+      return '<span class="c-badge c-badge-neutral">' + esc(n) + '</span>';
+    }).join('');
+    var rows = (r.platforms || []).map(function(p){
+      var t = tierOf(p.followers);
+      var handle = p.handle
+        ? (p.link
+            ? '<a class="c-card-profile-handle" href="' + esc(p.link) + '" target="_blank" rel="noopener">@' + esc(p.handle) + '</a>'
+            : '<span class="c-card-profile-handle">@' + esc(p.handle) + '</span>')
+        : '<span class="c-card-profile-handle">—</span>';
+      return '<li class="c-card-profile-row">' + PLATFORM_ICON[p.platform] +
+        '<div class="c-card-profile-stack">' +
+          '<p class="c-card-profile-platform">' + esc(p.label) + '</p>' + handle + '</div>' +
+        '<div class="c-card-profile-trailing">' +
+          (t ? '<span class="c-tag ' + t.cls + '">' + (t.cls ? '<span class="dot"></span>' : '') + t.name + '</span>' : '') +
+          '<span class="c-card-profile-followers">' + fmtFollowers(p.followers) + '</span>' +
+        '</div></li>';
+    }).join('');
+    return '<article class="c-card c-card-profile is-interactive" tabindex="0" data-id="' + r.id + '" aria-label="' + esc(r.name) + '">' +
+      '<div class="c-card-profile-header">' +
+        '<span class="c-card-profile-avatar">' + esc(initialsOf(r.name)) +
+          '<img alt="" loading="lazy" data-avatar-for="' + r.id + '" /></span>' +
+        '<div class="c-card-profile-identity"><h4>' + esc(r.name) + '</h4><p>' + esc(meta) + '</p></div>' +
+      '</div>' +
+      '<span class="inf-kebab"><button class="c-btn c-btn-ghost c-btn-sm c-btn-icon inf-kebab-btn" type="button" aria-label="Options for ' + esc(r.name) + '" aria-haspopup="true"><i class="ph ph-dots-three-vertical"></i></button>' +
+        '<span class="inf-menu">' +
+          '<button class="inf-menu-item" type="button" data-act="view" data-id="' + r.id + '"><i class="ph ph-user-circle"></i> View details</button>' +
+          '<button class="inf-menu-item" type="button" data-act="edit" data-id="' + r.id + '"><i class="ph ph-pencil-simple"></i> Edit</button>' +
+          '<button class="inf-menu-item is-danger" type="button" data-act="remove" data-id="' + r.id + '"><i class="ph ph-trash"></i> Remove</button>' +
+        '</span></span>' +
+      (badges ? '<hr class="c-card-profile-divider" /><div class="c-card-profile-personas">' + badges + '</div>' : '') +
+      (rows ? '<hr class="c-card-profile-divider" /><ul class="c-card-profile-platforms">' + rows + '</ul>' : '') +
+    '</article>';
+  }
+
+  var mainEl = document.getElementById('infMain');
+  var railEl = document.getElementById('infRail');
+  var scroller = document.querySelector('.c-shell-content');
+  var letterCounts = {};
+
+  function render(){
+    refreshData();
+    var hits = all.filter(matches);
+    letterCounts = {};
+    LETTERS.forEach(function(L){ letterCounts[L] = 0; });
+    hits.forEach(function(r){ letterCounts[letterOf(r.name)] += 1; });
+
+    var html = '';
+    LETTERS.forEach(function(L){
+      if (!letterCounts[L]) return;
+      var members = hits.filter(function(r){ return letterOf(r.name) === L; });
+      html += '<section class="inf-section" id="letter-' + (L === '#' ? 'hash' : L) + '" data-letter="' + L + '">' +
+        '<div class="inf-letter-head"><h3>' + L + '</h3>' +
+        '<span class="cnt">' + members.length + '</span><span class="rule"></span></div>' +
+        '<div class="inf-grid">' + members.map(cardHTML).join('') + '</div></section>';
+    });
+    if (!hits.length) {
+      var what = query ? '“' + esc(query) + '”' : 'this filter';
+      html = '<div class="c-empty"><i class="ph-fill ph-users-three"></i>' +
+        '<h4>No influencers found</h4>' +
+        '<p>No profiles match ' + what + '. Clear the search or filters to see the full roster.</p></div>';
+    }
+    mainEl.innerHTML = html;
+
+    if (avatarIO) {
+      mainEl.querySelectorAll('img[data-avatar-for]').forEach(function(img){
+        avatarIO.observe(img);
+      });
+    }
+
+    document.getElementById('infSub').textContent = (query || FACETS.some(function(f){ return applied[f.key].length; }))
+      ? 'Showing ' + hits.length + ' of ' + all.length + ' influencers.'
+      : all.length + ' influencers, A to Z.';
+
+    renderRail();
+    renderTray();
+    spy();
+  }
+
+  /* ── A–Z rail. Bar length scales on the letter's share of the largest
+     bucket so the histogram stays readable at any filter depth. */
+  function renderRail(){
+    var max = 1;
+    LETTERS.forEach(function(L){ if (letterCounts[L] > max) max = letterCounts[L]; });
+    railEl.innerHTML = LETTERS.map(function(L){
+      var n = letterCounts[L] || 0;
+      var w = n ? Math.max(6, Math.round(6 + 22 * n / max)) : 6;
+      return '<button class="inf-rail-row' + (n ? '' : ' is-empty') + '" type="button" data-letter="' + L + '"' +
+        (n ? ' aria-label="Jump to ' + (L === '#' ? 'symbols' : L) + ', ' + n + ' influencers"' : ' tabindex="-1" aria-hidden="true"') + '>' +
+        '<span class="inf-rail-bar" style="width:' + w + 'px"></span>' +
+        '<span class="inf-rail-letter">' + L + '</span></button>';
+    }).join('');
+  }
+  railEl.addEventListener('click', function(e){
+    var row = e.target.closest('.inf-rail-row');
+    if (!row || row.classList.contains('is-empty')) return;
+    var sect = document.getElementById('letter-' + (row.dataset.letter === '#' ? 'hash' : row.dataset.letter));
+    if (!sect) return;
+    /* Scroll math on the shell's own scroll container; smooth only when
+       the tab is actually being painted (hidden panes stall rAF). */
+    var top = sect.offsetTop - scroller.offsetTop - 4;
+    scroller.scrollTo({top: top, behavior: document.hidden ? 'auto' : 'smooth'});
+  });
+
+  /* Scroll-spy — the letter whose section owns the current viewport top. */
+  var spyTick = false;
+  function spy(){
+    var sections = mainEl.querySelectorAll('.inf-section');
+    var pos = scroller.scrollTop + 90;
+    var current = null;
+    sections.forEach(function(s){
+      if (s.offsetTop - scroller.offsetTop <= pos) current = s.dataset.letter;
+    });
+    if (!current && sections.length) current = sections[0].dataset.letter;
+    railEl.querySelectorAll('.inf-rail-row').forEach(function(r){
+      r.classList.toggle('is-active', r.dataset.letter === current);
+    });
+  }
+  scroller.addEventListener('scroll', function(){
+    if (spyTick) return;
+    spyTick = true;
+    setTimeout(function(){ spyTick = false; spy(); }, 80);
+  });
+
+  /* ── Filters — DS Compact filter panel with grouped sections, applied
+     on Done, never per keystroke. Option lists come off the data. */
+  var trigger = document.getElementById('infFilterTrigger');
+  var panel = document.getElementById('infFilterPanel');
+  function facetOptions(f){
+    var counts = {};
+    all.forEach(function(r){
+      f.of(r).forEach(function(v){ counts[v] = (counts[v] || 0) + 1; });
+    });
+    var opts = Object.keys(counts).sort(function(a, b){ return counts[b] - counts[a]; });
+    if (f.top) opts = opts.slice(0, f.top);
+    if (f.key === 'tier') {
+      opts = TIERS.map(function(t){ return t.name; }).filter(function(n){ return counts[n]; });
+    }
+    return opts.map(function(v){ return {v: v, n: counts[v]}; });
+  }
+  function renderOptions(){
+    document.getElementById('infFilterGroups').innerHTML = FACETS.map(function(f){
+      return '<div class="inf-filter-group"><p class="c-filter-panel-title">' + f.label + '</p>' +
+        facetOptions(f).map(function(o){
+          var on = pending[f.key].indexOf(o.v) > -1;
+          return '<label class="c-filter-option" data-facet="' + f.key + '" data-v="' + esc(o.v) + '">' +
+            '<span class="c-checkbox-box' + (on ? ' on' : '') + '">' + (on ? '<i class="ph ph-check"></i>' : '') + '</span>' +
+            '<span class="label">' + esc(o.v) + ' <span style="color:var(--color-neutral-4)">' + o.n + '</span></span></label>';
+        }).join('') + '</div>';
+    }).join('');
+  }
+  function appliedCount(){
+    return FACETS.reduce(function(n, f){ return n + applied[f.key].length; }, 0);
+  }
+  function openPanel(){
+    FACETS.forEach(function(f){ pending[f.key] = applied[f.key].slice(); });
+    renderOptions();
+    panel.classList.add('is-open');
+    trigger.classList.add('is-open');
+    trigger.setAttribute('aria-expanded', 'true');
+  }
+  function closePanel(){
+    panel.classList.remove('is-open');
+    trigger.classList.remove('is-open');
+    trigger.setAttribute('aria-expanded', 'false');
+  }
+  trigger.addEventListener('click', function(e){
+    e.stopPropagation();
+    if (panel.classList.contains('is-open')) closePanel(); else openPanel();
+  });
+  panel.addEventListener('click', function(e){
+    e.stopPropagation();
+    var opt = e.target.closest('.c-filter-option');
+    if (!opt) return;
+    var k = opt.dataset.facet, v = opt.dataset.v;
+    var i = pending[k].indexOf(v);
+    if (i > -1) pending[k].splice(i, 1); else pending[k].push(v);
+    renderOptions();
+  });
+  document.getElementById('infFilterClear').addEventListener('click', function(e){
+    e.stopPropagation();
+    FACETS.forEach(function(f){ pending[f.key] = []; });
+    renderOptions();
+  });
+  document.getElementById('infFilterDone').addEventListener('click', function(e){
+    e.stopPropagation();
+    FACETS.forEach(function(f){ applied[f.key] = pending[f.key].slice(); });
+    closePanel(); render();
+  });
+  document.getElementById('infClearAll').addEventListener('click', function(){
+    FACETS.forEach(function(f){ applied[f.key] = []; });
+    render();
+  });
+  function renderTray(){
+    var countBadge = document.getElementById('infFilterCount');
+    var n = appliedCount();
+    countBadge.hidden = !n;
+    countBadge.textContent = n;
+    trigger.classList.toggle('active', !!n);
+    var tray = document.getElementById('infTray');
+    tray.hidden = !n;
+    tray.innerHTML = FACETS.map(function(f){
+      return applied[f.key].map(function(v){
+        return '<span class="c-chip c-chip-input">' + esc(v) +
+          '<button class="c-chip-remove" type="button" data-facet="' + f.key + '" data-remove="' + esc(v) + '" aria-label="Remove ' + esc(v) + '"><i class="ph ph-x"></i></button></span>';
+      }).join('');
+    }).join('');
+    document.getElementById('infClearAll').hidden = !n;
+  }
+  document.getElementById('infTray').addEventListener('click', function(e){
+    var b = e.target.closest('[data-remove]');
+    if (!b) return;
+    applied[b.dataset.facet] = applied[b.dataset.facet].filter(function(v){ return v !== b.dataset.remove; });
+    render();
+  });
+  document.addEventListener('click', function(e){
+    if (!panel.classList.contains('is-open')) return;
+    if (e.target.closest('#infFilterPanel') || e.target.closest('#infFilterTrigger')) return;
+    closePanel();
+  });
+
+  var search = document.getElementById('infSearch');
+  var clearBtn = document.getElementById('infSearchClear');
+  search.addEventListener('input', function(){
+    query = search.value.trim();
+    clearBtn.hidden = !query;
+    render();
+  });
+  clearBtn.addEventListener('click', function(){
+    search.value = ''; query = ''; clearBtn.hidden = true; render(); search.focus();
+  });
+
+  /* ── Toasts. */
+  function toast(msg, tone){
+    var host = document.getElementById('infToasts');
+    var el = document.createElement('div');
+    el.className = 'c-toast is-message-only is-entering';
+    el.innerHTML = '<i class="ph-fill ' +
+      (tone === 'danger' ? 'ph-trash tone tone-danger' : 'ph-check-circle tone tone-success') +
+      '"></i><div class="body"><div class="message">' + esc(msg) + '</div></div>';
+    host.appendChild(el);
+    requestAnimationFrame(function(){ el.classList.remove('is-entering'); });
+    setTimeout(function(){
+      el.classList.add('is-entering');
+      setTimeout(function(){ el.remove(); }, 240);
+    }, 2600);
+  }
+
+  /* ── Detail drawer. */
+  var drawerScrim = document.getElementById('infDrawerScrim');
+  var drawerId = null;
+  function openDrawer(id){
+    var r = byId[id];
+    if (!r) return;
+    drawerId = id;
+    var meta = [r.age, r.gender, r.ethnicity, r.location].filter(Boolean).join(' · ');
+    document.getElementById('infDrawerHead').innerHTML =
+      '<span class="c-card-profile-avatar">' + esc(initialsOf(r.name)) +
+        '<img alt="" data-avatar-for="' + r.id + '" /></span>' +
+      '<div><h3>' + esc(r.name) + '</h3><p>' + esc(meta || '—') + '</p></div>';
+    var img = document.getElementById('infDrawerHead').querySelector('img');
+    attachAvatar(img, r);
+
+    var badges = (r.niches || []).map(function(n){
+      return '<span class="c-badge c-badge-neutral">' + esc(n) + '</span>';
+    }).join(' ');
+    var plats = (r.platforms || []).map(function(p){
+      var t = tierOf(p.followers);
+      return '<div class="inf-kv"><dt>' + esc(p.label) + '</dt><dd>' +
+        (p.link ? '<a href="' + esc(p.link) + '" target="_blank" rel="noopener" style="color:var(--color-navy)">@' + esc(p.handle) + '</a>' : (p.handle ? '@' + esc(p.handle) : '—')) +
+        (p.followers != null ? ' · ' + fmtFollowers(p.followers) + ' followers' + (t ? ' (' + t.name + ')' : '') : '') +
+        '</dd></div>';
+    }).join('');
+    var pii = r.pii || {};
+    document.getElementById('infDrawerBody').innerHTML =
+      (badges ? '<div class="inf-sect"><h5>Niches</h5><div class="c-card-profile-personas">' + badges + '</div></div>' : '') +
+      (plats ? '<div class="inf-sect"><h5>Platforms</h5><dl class="inf-kvs">' + plats + '</dl></div>' : '') +
+      '<div class="inf-sect"><h5>Contact — internal only</h5><div class="inf-pii">' +
+        '<p class="inf-pii-note"><i class="ph ph-lock-simple"></i> Sensitive. Never shown outside this workspace.</p>' +
+        '<dl class="inf-kvs">' +
+        '<div class="inf-kv"><dt>Email</dt><dd>' + esc(pii.email || '—') + '</dd></div>' +
+        '<div class="inf-kv"><dt>Phone</dt><dd>' + esc(pii.phone || '—') + '</dd></div>' +
+        '<div class="inf-kv"><dt>Address</dt><dd>' + esc(pii.address || '—') + '</dd></div>' +
+        '<div class="inf-kv"><dt>NRIC</dt><dd>' + esc(pii.nric || '—') + '</dd></div>' +
+        '</dl></div></div>';
+    drawerScrim.classList.add('is-open');
+  }
+  function closeDrawer(){
+    drawerScrim.classList.remove('is-open');
+    drawerId = null;
+  }
+  document.getElementById('infDrawerClose').addEventListener('click', closeDrawer);
+  drawerScrim.addEventListener('click', function(e){
+    if (e.target === drawerScrim) closeDrawer();
+  });
+  document.getElementById('infDrawerEdit').addEventListener('click', function(){
+    if (!drawerId) return;
+    var id = drawerId;
+    closeDrawer();
+    openForm(id);
+  });
+  document.getElementById('infDrawerRemove').addEventListener('click', function(){
+    if (!drawerId) return;
+    var id = drawerId;
+    closeDrawer();
+    askRemove(id);
+  });
+
+  /* ── Add / edit form. */
+  var formScrim = document.getElementById('infFormScrim');
+  var editingId = null;
+  var F = function (id) { return document.getElementById(id); };
+  function platGet(r, key){
+    return (r.platforms || []).filter(function(p){ return p.platform === key; })[0] || {};
+  }
+  function openForm(id){
+    editingId = id || null;
+    var r = id ? byId[id] : null;
+    F('infFormEyebrow').textContent = r ? 'Edit profile' : 'New profile';
+    F('infFormTitle').textContent = r ? r.name : 'Add influencer';
+    F('infFormSave').textContent = r ? 'Save changes' : 'Save influencer';
+    F('f-name').value = r ? r.name : '';
+    F('f-niche').value = r ? (r.niches || []).join(', ') : '';
+    F('f-age').value = r ? r.age : '';
+    F('f-gender').value = r ? r.gender : '';
+    F('f-eth').value = r && ['Malay','Chinese','Indian'].indexOf(r.ethnicity) > -1 ? r.ethnicity : (r && r.ethnicity ? 'Other' : '');
+    F('f-loc').value = r ? r.location : '';
+    F('f-tt').value = r ? (platGet(r, 'tiktok').handle || '') : '';
+    F('f-ttf').value = r && platGet(r, 'tiktok').followers != null ? platGet(r, 'tiktok').followers : '';
+    F('f-ig').value = r ? (platGet(r, 'instagram').handle || '') : '';
+    F('f-igf').value = r && platGet(r, 'instagram').followers != null ? platGet(r, 'instagram').followers : '';
+    F('f-xhs').value = r ? (platGet(r, 'xhs').handle || '') : '';
+    F('f-xhsf').value = r && platGet(r, 'xhs').followers != null ? platGet(r, 'xhs').followers : '';
+    F('f-email').value = r ? (r.pii || {}).email || '' : '';
+    F('f-phone').value = r ? (r.pii || {}).phone || '' : '';
+    F('f-addr').value = r ? (r.pii || {}).address || '' : '';
+    F('f-nric').value = r ? (r.pii || {}).nric || '' : '';
+    F('infFieldName').classList.remove('c-field-error');
+    F('infNameHelp').hidden = true;
+    formScrim.classList.add('is-open');
+    setTimeout(function(){ F('f-name').focus(); }, 250);
+  }
+  function closeForm(){ formScrim.classList.remove('is-open'); }
+  F('infFormClose').addEventListener('click', closeForm);
+  F('infFormCancel').addEventListener('click', closeForm);
+  formScrim.addEventListener('click', function(e){
+    if (e.target === formScrim) closeForm();
+  });
+  F('infAddBtn').addEventListener('click', function(){ openForm(null); });
+
+  function numOrNull(v){
+    var d = String(v).replace(/[^0-9]/g, '');
+    return d ? parseInt(d, 10) : null;
+  }
+  F('infFormSave').addEventListener('click', function(){
+    var name = F('f-name').value.trim();
+    if (!name) {
+      F('infFieldName').classList.add('c-field-error');
+      F('infNameHelp').hidden = false;
+      F('f-name').focus();
+      return;
+    }
+    var platforms = [];
+    [['tiktok', 'TikTok', 'f-tt', 'f-ttf', 'https://www.tiktok.com/@'],
+     ['instagram', 'Instagram', 'f-ig', 'f-igf', 'https://www.instagram.com/'],
+     ['xhs', 'Xiaohongshu', 'f-xhs', 'f-xhsf', '']].forEach(function(row){
+      var h = F(row[2]).value.trim().replace(/^@/, '');
+      var f = numOrNull(F(row[3]).value);
+      if (h || f != null) {
+        platforms.push({platform: row[0], label: row[1], handle: h,
+          followers: f, link: h && row[4] ? row[4] + h : ''});
+      }
+    });
+    var rec = {
+      name: name,
+      niches: F('f-niche').value.split(',').map(function(s){ return s.trim(); }).filter(Boolean),
+      age: F('f-age').value, gender: F('f-gender').value,
+      ethnicity: F('f-eth').value, location: F('f-loc').value.trim(),
+      platforms: platforms,
+      pii: {email: F('f-email').value.trim(), phone: F('f-phone').value.trim(),
+        address: F('f-addr').value.trim(), nric: F('f-nric').value.trim()}
+    };
+    if (editingId) {
+      influencerStore.update(editingId, rec);
+      toast('Saved changes to ' + name + '.');
+    } else {
+      influencerStore.add(rec);
+      toast(name + ' added to the roster.');
+    }
+    closeForm();
+    render();
+  });
+
+  /* ── Remove — deliberate, confirmed, reversible only by re-adding. */
+  var delScrim = document.getElementById('infDelScrim');
+  var removingId = null;
+  function askRemove(id){
+    var r = byId[id];
+    if (!r) return;
+    removingId = id;
+    document.getElementById('infDelBody').innerHTML =
+      'This removes <strong>' + esc(r.name) + '</strong> from the roster view. ' +
+      'The underlying dataset file is untouched.';
+    delScrim.classList.add('is-open');
+  }
+  function closeRemove(){ delScrim.classList.remove('is-open'); removingId = null; }
+  document.getElementById('infDelClose').addEventListener('click', closeRemove);
+  document.getElementById('infDelCancel').addEventListener('click', closeRemove);
+  delScrim.addEventListener('click', function(e){
+    if (e.target === delScrim) closeRemove();
+  });
+  document.getElementById('infDelConfirm').addEventListener('click', function(){
+    if (!removingId) return;
+    var r = byId[removingId];
+    influencerStore.remove(removingId);
+    closeRemove();
+    var card = mainEl.querySelector('.c-card-profile[data-id="' + r.id + '"]');
+    if (card) card.classList.add('inf-card-leaving');
+    toast(r.name + ' removed.', 'danger');
+    setTimeout(render, 240);
+  });
+
+  /* ── Card interactions: kebab menus, menu actions, open drawer. */
+  function closeMenus(){
+    mainEl.querySelectorAll('.inf-kebab.is-open').forEach(function(m){
+      m.classList.remove('is-open');
+    });
+  }
+  mainEl.addEventListener('click', function(e){
+    var kebabBtn = e.target.closest('.inf-kebab-btn');
+    if (kebabBtn) {
+      e.stopPropagation();
+      var wrap = kebabBtn.parentNode;
+      var open = wrap.classList.contains('is-open');
+      closeMenus();
+      if (!open) wrap.classList.add('is-open');
+      return;
+    }
+    var item = e.target.closest('.inf-menu-item');
+    if (item) {
+      e.stopPropagation();
+      closeMenus();
+      if (item.dataset.act === 'view') openDrawer(item.dataset.id);
+      if (item.dataset.act === 'edit') openForm(item.dataset.id);
+      if (item.dataset.act === 'remove') askRemove(item.dataset.id);
+      return;
+    }
+    if (e.target.closest('a')) return;
+    var card = e.target.closest('.c-card-profile[data-id]');
+    if (card) openDrawer(card.dataset.id);
+  });
+  mainEl.addEventListener('keydown', function(e){
+    if (e.key !== 'Enter') return;
+    var card = e.target.closest('.c-card-profile[data-id]');
+    if (card && e.target === card) openDrawer(card.dataset.id);
+  });
+  document.addEventListener('click', function(e){
+    if (!e.target.closest('.inf-kebab')) closeMenus();
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Escape') return;
+    closeMenus();
+    if (delScrim.classList.contains('is-open')) closeRemove();
+    else if (formScrim.classList.contains('is-open')) closeForm();
+    else if (drawerScrim.classList.contains('is-open')) closeDrawer();
+  });
+
+  render();
+
+  /* The arrival ran once with the first paint; drop the class so later
+     renders (filter, search, saves) paint without replaying it. */
+  setTimeout(function(){
+    document.getElementById('infContent').classList.remove('inf-arriving');
+  }, 900);
+})();
+</script>
+</body>
+</html>

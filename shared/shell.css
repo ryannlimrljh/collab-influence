@@ -1,0 +1,85 @@
+/* Collab:Sales planner — shell page-local rules.
+
+   Everything here is ported from the mothership's landing-v3/feedback-v1
+   shell (the canonical App Shell implementation), not invented: the DS
+   ships .c-shell at a gallery height and leaves the account row, the
+   fixed-position popovers, and the narrow-screen behaviour to the page.
+   Kept in one shared file so both pages carry the same shell, not two
+   readings of it. */
+
+*{box-sizing:border-box;}
+html,body{margin:0; height:100%;}
+body{font-family:var(--font-primary); color:var(--color-neutral-9);
+  background:var(--color-canvas-warm); -webkit-font-smoothing:antialiased;}
+
+/* The DS ships .c-shell at a fixed 480px — its own gallery height, not a
+   page height. Every real screen has to say so. */
+.c-shell{height:100dvh;}
+
+/* Pinned to the bottom: the DS leaves the footer directly under the last
+   nav item, which reads as unfinished in a sidebar with this much height. */
+.c-sidebar-footer{margin-top:auto;}
+
+a.c-sidebar-item{text-decoration:none;}
+
+/* ── Beta pill — the DS Badge, outlined instead of filled, sitting
+   beside the lockup as an eyebrow (same move as CollabSales' own nav).
+   It is a sibling of the department trigger, never a child: inside that
+   button it would join the click target and read as part of the
+   control. Uppercased in CSS rather than in the markup, so the
+   accessible name stays "Beta", and it leaves with the wordmark when
+   the rail collapses. */
+/* Padding trimmed off the Badge's own 8px: at the rail's 240px the
+   lockup, chevron and pill leave only a few px before the collapse
+   toggle, and the toggle paints a hover square right up to it. */
+.c-sidebar-beta{margin-left:var(--spacing-8); padding:1px 6px;
+  background:transparent; color:var(--color-neutral-5);
+  border-color:var(--color-neutral-3);
+  text-transform:uppercase; letter-spacing:var(--tracking-eyebrow);}
+.c-sidebar.is-collapsed .c-sidebar-beta{display:none;}
+
+/* ── Account row — composed from Search input's avatar/name/role classes,
+   same as the dashboard and feedback board. */
+.c-sidebar-account{display:flex; align-items:center; gap:var(--spacing-12);
+  width:100%; padding:var(--spacing-8) var(--spacing-12);
+  margin-bottom:var(--spacing-4); border:none; background:transparent;
+  border-radius:var(--radius-sm); font-family:inherit; text-align:left;
+  cursor:pointer;
+  transition:background-color var(--duration-fast) var(--ease-standard);}
+.c-sidebar-account:hover{background:var(--color-neutral-2);}
+.c-sidebar.is-collapsed .c-sidebar-item span.label{display:none;}
+.c-sidebar.is-collapsed .c-sidebar-account{justify-content:center;
+  padding:var(--spacing-8) 0;}
+.c-sidebar.is-collapsed .c-sidebar-account .c-search-input-text{display:none;}
+
+/* ── Account menu — fixed and outside .c-sidebar, because the rail clips. */
+.c-account-menu{display:none; position:fixed; width:200px; z-index:60;
+  background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
+  border-radius:var(--radius-md); box-shadow:var(--shadow-3);
+  padding:var(--spacing-4); overflow:hidden;}
+.c-account-menu.is-open{display:block;}
+.c-account-menu-item{display:flex; align-items:center; gap:var(--spacing-12);
+  width:100%; height:36px; padding:0 var(--spacing-8); border:none;
+  background:transparent; border-radius:var(--radius-sm);
+  font-family:var(--font-primary); font-size:var(--text-body1-size);
+  font-weight:500; color:var(--color-neutral-9); text-decoration:none;
+  text-align:left; cursor:pointer;
+  transition:background-color var(--duration-fast) var(--ease-standard);}
+.c-account-menu-item:hover{background:var(--color-neutral-2);}
+.c-account-menu-item i{flex:none; font-size:16px; color:var(--color-neutral-5);}
+
+/* Collapsed rail's hover label and the dept panel outrank the rail. */
+.c-sidebar-hover-label{z-index:60;}
+.c-dept-dropdown{position:fixed; z-index:60;}
+
+/* ── Narrow: the nav becomes a box in the corner, same arithmetic as the
+   dashboard — the rail costs 88px of a 375px screen. */
+@media (max-width:640px){
+  .c-shell{position:relative;}
+  .c-shell .c-sidebar-shell{position:absolute; top:var(--spacing-16);
+    left:var(--spacing-16); margin:0; z-index:50;}
+  .c-shell-main{padding-top:74px;}
+  .c-sidebar.is-collapsed .c-sidebar-header{padding:var(--spacing-8);}
+  .c-sidebar.is-collapsed .c-sidebar-item,
+  .c-sidebar.is-collapsed .c-sidebar-footer{display:none;}
+}

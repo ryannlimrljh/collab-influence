@@ -1,0 +1,190 @@
+/*
+  Collabrium Design Tokens
+  Generated from DESIGN-SYSTEM.md in this folder. That file is the source
+  of truth — this file is a mechanical, paste-able rendering of its
+  tables as CSS custom properties. Re-generate by hand whenever
+  DESIGN-SYSTEM.md's token tables change — diff against its token tables
+  directly if in doubt, don't trust this file to self-report staleness.
+
+  See DESIGN-SYSTEM.md's Changelog for what changed and why.
+*/
+
+:root {
+  /* Brand accents */
+  --color-orange: #FF5825;
+  --color-salmon-pink: #FF7A90;
+  --color-green: #00C26E;
+  --color-navy: #1473E6;
+  --color-amber: #FFA425;
+  --color-obsidian: #2B2B2C;      /* the only primary-action color */
+
+  /* Secondary accents (reserved for elements added after v1.0) */
+  --color-purple: #9F56FF;
+  --color-turquoise: #00D9D9;
+
+  /* Functional */
+  --color-red: #FD3343;
+
+  /* Neutrals */
+  --color-neutral-9: #080808;
+  --color-neutral-8: #171717;
+  --color-neutral-7: #222222;
+  --color-neutral-6: #292929;
+  --color-neutral-5: #5a5a5a;
+  --color-neutral-4: #bdbdbd;
+  --color-neutral-3: #d8d8d8;
+  --color-neutral-2: #f0f0f0;
+  --color-neutral-1: #ffffff;
+
+  /* Warm canvas — the default page canvas everywhere, product and
+     brand/editorial alike. Component fills (cards, inputs, etc.) keep
+     their own documented values, mostly --color-neutral-1 white. */
+  --color-canvas-warm: #FCFAF5;
+  --color-canvas-warm-card: #FAF7F2;
+
+  /* Elemental background tints — the ONLY permitted coloured backgrounds.
+     A surface may take a background colour, but only the lightest shade
+     of the element that already owns that content (8% element on white,
+     16% for a nested/hovered layer). Never a mid or full-strength
+     element colour as a fill. */
+  --color-fire-bg: #FFEEE9;        --color-fire-bg-strong: #FFDED3;
+  --color-earth-bg: #E6F9F1;       --color-earth-bg-strong: #CDF3E2;
+  --color-water-bg: #E8F1FD;       --color-water-bg-strong: #D0E3FB;
+  --color-gold-bg: #FFF6E9;        --color-gold-bg-strong: #FFEDD3;
+  --color-wood-bg: #FFF2F4;        --color-wood-bg-strong: #FFE4E9;
+
+  /* Elemental pastel tints — a distinct, stronger tint than the -bg/
+     -bg-strong pair above (55% white mix, not 8%/16%): for decorative,
+     ambient effects like a gradient glow, never for surface fills or
+     backgrounds — that's what -bg/-bg-strong are for. First used by
+     Prompt input bar's glow (AI Native). */
+  --color-fire-pastel: #FFB49D;
+  --color-wood-pastel: #FFC3CD;
+  --color-earth-pastel: #8CE4BE;
+  --color-water-pastel: #95C0F4;
+  --color-gold-pastel: #FFD69D;
+
+  /* Fonts */
+  --font-primary: 'Mulish', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-secondary: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+
+  /* Named weight scale (Mulish ships 200-900) */
+  --weight-extralight: 200; --weight-light: 300; --weight-regular: 400;
+  --weight-medium: 500;     --weight-semibold: 600; --weight-bold: 700;
+  --weight-extrabold: 800;  --weight-black: 900;
+
+  /* Type scale: size / line-height / weight / letter-spacing.
+     Headings are 800 ExtraBold at letter-spacing 0. "sm" size
+     is the default; a "-lg" variant is provided for >=1280px viewports,
+     per the source deck's responsive scale. */
+  --text-display-size: 40px;   --text-display-lh: 56px; --text-display-weight: 800; --text-display-tracking: 0;
+  --text-display-size-lg: 48px; --text-display-lh-lg: 66px;
+  --text-h1-size: 32px;        --text-h1-lh: 38px;      --text-h1-weight: 800;      --text-h1-tracking: 0;
+  --text-h1-size-lg: 40px;     --text-h1-lh-lg: 56px;
+  --text-h2-size: 26px;        --text-h2-lh: 36px;      --text-h2-weight: 800;      --text-h2-tracking: 0;
+  --text-h2-size-lg: 32px;     --text-h2-lh-lg: 44px;
+  --text-h3-size: 22px;        --text-h3-lh: 30px;      --text-h3-weight: 800;      --text-h3-tracking: 0;
+  --text-h3-size-lg: 24px;     --text-h3-lh-lg: 34px;
+  --text-h4-size: 20px;        --text-h4-lh: 28px;      --text-h4-weight: 800;      --text-h4-tracking: 0;
+  --text-h4-size-lg: 22px;     --text-h4-lh-lg: 30px;
+  --text-h5-size: 16px;        --text-h5-lh: 20px;      --text-h5-weight: 700;      --text-h5-tracking: 0;
+  --text-body1-size: 16px;     --text-body1-lh: 22px;   --text-body1-weight: 500;   --text-body1-tracking: 0;
+  --text-body1-strong-weight: 700;
+  --text-body2-size: 14px;     --text-body2-lh: 20px;   --text-body2-weight: 400;   --text-body2-tracking: 0;
+  --text-body2-lh-lg: 22px;    --text-body2-strong-weight: 700;
+  --text-label1-size: 14px;    --text-label1-lh: 20px;  --text-label1-weight: 700;  --text-label1-tracking: 0;
+  --text-label2-size: 13px;    --text-label2-lh: 18px;  --text-label2-weight: 700;  --text-label2-tracking: 0;
+  --text-label3-size: 11px;    --text-label3-lh: 16px;  --text-label3-weight: 700;  --text-label3-tracking: 0.04em;
+  --text-link1-size: 16px;     --text-link1-lh: 24px;   --text-link1-weight: 500;   --text-link1-tracking: 0;
+  --text-link2-size: 13px;     --text-link2-lh: 18px;   --text-link2-weight: 500;   --text-link2-tracking: 0;
+  --text-footnote-size: 12px;  --text-footnote-lh: 16px; --text-footnote-weight: 400; --text-footnote-tracking: 0;
+  --text-caption-size: 12px;   --text-caption-lh: 16px;  --text-caption-weight: 400;  --text-caption-tracking: 0;
+
+  --tracking-eyebrow: 0.12em; /* uppercase kickers/eyebrows only */
+
+  /* Spacing — value-named to match the source scale
+     exactly (base unit 4px: 4·8·12·16·20·24·32·40·48·60·120). */
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-60: 60px;
+  --spacing-120: 120px;
+
+  /* Semantic spacing aliases */
+  --card-padding: var(--spacing-16);
+  --element-gap: var(--spacing-8);
+  --section-gap: var(--spacing-48);
+  --page-gutter: var(--spacing-32);
+  --content-max-width: 1200px; /* reading-width content only (forms/settings), not full-bleed dashboard layouts */
+
+  /* Radius — the source
+     deck specifies radius per surface, not a single scale. Kept as a
+     3-tier + pill system for simplicity, with values matching real
+     per-surface targets: sm = inputs/small buttons/icon buttons (12px,
+     exactly matches source radius-input and radius-button-sm), md =
+     standard buttons (16px, matches source radius-button), lg =
+     cards/modals/nav/feature panels (20px, matches source
+     radius-card/radius-nav/radius-widget). */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+  --radius-link: 32px; /* link-styled pill CTAs — distinct from radius-pill's badge/avatar use */
+
+  /* Border width — every other component still hardcodes 1px/2px
+     literally (Input field, Dropdown, Search input, etc.); this is the
+     first pair of tokens for it, introduced for Stepper's indicator
+     borders and connector stroke weight. Existing components are left
+     as-is for now rather than retrofitted as part of this change. */
+  --border-width-sm: 1px;
+  --border-width-md: 2px;
+
+  /* Elevation — the source deck specifies a real shadow ladder, all
+     built on Neutral-4 (soft grey), never black. Cards/dialogs use
+     these regularly, not as an exception. */
+  --shadow-hairline: 0 0 0 1px var(--color-neutral-3);
+  --shadow-1: 0 1px 2px rgba(189, 189, 189, .45);
+  --shadow-2: 0 2px 8px rgba(189, 189, 189, .42);
+  --shadow-3: 0 8px 24px rgba(189, 189, 189, .40);
+  --shadow-4: 0 16px 48px rgba(189, 189, 189, .44);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, .6);
+  --shadow-focus: 0 0 0 3px rgba(20, 115, 230, .28);
+  --shadow-overlay: rgba(8, 8, 8, .56); /* modal scrim */
+  --shadow-modal: var(--shadow-4); /* alias kept for backward compatibility */
+
+  /* Motion — "Movement settles;
+     it never bounces." One easing curve per element, used for motion
+     that's thematically tied to that element (e.g. a Water-owned panel
+     transitions with --ease-flow); --ease-standard is the default for
+     everything else. */
+  --duration-instant: 80ms;
+  --duration-fast: 140ms;
+  --duration-base: 220ms;
+  --duration-slow: 360ms;
+  --duration-ambient: 900ms;
+  --duration-morph: 420ms;   /* pose-to-pose shape transitions, e.g. Prompt input bar's expanded/collapsed morph */
+  --duration-reveal: 550ms;  /* entrance reveals that need to read as more deliberate than duration-slow */
+  --ease-standard: cubic-bezier(.2, .6, .2, 1);   /* default UI easing */
+  --ease-settle: cubic-bezier(.16, .84, .24, 1);  /* earth: anchored arrivals */
+  --ease-flow: cubic-bezier(.37, 0, .29, 1);      /* water: continuous */
+  --ease-flare: cubic-bezier(.05, .7, .1, 1);     /* fire: pulse outward, rise */
+  --ease-precise: cubic-bezier(.4, 0, .2, 1);     /* gold: sharp, decisive */
+  --ease-grow: cubic-bezier(.25, .46, .45, .94);  /* wood: branching growth */
+  --ease-morph: cubic-bezier(.22, 1, .36, 1);     /* pose-to-pose shape transitions — fast out, no overshoot */
+  --ease-reveal: cubic-bezier(.16, 1, .3, 1);      /* entrance reveals — fast out, no overshoot */
+
+  /* Icon sizes */
+  --icon-micro: 14px;
+  --icon-sm: 16px;
+  --icon-base: 20px;
+  --icon-md: 24px;
+  --icon-lg: 32px;
+  --icon-empty: 48px;
+  --icon-hero: 64px;
+}

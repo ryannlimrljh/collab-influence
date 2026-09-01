@@ -1,0 +1,2196 @@
+/*
+  Collabrium Component CSS
+
+  Every real component's CSS rules (Button, Input field, Card, Badge &
+  Tag, Table, Modal, Empty state, SidebarNav, App Shell layout,
+  Tabs, Select, Checkbox/Radio/Switch, Toast, Tooltip,
+  ElementBadge, Stat/KPI card, Filters, Pagination, Date picker, Chart
+  color mapping, FileUploader, MultiSelect, Search input, Stepper,
+  PageHeader). This is the portable copy — preview.html's own inline
+  <style> never duplicates it. See DESIGN-SYSTEM.md's Changelog for why
+  that separation matters: copying markup out of preview.html's "Copy
+  markup" buttons used to produce class names with no CSS behind them
+  anywhere in a consuming project, so colors/pills/spacing/state
+  styling didn't render at all outside this file.
+
+  This file is the actual reference implementation now — preview.html
+  links to it (`<link rel="stylesheet" href="components.css">`) instead
+  of duplicating a private copy, so the gallery and this file cannot
+  drift apart the way tokens.css and its embedded copy once could.
+
+  Requires, in this order:
+    1. tokens.css (design tokens — colors, spacing, radius, etc.)
+    2. Phosphor Icons, both weights (regular + fill) — see SKILL.md's
+       Integration section for the exact <link> tags
+    3. This file
+
+  Re-generate by hand whenever a component's spec changes in
+  DESIGN-SYSTEM.md — see the doc-sync rule there and in SKILL.md.
+*/
+
+.c-btn{font-family:inherit; font-weight:700; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:background-color var(--duration-fast) var(--ease-standard),transform var(--duration-instant) var(--ease-standard);}
+.c-btn-md{height:40px; padding:0 var(--spacing-16); font-size:16px; border-radius:var(--radius-md);}
+.c-btn-sm{height:32px; padding:0 var(--spacing-12); font-size:14px; border-radius:var(--radius-sm);}
+.c-btn-lg{height:48px; padding:0 var(--spacing-20); font-size:16px; border-radius:var(--radius-md);}
+.c-btn-icon{padding:0; justify-content:center;}
+.c-btn-icon.c-btn-sm{width:32px;}
+.c-btn-icon.c-btn-md{width:40px;}
+.c-btn-icon.c-btn-lg{width:48px;}
+.c-btn-primary{background:var(--color-obsidian); color:var(--color-neutral-1);}
+.c-btn-primary:hover{background:var(--color-neutral-8);}
+.c-btn-primary:active{background:var(--color-neutral-7);}
+.c-btn-secondary{background:var(--color-neutral-1); color:var(--color-neutral-9); border:1px solid var(--color-neutral-3); box-shadow:var(--shadow-1);}
+.c-btn-secondary:hover{background:var(--color-neutral-2);}
+.c-btn-ghost{background:transparent; color:var(--color-neutral-9);}
+.c-btn-ghost:hover{background:var(--color-neutral-2);}
+.c-btn:disabled{background:var(--color-neutral-4); color:var(--color-neutral-1); border-color:var(--color-neutral-3); cursor:not-allowed;}
+.c-btn:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+
+.c-field{display:flex; flex-direction:column; gap:var(--spacing-4); width:220px;}
+.c-field label{font-size:var(--text-label1-size); font-weight:var(--text-label1-weight);}
+.c-field label .required-mark{color:var(--color-red); font-weight:700; margin-left:var(--spacing-4);}
+.c-field label .required-label-icon{color:var(--color-neutral-5); font-size:var(--icon-sm); margin-left:var(--spacing-4); vertical-align:middle;}
+.c-field input{height:40px; border-radius:var(--radius-sm); border:1px solid var(--color-neutral-3); padding:0 var(--spacing-12); font-size:var(--text-body2-size); font-family:inherit; color:var(--color-neutral-9);}
+.c-field input:focus{outline:none; border:2px solid var(--color-obsidian); padding:0 11px;}
+.c-field-error input{border:2px solid var(--color-red); padding:0 11px;}
+.c-helper{font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+.c-field-error .c-helper{color:var(--color-red);}
+.c-field input:disabled{background:var(--color-neutral-2); color:var(--color-neutral-5);}
+
+/* Success state — DESIGN-SYSTEM.md Input field, "Success / valid state"
+   table: 1px Green border, trailing check-circle icon (Tier 2 Fill). */
+.c-field-success input{border:1px solid var(--color-green);}
+
+/* Leading/trailing icon + icon-button plumbing shared by Password field
+   and Search input — DESIGN-SYSTEM.md Input field, "Optional leading/
+   trailing icon" paragraph. */
+.c-field .input-wrap{position:relative; display:flex; align-items:center;}
+/* Row-flex containers don't stretch a child to fill the main axis the
+   way .c-field's own column flex does for the plain Default/Error/
+   Disabled inputs above — without this, the input falls back to its
+   browser-default intrinsic width, which left the box short of the
+   field's full width and made trailing icons/buttons read as sitting
+   outside the box instead of inset inside it. */
+.c-field .input-wrap input{width:100%; min-width:0;}
+.c-field .icon-leading,.c-field .icon-trailing{position:absolute; display:flex; pointer-events:none; color:var(--color-neutral-5); font-size:var(--icon-sm);}
+.c-field .icon-leading{left:var(--spacing-12);}
+.c-field .icon-trailing{right:var(--spacing-12);}
+
+/* Success icon color must come after the generic .icon-trailing rule
+   above so it isn't overridden by it (equal specificity, source order
+   decides) — DESIGN-SYSTEM.md Input field, "Success / valid state" table. */
+.c-field-success .icon-trailing{color:var(--color-green);}
+.c-field .input-wrap.has-leading-icon input{padding-left:36px;}
+.c-field .input-wrap.has-trailing-icon input{padding-right:36px;}
+.c-field .input-wrap.has-icon-btn input{padding-right:36px;}
+.c-field .icon-btn{position:absolute; right:var(--spacing-12); display:flex; align-items:center; justify-content:center; background:none; border:none; padding:0; color:var(--color-neutral-5); font-size:var(--icon-sm); cursor:pointer; pointer-events:auto;}
+.c-field .icon-btn:hover{color:var(--color-neutral-9);}
+.c-field .icon-btn:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+
+/* Prefix/suffix adornments — DESIGN-SYSTEM.md Input field, "Prefix/
+   suffix text adornments" rule: fixed non-editable text, caption
+   token, Neutral-5, no background, vertically centered. */
+.c-field .adornment{position:absolute; display:flex; align-items:center; font-size:var(--text-caption-size); color:var(--color-neutral-5); pointer-events:none;}
+.c-field .adornment-prefix{left:var(--spacing-12);}
+.c-field .adornment-suffix{right:var(--spacing-12);}
+.c-field .input-wrap.has-prefix input{padding-left:28px;}
+.c-field .input-wrap.has-suffix input{padding-right:32px;}
+
+/* Character counter — DESIGN-SYSTEM.md Input field, "Character/word
+   counter" rule: caption, Neutral-5, right-aligned, shares the
+   helper-text line, turns Red at/over the limit. */
+.counter-row{display:flex; justify-content:flex-end;}
+.char-counter{font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+.char-counter.at-limit{color:var(--color-red);}
+
+/* Password field — DESIGN-SYSTEM.md "Password field", Input box row:
+   40px right padding reserved regardless of size, for the toggle. */
+.c-field.password-field input{padding-right:40px;}
+
+/* Textarea — DESIGN-SYSTEM.md "Textarea", Box + Resize rows: min-height
+   96px, spacing-12 padding all sides, resize: vertical only. */
+.c-field textarea{width:100%; min-height:96px; padding:var(--spacing-12); border-radius:var(--radius-sm); border:1px solid var(--color-neutral-3); font-family:inherit; font-size:var(--text-body2-size); color:var(--color-neutral-9); resize:vertical;}
+.c-field textarea:focus{outline:none; border:2px solid var(--color-obsidian); padding:11px;}
+
+/* Search input — designed not transcribed. Consolidates the former
+   "Search input clear button" (now the Default variant) and UserPicker
+   (now the User Search variant), plus a new Item Search variant.
+   The box's border/radius/fill live on the real <input> (icon and clear
+   button absolutely positioned over it) — the same technique Input
+   field's own .input-wrap.has-leading-icon.has-icon-btn anatomy uses —
+   so Active is genuine :focus, not a JS-toggled class the way the old
+   UserPicker's wrapper-owns-the-border approach required. */
+.c-search-input{display:flex; flex-direction:column; gap:var(--spacing-4); max-width:320px;}
+.c-search-input label{display:block; margin-bottom:var(--spacing-4); font-family:var(--font-primary); font-size:var(--text-label1-size); font-weight:var(--text-label1-weight); color:var(--color-neutral-9);}
+.c-search-input-box{position:relative; display:flex; align-items:center;}
+.c-search-input-box input{width:100%; min-width:0; height:40px; border-radius:var(--radius-sm); border:1px solid var(--color-neutral-3); background:var(--color-neutral-1); padding:0 36px; font-family:var(--font-primary); font-size:var(--text-body2-size); line-height:var(--text-body2-lh); font-weight:var(--text-body2-weight); color:var(--color-neutral-9); outline:none;}
+.c-search-input-box input::placeholder{color:var(--color-neutral-5);}
+.c-search-input-box input:focus,
+.c-search-input-box.is-active input{border:2px solid var(--color-obsidian); padding:0 35px;}
+.c-search-input-box input:disabled,
+.c-search-input-box.is-disabled input{background:var(--color-neutral-2); color:var(--color-neutral-4); cursor:not-allowed;}
+.c-search-input-box.is-error input{border:1px solid var(--color-red);}
+.c-search-input-icon{position:absolute; left:var(--spacing-12); font-size:var(--icon-sm); color:var(--color-neutral-5); pointer-events:none;}
+.c-search-input-error{margin:0; font-family:var(--font-primary); font-size:var(--text-caption-size); font-weight:700; color:var(--color-red);}
+
+.c-search-input-clear{width:24px; height:24px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:var(--radius-sm); color:var(--color-neutral-5); cursor:pointer;}
+.c-search-input-clear i{font-size:var(--icon-sm);}
+.c-search-input-clear:hover,
+.c-search-input-clear.demo-hover{color:var(--color-neutral-9);}
+.c-search-input-clear[hidden]{display:none;}
+.c-search-input-box .c-search-input-clear{position:absolute; right:var(--spacing-12); flex:none;}
+.c-search-input-collapsed .c-search-input-clear{flex:none;}
+
+/* Dropdown — same popover convention as Filters/Date picker (radius-md,
+   1px Neutral-3, shadow-3, 8px below); row hover reuses Table's own row
+   Neutral-2 token, not a custom value. */
+.c-search-input-dropdown{margin-top:var(--spacing-8); background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); box-shadow:var(--shadow-3); overflow:hidden;}
+.c-search-input-row{display:flex; align-items:center; gap:var(--spacing-12); padding:var(--spacing-8) var(--spacing-12); cursor:pointer;}
+.c-search-input-row:hover{background:var(--color-neutral-2);}
+.c-search-input-empty{padding:var(--spacing-16); text-align:center; font-family:var(--font-primary); font-size:var(--text-body2-size); line-height:var(--text-body2-lh); color:var(--color-neutral-5);}
+
+/* Loading — no spinner exists anywhere else in this system (Button's
+   own "Loading" row is spec-text-only). Treated as the same family as
+   Iconography's Tier 1/Regular "refresh" (an ongoing-process icon, not a
+   status/decorative one) — spinner-gap, rotated via a plain linear-
+   infinite animation at --duration-ambient, the one duration token named
+   for a continuous loop rather than a one-shot "movement settles"
+   transition. */
+.c-search-input-loading{display:flex; justify-content:center; padding:var(--spacing-16);}
+.c-search-input-spinner{font-size:var(--icon-md); color:var(--color-neutral-5); animation:c-search-input-spin var(--duration-ambient) linear infinite;}
+@keyframes c-search-input-spin{to{transform:rotate(360deg);}}
+
+/* Shared row/collapsed text — User Search adds an avatar in front of
+   this; Item Search doesn't (no standalone Avatar component exists in
+   this system to reuse either way). */
+.c-search-input-avatar{flex:none; width:32px; height:32px; border-radius:var(--radius-pill); background:var(--color-neutral-2); color:var(--color-neutral-9); display:flex; align-items:center; justify-content:center; font-family:var(--font-primary); font-size:var(--text-caption-size); font-weight:700;}
+.c-search-input-text{display:flex; flex-direction:column; min-width:0; flex:1;}
+.c-search-input-title{font-family:var(--font-primary); font-size:var(--text-body2-size); line-height:var(--text-body2-lh); font-weight:var(--text-label1-weight); color:var(--color-neutral-9); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.c-search-input-subtitle{font-family:var(--font-primary); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); font-weight:var(--text-caption-weight); color:var(--color-neutral-5);}
+
+/* Selected/collapsed — same 40px height and footprint as the default
+   state so selecting doesn't reflow the surrounding layout. Selected
+   hover is a color swap on the clear icon to Neutral-9 (Input field's
+   own .icon-btn:hover convention), not the Neutral-2 fill-hover the old
+   UserPicker invented for the same button. */
+.c-search-input-collapsed{display:flex; align-items:center; gap:var(--spacing-12); height:40px; padding:0 var(--spacing-12); border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); background:var(--color-neutral-1); cursor:pointer;}
+.c-search-input-collapsed.is-disabled{background:var(--color-neutral-2); cursor:not-allowed;}
+.c-search-input-collapsed.is-disabled .c-search-input-title,
+.c-search-input-collapsed.is-disabled .c-search-input-subtitle{color:var(--color-neutral-4);}
+/* The clear button stays in the markup (as a real disabled <button>,
+   already out of the tab order on its own) so its 24px+gap-12 footprint
+   still counts toward this row's flex sizing — visibility:hidden only
+   removes it visually, not from layout, so Selected — disabled renders
+   at the exact same width as Selected and Selected — hover instead of
+   shrinking by the button's width once it's gone. */
+.c-search-input-collapsed.is-disabled .c-search-input-clear{visibility:hidden;}
+
+/* Grid layout — universal rule (see DESIGN-SYSTEM.md's Card > Grid layout):
+   align-items:stretch is the grid default (never overridden to start), so
+   every card in a row already matches the tallest card's height; the grid
+   controls column count via auto-fill/minmax, never the card. Base floor is
+   240px (see .c-card's own min-width, below); .c-cards-functional swaps in
+   the 280px floor USP/Price summary need. */
+.c-cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:var(--spacing-16);}
+.c-cards-functional{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));}
+.c-card{background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg); box-shadow:var(--shadow-1); padding:var(--spacing-16); display:flex; flex-direction:column; gap:var(--spacing-8); transition:box-shadow var(--duration-base) var(--ease-settle); width:100%; min-width:240px; height:100%; box-sizing:border-box;}
+.c-card.warm{background:var(--color-canvas-warm-card); border-color:transparent;}
+.c-card-header{display:flex; align-items:flex-start; gap:var(--spacing-12); margin-bottom:var(--spacing-16);}
+/* Shared 36×36 icon-chip pattern — DESIGN-SYSTEM.md documents this as
+   one pattern reused by Card's header AND Stat/KPI card's icon slot
+   (and App Shell's demo, which reuses Stat card). Scoped to plain
+   ".icon-chip" (not ".c-card .icon-chip") so it works everywhere the
+   spec says it should, not just inside a Card. */
+.icon-chip{display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:var(--radius-sm); background:color-mix(in srgb, var(--color-navy) 12%, transparent); color:var(--color-navy); flex:none;}
+.c-card-footer{margin-top:var(--spacing-16); padding-top:var(--spacing-12); border-top:1px solid var(--color-neutral-3); font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+.c-card h4{margin:0; font-size:var(--text-h5-size); font-weight:var(--text-h5-weight);}
+.c-card p{margin:0; font-size:var(--text-body2-size); color:var(--color-neutral-5);}
+.c-card-accent{border-top:3px solid var(--color-salmon-pink);}
+.c-card-interactive:hover{box-shadow:var(--shadow-2); cursor:pointer;}
+.c-card-interactive:focus-visible{box-shadow:var(--shadow-focus); outline:none;}
+/* Selectable — reuses Profile card's own hover-reveal checkbox + Selected
+   recipe verbatim (see .c-card-profile-select/.c-card-profile.is-selected
+   below) so both variants share one convention. border-width/padding are
+   deliberately excluded from the transition list, same reason as Profile
+   card: animating either alone against an instantly-jumping border-width
+   causes a transient content-shift. */
+.c-card-selectable{position:relative; transition:box-shadow var(--duration-base) var(--ease-settle), border-color var(--duration-base) var(--ease-settle);}
+.c-card-selectable .c-card-select{position:absolute; top:var(--spacing-16); right:var(--spacing-16); opacity:0; transition:opacity var(--duration-fast) var(--ease-standard);}
+.c-card-selectable .c-card-select .c-checkbox-box{cursor:pointer;}
+.c-card-selectable:hover .c-card-select,
+.c-card-selectable.is-selected .c-card-select{opacity:1;}
+.c-card-selectable h4{padding-right:var(--spacing-24);}
+.c-card-selectable.is-selected{border:2px solid var(--color-obsidian); box-shadow:var(--shadow-3); padding:calc(var(--spacing-16) - 1px);}
+
+/* USP card — Card variant. Header (h4) + Description (p) reuse the base
+   Card styles verbatim; only the bullet list and the CTA button's width
+   are new. The CTA is a real Button component (.c-btn), not rebuilt —
+   .c-card's own column-flex default (align-items:stretch) already makes
+   it full-width, so align-self:stretch here is just documenting that,
+   not overriding anything. */
+.c-card-usp{min-width:280px; height:100%;}
+.c-card-usp-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:var(--spacing-8); flex:1;}
+.c-card-usp-list li{display:flex; align-items:center; gap:var(--spacing-8); font-size:var(--text-body2-size); line-height:var(--text-body2-lh); color:var(--color-neutral-9);}
+.c-card-usp-list i{flex:none; font-size:var(--icon-sm); color:var(--color-obsidian);}
+.c-card-usp .c-btn{align-self:stretch; justify-content:center;}
+
+/* Price summary card — Card variant, formerly the standalone "Quote
+   builder" component (renamed, folded into Card like USP; no CSS
+   behavior changed, only the class prefix). Empty state reuses
+   .c-empty verbatim, not restyled here. Filled state's divider between
+   the item list and the Total/CTA region is .c-card-footer's own top
+   border, not a new element; the remove button is optional per row.
+   Remove is opacity-hidden until its row is hovered/focused (same
+   reveal-on-row-hover pattern as Chat's message actions above) so it
+   never sits under the pointer at rest — the row's height and the
+   button's hit target don't move when it appears, only its visibility
+   does, which is what actually prevents the accidental-click case this
+   guards against.
+   Items 5+ collapse behind "Show X more" using the same Grid 0fr->1fr
+   expand/collapse technique as SidebarNav's .c-nav-children (see that
+   rule's own comment above) rather than a guessed max-height, which
+   would either clip content or leave dead space depending on item
+   count. The "Show X more"/"Show less" control adapts Chip's own
+   .c-chip-showless Link-button recipe minus its underline (a
+   deliberate departure, not an oversight) plus a trailing caret,
+   since Chip's own control needs neither. See DESIGN-SYSTEM.md's
+   "Selected items list — display rules" for the full behavior spec
+   this markup alone doesn't express. */
+.c-card-price-summary{min-width:280px; height:100%;}
+.c-card-price-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; flex:1;}
+.c-card-price-row{display:flex; align-items:center; gap:var(--spacing-12); padding:var(--spacing-8) 0; border-bottom:1px solid var(--color-neutral-3);}
+.c-card-price-row:last-child{border-bottom:none;}
+.c-card-price-name{flex:1; min-width:0; font-size:var(--text-body2-size); line-height:var(--text-body2-lh); font-weight:var(--text-body2-strong-weight); color:var(--color-neutral-9); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.c-card-price-cost{flex:none; font-size:var(--text-caption-size); line-height:var(--text-caption-lh); color:var(--color-neutral-5); font-variant-numeric:tabular-nums;}
+.c-card-price-remove{flex:none; width:24px; height:24px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:var(--radius-sm); color:var(--color-neutral-5); font-size:var(--icon-micro); cursor:pointer; opacity:0; transition:opacity var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);}
+.c-card-price-row:hover .c-card-price-remove,
+.c-card-price-row:focus-within .c-card-price-remove{opacity:1;}
+.c-card-price-remove:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}
+.c-card-price-remove:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-card-price-overflow{display:grid; grid-template-rows:0fr; transition:grid-template-rows var(--duration-base) var(--ease-settle);}
+.c-card-price-overflow.is-expanded{grid-template-rows:1fr;}
+.c-card-price-overflow-inner{overflow-y:auto; min-height:0; max-height:320px;}
+.c-card-price-more{display:flex; align-items:center; gap:var(--spacing-4); width:100%; padding:var(--spacing-8) 0; background:transparent; border:none; color:var(--color-neutral-9); font-family:inherit; font-size:var(--text-label2-size); font-weight:var(--text-label2-weight); cursor:pointer;}
+.c-card-price-more i{font-size:var(--icon-micro);}
+.c-card-price-total{display:flex; justify-content:space-between; align-items:baseline; font-size:var(--text-label1-size); line-height:var(--text-label1-lh); font-weight:var(--text-label1-weight); color:var(--color-neutral-9); font-variant-numeric:tabular-nums;}
+.c-card-price-total .value{color:var(--color-neutral-5);}
+.c-card-price-summary .c-card-footer .c-btn{width:100%; justify-content:center; margin-top:var(--spacing-12);}
+
+/* Profile card — Card variant. Header (Avatar in the icon-chip slot +
+   Name/Age-Gender-Location, both reusing .c-card h4/p verbatim), a
+   divider, Persona badges (real .c-badge pills, sorted alphabetically
+   at content level), then the Platform list (icon + name/handle stack
+   + Tier badge/Follower count, all vertically centered). Tier badges
+   reuse Tag's own elemental classes (.c-tag-wood/-earth/-water/-fire/
+   -gold for Nano/Micro/Mid/Macro/Mega) plus plain .c-tag (no modifier,
+   no dot) for the two non-ranked tiers, KOC and Seeder — see
+   DESIGN-SYSTEM.md's "Tier badge, all seven tiers" table.
+   Width has no hardcoded px — fills its grid cell/container, per the
+   documented Width rule; min-width:240px is the one floor. Persona
+   type and Platform list are each removed from the layout entirely
+   (not left as an empty section) when a profile has none of either.
+   Interactive/selectable reuses this same shadow-2/shadow-focus hover
+   the base Card's own Interactive/clickable variant documents, plus a
+   hover-revealed Select checkbox (Checkbox's own real .c-checkbox-box/
+   .on recipe, same hover-reveal pattern as Table's bulk-select
+   column) top-right. Selected is persistent, not hover-only: 2px
+   Obsidian border + shadow-3 + the checkbox stays checked/visible;
+   padding drops 1px/side in the same instant as the border (same
+   compensation Search input's own Active state uses) so the content
+   box never shifts. box-shadow/border-color run on the card's own
+   duration-base/ease-settle pair for a seamless state change —
+   border-width and padding are deliberately left OUT of that
+   transition, since animating one without the other (they can't stay
+   in lockstep mid-transition) would itself cause the exact shift the
+   padding compensation exists to prevent. */
+.c-card-profile{width:100%; min-width:240px; height:100%; position:relative; box-sizing:border-box; transition:box-shadow var(--duration-base) var(--ease-settle), border-color var(--duration-base) var(--ease-settle);}
+.c-card-profile.is-interactive{cursor:pointer;}
+.c-card-profile.is-interactive:hover{box-shadow:var(--shadow-2);}
+.c-card-profile.is-interactive:focus-visible{box-shadow:var(--shadow-focus); outline:none;}
+.c-card-profile-select{position:absolute; top:var(--spacing-16); right:var(--spacing-16); opacity:0; transition:opacity var(--duration-fast) var(--ease-standard);}
+.c-card-profile-select .c-checkbox-box{cursor:pointer;}
+.c-card-profile.is-interactive:hover .c-card-profile-select,
+.c-card-profile.is-selected .c-card-profile-select{opacity:1;}
+.c-card-profile.is-interactive .c-card-profile-identity{padding-right:var(--spacing-24);}
+.c-card-profile.is-selected{border:2px solid var(--color-obsidian); box-shadow:var(--shadow-3); padding:calc(var(--spacing-16) - 1px);}
+.c-card-profile-header{display:flex; gap:var(--spacing-12); align-items:flex-start;}
+.c-card-profile-avatar{flex:none; width:36px; height:36px; border-radius:var(--radius-pill); background:var(--color-neutral-2); color:var(--color-neutral-9); display:flex; align-items:center; justify-content:center; font-family:var(--font-primary); font-weight:700; font-size:var(--text-label2-size);}
+.c-card-profile-identity{flex:1; min-width:0;}
+.c-card-profile-identity h4{margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.c-card-profile-identity p{margin:4px 0 0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.c-card-profile-divider{margin:var(--spacing-8) 0; border-top:1px solid var(--color-neutral-3);}
+.c-card-profile-personas{display:flex; flex-wrap:wrap; gap:4px; margin-bottom:var(--spacing-4);}
+.c-card-profile-platforms{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:var(--spacing-16);}
+.c-card-profile-row{display:flex; align-items:center; gap:var(--spacing-12);}
+.c-card-profile-row i{flex:none; font-size:var(--icon-sm); color:var(--color-neutral-9);}
+.c-card-profile-row svg{flex:none; width:var(--icon-sm); height:var(--icon-sm); color:var(--color-neutral-9);}
+.c-card-profile-stack{flex:1; min-width:0;}
+.c-card-profile-platform{font-size:var(--text-body2-size); line-height:var(--text-body2-lh); font-weight:var(--text-body2-weight); color:var(--color-neutral-5); margin:0;}
+.c-card-profile-handle{display:block; font-size:var(--text-caption-size); line-height:var(--text-caption-lh); font-weight:var(--text-caption-weight); color:var(--color-neutral-9); text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.c-card-profile-trailing{flex:none; display:flex; align-items:center; gap:var(--spacing-8);}
+.c-card-profile-followers{font-size:var(--text-caption-size); line-height:var(--text-caption-lh); font-weight:700; color:var(--color-neutral-9); font-variant-numeric:tabular-nums;}
+
+/* =========================================================
+   Hero Card — a promotional/insight tile, a Card sub-component.
+   Four states: Default, Risk, AI (Dark), Selected. See
+   DESIGN-SYSTEM.md's Card section ("Hero Card") for full anatomy,
+   the ribbon-clearance geometry, and the modal timing rationale.
+   ========================================================= */
+.c-herocard{position:relative; background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg); box-shadow:var(--shadow-1); padding:var(--spacing-16); display:flex; flex-direction:column; gap:var(--spacing-8); overflow:hidden;}
+.c-herocard-eyebrow{font-size:var(--text-h2-size); line-height:var(--text-h2-lh); font-weight:var(--text-h2-weight); letter-spacing:var(--text-h2-tracking); color:var(--color-neutral-5);}
+.c-herocard-heading{margin:0; font-size:var(--text-h4-size); line-height:var(--text-h4-lh); font-weight:var(--text-h4-weight); letter-spacing:var(--text-h4-tracking); color:var(--color-neutral-9); display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; overflow:hidden;}
+/* Ribbon clearance, scoped to cards that actually have one. The ribbon's visible triangle still reaches ~56px in from the right edge at the heading's topmost line (16px card padding + 16px eyebrow-height-ish line + 8px gap = 40px down, where the 80x80 band is still wide) — 60px reserves a safety margin above that geometric minimum, paired with the 2-line clamp above so the worst case is bounded, not just likely. */
+.c-herocard:has(.c-herocard-ribbon) .c-herocard-heading{padding-right:var(--spacing-60);}
+.c-herocard-body{margin:0; font-size:var(--text-body2-size); line-height:var(--text-body2-lh); font-weight:var(--text-body2-weight); color:var(--color-neutral-5);}
+.c-herocard-media{border-radius:var(--radius-md); background:var(--color-neutral-2); border:1px dashed var(--color-neutral-3); min-height:112px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:var(--color-neutral-4); font-size:var(--text-caption-size);}
+.c-herocard-media i{font-size:var(--icon-md);}
+.c-herocard-recommendation{font-size:var(--text-caption-size); line-height:var(--text-caption-lh); color:var(--color-neutral-5);}
+.c-herocard-cta{align-self:flex-start; margin-top:2px;}
+.c-herocard-cta i{display:inline-block; transition:transform var(--duration-fast) var(--ease-standard);}
+
+/* Ribbon — 80x80 corner box clipped by the card's own overflow:hidden; inner strip rotated 45deg, centered on the box's own center point so the visible triangle's text sits centered regardless of box size. */
+.c-herocard-ribbon{position:absolute; top:0; right:0; width:80px; height:80px; pointer-events:none;}
+.c-herocard-ribbon span{position:absolute; top:50%; left:50%; width:150px; padding:5px 0; background:var(--color-orange); color:var(--color-neutral-1); font-size:var(--text-caption-size); font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow); text-align:center; transform:translate(-50%,-50%) rotate(45deg);}
+
+/* Risk variant */
+.c-herocard-risk{background:var(--color-fire-bg); border-color:var(--color-orange);}
+.c-herocard-risk .c-herocard-heading{color:var(--color-neutral-9);}
+
+/* AI (Dark) variant — this system's first dark-surface card; the white-on-dark overlay values below are literals scoped to this one component, not new tokens, since no other component uses a dark surface yet. */
+.c-herocard-ai{background:var(--color-neutral-8); border-color:rgba(255,255,255,.08); box-shadow:0 1px 2px rgba(0,0,0,.32); cursor:pointer; --mouse-x:0; --mouse-y:0; transition:box-shadow var(--duration-base) var(--ease-settle), transform var(--duration-base) var(--ease-settle);}
+.c-herocard-ai:hover{box-shadow:var(--shadow-2); transform:perspective(800px) rotateX(calc(var(--mouse-y) * -4deg)) rotateY(calc(var(--mouse-x) * 4deg)) scale(1.05); transition:box-shadow var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);}
+.c-herocard-ai .c-herocard-eyebrow{color:var(--color-amber);}
+.c-herocard-ai .c-herocard-heading{color:var(--color-neutral-1);}
+.c-herocard-ai .c-herocard-body,
+.c-herocard-ai .c-herocard-recommendation{color:rgba(255,255,255,.60);}
+.c-herocard-ai .c-herocard-media{background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.16); color:rgba(255,255,255,.4);}
+.c-herocard-ai:hover .c-herocard-cta i{transform:translateX(var(--spacing-4));}
+
+/* Selected state — same shell, just bigger, sitting in normal page flow. Eyebrow reverts to the pre-H2 caption/uppercase styling here and on .c-cbrief below (the same state's modal form) — the Default/Risk/AI H2 change was never asked for on Selected.
+   Mobile fix: width/max-height used to be copy-pasted from .c-cbrief below (the fixed/centered MODAL form of this same state) — min(560px, calc(100vw - spacing-32)) plus a self-scrolling max-height. That math only holds for something position:fixed and genuinely measured against the true viewport, which .c-cbrief is and this in-flow card isn't; 100vw doesn't know this card's real parent width, so on a phone the card kept requesting close to 560px regardless of how little room its actual container gave it, overflowing every narrow container tested. Fixed by giving it Card's own universal width:100%/max-width recipe instead (see Card's own Do/Don't: "Do use width:100% on every card — the grid cell decides the card's width") and dropping the inherited max-height/overflow-y, which never made sense for in-flow content that should just grow and let the page scroll. */
+.c-herocard-selected{width:100%; max-width:560px; padding:var(--spacing-24); gap:var(--spacing-16);}
+.c-herocard-selected .c-herocard-eyebrow,
+.c-cbrief .c-herocard-eyebrow{font-size:var(--text-caption-size); line-height:var(--text-caption-lh); font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow);}
+
+/* Selected state — modal form. Same content as .c-herocard-selected, fixed/centered/animated instead of sitting in flow: opens on click, closes on scrim click / the close button / Escape. translate(-50%,-50%) is the resting centered position; the entrance/exit animation layers on top of it, never replaces it. Exit is asymmetric on purpose — the panel collapses fast (140ms) and the scrim's own fade is delayed by that same 140ms so it only starts once the panel has finished collapsing, matching "reverse of entrance, panel first, then the scrim fades." */
+.c-cbrief-scrim{position:fixed; inset:0; z-index:400; background:var(--shadow-overlay); opacity:0; pointer-events:none; transition:opacity var(--duration-fast) var(--ease-standard) var(--duration-fast);}
+.c-cbrief-scrim.is-open{opacity:1; pointer-events:auto; transition:opacity var(--duration-fast) var(--ease-standard);}
+.c-cbrief{position:fixed; top:50%; left:50%; width:min(560px, calc(100vw - var(--spacing-32))); max-height:calc(100dvh - var(--spacing-60)); overflow-y:auto; background:var(--color-neutral-1); border-radius:var(--radius-lg); box-shadow:var(--shadow-4); padding:var(--spacing-24); display:flex; flex-direction:column; gap:var(--spacing-16); opacity:0; transform:translate(-50%,-50%) perspective(1000px) rotateX(-8deg) translateY(24px); transition:opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);}
+.c-cbrief-scrim.is-open .c-cbrief{opacity:1; transform:translate(-50%,-50%) perspective(1000px) rotateX(0deg) translateY(0); transition:opacity var(--duration-base) var(--ease-standard), transform var(--duration-base) var(--ease-standard);}
+.c-cbrief-close{position:absolute; top:var(--spacing-16); right:var(--spacing-16); background:none; border:none; cursor:pointer; padding:0; line-height:1; color:var(--color-neutral-5); font-size:20px;}
+.c-cbrief-source{font-size:var(--text-footnote-size); line-height:var(--text-footnote-lh); color:var(--color-neutral-5);}
+.c-cbrief-cta{align-self:flex-start;}
+
+.c-badge{display:inline-flex; align-items:center; gap:4px; font-size:var(--text-label3-size); font-weight:700; padding:2px var(--spacing-8); border-radius:var(--radius-pill); border:1px solid transparent; white-space:nowrap;}
+.c-badge-neutral{background:var(--color-neutral-2); color:var(--color-neutral-9); border-color:var(--color-neutral-3);}
+.c-badge-success{background:rgba(0,194,110,.12); color:var(--color-green); border-color:rgba(0,194,110,.32);}
+.c-badge-error{background:rgba(253,51,67,.10); color:var(--color-red); border-color:rgba(253,51,67,.30);}
+.c-badge-warning{background:rgba(255,164,37,.14); color:var(--color-neutral-9); border-color:rgba(255,164,37,.38);}
+.c-badge-selected{background:var(--color-neutral-1); color:var(--color-neutral-9); border-color:var(--color-obsidian);}
+.c-tag{display:inline-flex; align-items:center; gap:4px; font-size:var(--text-caption-size); font-weight:700; height:24px; padding:0 10px; border-radius:var(--radius-pill); background:var(--color-neutral-2); color:var(--color-neutral-5);}
+.c-tag .dot{width:6px; height:6px; border-radius:var(--radius-pill); flex:none;}
+/* Elemental fill — the owning element's -bg tint (8%), not the generic
+   Neutral-2 above. Text/dot stay full-strength element color. */
+.c-tag-fire{background:var(--color-fire-bg); color:var(--color-orange);} .c-tag-fire .dot{background:var(--color-orange);}
+.c-tag-wood{background:var(--color-wood-bg); color:var(--color-salmon-pink);} .c-tag-wood .dot{background:var(--color-salmon-pink);}
+.c-tag-earth{background:var(--color-earth-bg); color:var(--color-green);} .c-tag-earth .dot{background:var(--color-green);}
+.c-tag-water{background:var(--color-water-bg); color:var(--color-navy);} .c-tag-water .dot{background:var(--color-navy);}
+.c-tag-gold{background:var(--color-gold-bg); color:var(--color-amber);} .c-tag-gold .dot{background:var(--color-amber);}
+
+/* Table — consolidates the former "Table row" + "DataTable" into one
+   component (see DESIGN-SYSTEM.md's Table section). Anatomy below is
+   shared by both usage contexts:
+   - Standalone: table owns its own bordered/radius-lg container —
+     wrap markup in .c-table-standalone-wrap, table itself gets
+     .c-table-standalone (h5/700 header on Neutral-2 fill).
+   - Embedded: no container of its own, sits inside an existing surface
+     (a Card) — table gets .c-table-embedded (label3/uppercase/
+     Neutral-5 header), no wrap needed.
+   Every column is left-aligned, including numeric/status/checkbox/
+   actions — .num only adds tabular-figure digit alignment, never
+   right-set. */
+.c-table{width:100%; border-collapse:collapse; font-family:inherit;}
+.c-table th,.c-table td{text-align:left; padding:var(--spacing-12) var(--spacing-16); border-bottom:1px solid var(--color-neutral-3);}
+.c-table tbody tr:last-child td{border-bottom:none;}
+.c-table td{font-size:var(--text-body2-size); font-weight:500; color:var(--color-neutral-9);}
+.c-table td.num,.c-table th.num{font-variant-numeric:tabular-nums;}
+/* Row hover/selected only ever apply via .is-interactive — a purely
+   presentational row (no onRowClick, no checkbox, no action column)
+   gets no hover treatment at all; see Anatomy's Row hover rule. */
+.c-table tbody tr{transition:background-color var(--duration-fast) var(--ease-standard);}
+.c-table tbody tr.is-interactive:hover{background:var(--color-neutral-2);}
+.c-table tbody tr.is-interactive.is-clickable{cursor:pointer;}
+.c-table tbody tr.is-selected{background:var(--color-neutral-2); box-shadow:inset 2px 0 0 var(--color-obsidian);}
+.c-table-cell-icon{font-size:var(--icon-micro); vertical-align:-2px; margin-right:4px;}
+
+/* Standalone variant — owns the container */
+.c-table-standalone-wrap{position:relative; border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg); overflow:hidden; background:var(--color-neutral-1);}
+.c-table-standalone thead th{background:var(--color-neutral-2); font-size:var(--text-h5-size); font-weight:var(--text-h5-weight); color:var(--color-neutral-9);}
+
+/* Embedded variant — no container, lives inside a Card/panel */
+.c-table-embedded thead th{background:none; font-size:var(--text-label3-size); font-weight:700; letter-spacing:var(--text-label3-tracking); text-transform:uppercase; color:var(--color-neutral-5);}
+
+/* Sorting — on by default for every eligible column, both variants.
+   Checkbox/Actions are the only structural non-sortable columns. */
+.c-table-sort-th{cursor:pointer; user-select:none; white-space:nowrap;}
+.c-table-sort-th .c-table-sort-icon{font-size:var(--icon-micro); margin-left:4px; color:var(--color-neutral-4); vertical-align:-1px;}
+.c-table-sort-th.is-sorted{color:var(--color-neutral-9);}
+.c-table-sort-th.is-sorted .c-table-sort-icon{color:var(--color-neutral-9);}
+.c-table-sort-th.no-sort{cursor:default;}
+
+/* Checkbox selection — opt-in, left-pinned first column, 40px fixed
+   width. Reuses Checkbox's own real .c-checkbox-box/.on glyph verbatim
+   (see Checkbox above) — not a bespoke control, and not a native
+   <input> either, matching how Dropdown's own multi-select rows already
+   reuse the same glyph. Row checkbox is hidden until row hover or
+   checked; header checkbox is always visible (force-shown via markup)
+   and supports the real three states — unchecked/checked/indeterminate
+   is just .on plus swapping the inner ph-check/ph-minus icon, same as
+   Checkbox's own documented mark. */
+.c-table-chk-col{width:40px;}
+.c-table-chk-col .c-checkbox-box{opacity:0; cursor:pointer; transition:opacity var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);}
+.c-table tbody tr.is-interactive:hover .c-checkbox-box,.c-table-chk-col .c-checkbox-box.on,.c-table-chk-col .c-checkbox-box.force-visible{opacity:1;}
+
+/* Bulk actions toolbar — Standalone only, opt-in with checkbox
+   selection. Overlays only the header LABELS (left:40px), never the
+   header checkbox itself, so the same control that selects all rows
+   is what clears the selection — no separate "Clear selection"
+   affordance. Must live in a non-scrolling wrapper (see
+   .c-table-scroll-x-inner below) — position:absolute inside the same
+   element that has overflow-x:auto scrolls away with the content. */
+.c-table-bulk-toolbar{display:none; position:absolute; top:0; left:40px; right:0; align-items:center; justify-content:space-between; background:var(--color-neutral-2); border-bottom:1px solid var(--color-neutral-3); padding:0 var(--spacing-16); z-index:3;}
+.c-table-bulk-toolbar.is-visible{display:flex; animation:c-table-bulk-in var(--duration-fast) var(--ease-standard);}
+@keyframes c-table-bulk-in{from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);}}
+.c-table-bulk-count{font-size:var(--text-label2-size); font-weight:700; color:var(--color-neutral-9);}
+.c-table-bulk-actions{display:flex; align-items:center; gap:var(--spacing-8);}
+.c-table-bulk-danger{color:var(--color-red);} /* Danger Ghost — reuses .c-btn-ghost verbatim plus a color override, same recipe as Filters' own Clear All */
+
+/* Action column — both variants, always visible upfront (never
+   hidden until hover). Fixed width per action count, never flexible.
+   Content is 1-3 real Ghost IconButton sm (.c-btn.c-btn-ghost.c-btn-icon.c-btn-sm)
+   — reused verbatim from Button, not a bespoke row-action control. */
+.c-table-action-col{width:72px; white-space:nowrap;}
+
+/* Frozen columns — active whenever the table scrolls horizontally
+   (10+ columns on desktop, or any width under 768px). Only the
+   checkbox, the first content column, and the action column ever
+   freeze — never a whole block of leading/trailing columns. */
+.c-table-freeze-left,.c-table-freeze-right{position:sticky; z-index:2; background:var(--color-neutral-1);}
+.c-table-freeze-left{left:0;}
+.c-table-freeze-right{right:0;}
+.c-table-standalone thead th.c-table-freeze-left,.c-table-standalone thead th.c-table-freeze-right{background:var(--color-neutral-2);}
+.c-table tbody tr:hover .c-table-freeze-left,.c-table tbody tr.is-selected .c-table-freeze-left,
+.c-table tbody tr:hover .c-table-freeze-right,.c-table tbody tr.is-selected .c-table-freeze-right{background:var(--color-neutral-2);}
+/* Scroll-boundary shadow — shows only on the side with scrolled
+   content still underneath, same appear/disappear convention as
+   Sticky header's own scroll shadow. Toggle .is-scrolled-left /
+   .is-scrolled-right on the scroll container via JS scroll listener. */
+.is-scrolled-left .c-table-freeze-left{box-shadow:2px 0 4px rgba(189,189,189,.45);}
+.is-scrolled-right .c-table-freeze-right{box-shadow:-2px 0 4px rgba(189,189,189,.45);}
+
+/* Horizontal scroll — two forms. .c-table-scroll-x goes directly on
+   .c-table-standalone-wrap when there's no bulk toolbar (the wrap's
+   own overflow:hidden, needed to clip the header to its radius, must
+   be the SAME element that scrolls, or position:sticky columns break).
+   .c-table-scroll-x-inner is a separate inner div used only when a
+   bulk toolbar is also present, since that toolbar needs a
+   non-scrolling ancestor to stay pinned over the header — see Bulk
+   actions toolbar, above. */
+.c-table-standalone-wrap.c-table-scroll-x,.c-table-scroll-x-inner{overflow-x:auto; overflow-y:hidden;}
+
+/* Loading state — both variants. 3 skeleton rows matching real column
+   widths, shown after a 300ms delay in a real implementation. Bars are
+   left-aligned within their cell like every other column — never
+   centered or right-set, even under a numeric/status header. Shimmer
+   reuses Progress Bar's own indeterminate keyframe (c-progress-shimmer)
+   rather than a second copy of the same animation. */
+.c-table-skel-bar{height:14px; border-radius:var(--radius-sm); background:var(--color-neutral-2); position:relative; overflow:hidden;}
+.c-table-skel-bar::after{content:""; position:absolute; inset:0; background:linear-gradient(90deg, transparent, rgba(90,90,90,.4), transparent); animation:c-progress-shimmer var(--duration-ambient) var(--ease-standard) infinite;}
+@media (prefers-reduced-motion: reduce){
+  .c-table-skel-bar::after{animation:none; background:var(--color-neutral-2);}
+}
+
+@media (max-width:767px){
+  .c-table th,.c-table td{padding:var(--spacing-12);}
+}
+
+.c-modal{background:var(--color-neutral-1); border-radius:var(--radius-lg); width:100%; max-width:400px; box-shadow:var(--shadow-modal);}
+.c-modal-head{display:flex; justify-content:space-between; align-items:center; padding:var(--spacing-16);}
+.c-modal-head h4{margin:0; font-size:var(--text-h4-size); font-weight:var(--text-h4-weight);}
+.c-modal-body{padding:0 var(--spacing-16) var(--spacing-16); font-size:var(--text-body1-size); color:var(--color-neutral-9); line-height:1.5;}
+.c-modal-foot{display:flex; justify-content:flex-end; gap:var(--spacing-12); padding:var(--spacing-16); border-top:1px solid var(--color-neutral-3);}
+.c-icon-btn{width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); background:transparent; border:none; cursor:pointer;}
+.c-icon-btn:hover{background:var(--color-neutral-2);}
+
+/* Empty state — anatomy: icon (optional), heading (optional), body, actions
+   (optional). Per-gap spacing (not one flat gap): icon->heading spacing-12,
+   heading->body spacing-4, body->actions spacing-16. Fill:none (renders on
+   whatever surface it sits on) and max-width:480px is the outer safety net
+   around body's own 380px inner cap. Three variants — is-fullpage/is-section/
+   is-inline — plus an is-error tone. See DESIGN-SYSTEM.md's Empty state
+   section for the full spec. */
+.c-empty{display:flex; flex-direction:column; align-items:center; text-align:center; max-width:480px; margin:0 auto; padding:var(--spacing-40) var(--spacing-24); color:var(--color-neutral-5);}
+.c-empty > i{display:block; font-size:var(--icon-empty); color:var(--color-neutral-4); margin-bottom:var(--spacing-12);}
+.c-empty.is-error > i{color:var(--color-red);}
+.c-empty h4{margin:0 0 var(--spacing-4); color:var(--color-neutral-9); font-size:var(--text-h4-size); font-weight:var(--text-h4-weight); line-height:var(--text-h4-lh);}
+.c-empty p{margin:0 0 var(--spacing-16); max-width:380px; font-size:var(--text-body1-size); font-weight:var(--text-body1-weight); line-height:var(--text-body1-lh);}
+.c-empty-actions{display:flex; align-items:center; justify-content:center; gap:var(--spacing-8);}
+
+/* Full-page — icon-hero, fills the remaining viewport, centered. Standalone
+   min-height here is 100vh; a real integration inside App Shell subtracts
+   its own nav height, per DESIGN-SYSTEM.md's calc(100vh - nav height) rule. */
+.c-empty.is-fullpage{min-height:100vh; justify-content:center;}
+.c-empty.is-fullpage > i{font-size:var(--icon-hero);}
+
+/* Section-level — icon-empty, 240px min-height floor so it can't collapse */
+.c-empty.is-section{min-height:240px; justify-content:center;}
+
+/* Inline — no icon/heading in the markup, body2 only, Link-style action
+   only (never Primary/Ghost), no min-height */
+.c-empty.is-inline{max-width:none; text-align:left; align-items:flex-start; padding:var(--spacing-16); min-height:0;}
+.c-empty.is-inline p{font-size:var(--text-body2-size); font-weight:var(--text-body2-weight); line-height:var(--text-body2-lh); max-width:320px; margin-bottom:var(--spacing-8);}
+.c-empty-link{background:none; border:none; padding:0; font-family:inherit; font-size:var(--text-link2-size); font-weight:var(--text-link2-weight); line-height:var(--text-link2-lh); color:var(--color-neutral-9); text-decoration:underline; text-underline-offset:3px; cursor:pointer;}
+
+@media (max-width:767px){
+  .c-empty.is-fullpage,
+  .c-empty.is-section{padding:var(--spacing-24) var(--spacing-16);}
+  .c-empty.is-fullpage > i{font-size:var(--icon-empty);} /* no room for icon-hero at mobile */
+  .c-empty{max-width:100%;}
+  .c-empty p{max-width:100%;}
+  .c-empty-actions{flex-direction:column; align-items:stretch; width:100%; gap:var(--spacing-8);}
+  .c-empty-actions .c-btn{width:100%; justify-content:center;}
+}
+
+/* SidebarNav */
+.c-sidebar-shell{position:relative; display:inline-block;} /* wraps nav + toggle so the toggle can live outside .c-sidebar's own clip, see .c-sidebar-toggle below */
+.c-sidebar{display:flex; flex-direction:column; gap:var(--spacing-4); width:240px; padding:var(--spacing-12); background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg); overflow-x:clip; transition:width var(--duration-slow) var(--ease-standard);}
+.c-sidebar.is-collapsed{width:72px;} /* one-off literal, not a spacing token — see DESIGN-SYSTEM.md's Collapsible state row */
+.c-sidebar-header{padding:var(--spacing-8) var(--spacing-8) var(--spacing-16); display:flex; align-items:center; flex-shrink:0;}
+.c-sidebar.is-collapsed .c-sidebar-header{justify-content:center;} /* logo independently centered, no longer paired with the toggle */
+.c-sidebar-logo{display:flex; align-items:center;}
+/* Default (no department context), expanded — the live animated mark,
+   embedded via iframe per the Header logo rule's 2026-08-05 change.
+   logo.html renders its SVG inside its own 16px top/bottom padding, so
+   a wrapper crops that padding out via overflow:hidden + an absolutely
+   -positioned iframe offset up by that same 16px, rather than growing
+   the header to fit the padded embed at full size. */
+.c-sidebar-logo-live-wrap{width:118px; height:22px; overflow:hidden; position:relative;}
+.c-sidebar-logo-live-wrap iframe{position:absolute; top:-16px; left:0; width:118px; height:53px; border:0; pointer-events:none;}
+/* Collapsed (any context), and expanded department-specific — still a
+   static asset (element icon / coin.svg collapsed, a department
+   lockup expanded) — unchanged by the animated-default switch above. */
+.c-sidebar-logo-collapsed{display:none; height:24px; width:24px;}
+.c-sidebar.is-collapsed .c-sidebar-logo-live-wrap{display:none;}
+.c-sidebar.is-collapsed .c-sidebar-logo-collapsed{display:block;}
+.c-sidebar-section{padding:var(--spacing-16) var(--spacing-8) var(--spacing-4); font-size:var(--text-caption-size); font-weight:700; letter-spacing:var(--tracking-eyebrow); text-transform:uppercase; color:var(--color-neutral-5); flex-shrink:0;}
+.c-sidebar-divider{border:none; border-top:1px solid var(--color-neutral-3); margin:var(--spacing-8) 0 0; flex-shrink:0;}
+.c-sidebar.is-collapsed .c-sidebar-section,
+.c-sidebar.is-collapsed .c-sidebar-divider,
+.c-sidebar.is-collapsed .c-sidebar-item span.label,
+.c-sidebar.is-collapsed .c-sidebar-item span.count{display:none;}
+.c-sidebar-item{position:relative; display:flex; align-items:center; gap:var(--spacing-12); width:100%; height:40px; flex-shrink:0; padding:0 var(--spacing-12); border:0; border-radius:var(--radius-sm); background:transparent; color:var(--color-neutral-5); font-family:inherit; font-size:var(--text-body1-size); font-weight:500; cursor:pointer; text-align:left; transition:background-color var(--duration-fast) var(--ease-standard),color var(--duration-fast) var(--ease-standard);}
+.c-sidebar-item:hover{background:var(--color-neutral-2);} /* reuses Table's row hover / Button Ghost hover */
+.c-sidebar-item:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-sidebar-item:active{background:var(--color-neutral-3);}
+.c-sidebar-item:disabled{color:var(--color-neutral-4); background:transparent; cursor:not-allowed;}
+.c-sidebar-item:disabled:hover{background:transparent;}
+.c-sidebar-item span.label{flex:1; white-space:normal; overflow-wrap:break-word;} /* wraps, doesn't truncate — 240px is a hard max-width with no horizontal scroll */
+.c-sidebar-item span.count{font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-5);}
+.c-sidebar-item.active{background:var(--color-neutral-2); color:var(--color-neutral-9); font-weight:700;}
+.c-sidebar-item.soon{cursor:not-allowed;}
+.c-sidebar-item.soon i{opacity:.4;}
+.c-sidebar-item.soon span.label{color:var(--color-neutral-4);}
+.c-sidebar-item.soon .c-badge{margin-left:auto;}
+.c-sidebar.is-collapsed .c-sidebar-item{justify-content:center; padding:0;} /* every item icon independently centered within the 72px rail */
+.c-sidebar-footer{margin-top:auto; padding-top:var(--spacing-16); border-top:1px solid var(--color-neutral-3); flex-shrink:0;}
+
+/* Toggle — a sibling of .c-sidebar inside .c-sidebar-shell, not a
+   descendant of it: .c-sidebar has overflow-x:clip (never
+   horizontally scrollable), and a clipped ancestor clips absolutely-
+   positioned descendants too, no matter their offsets — the
+   collapsed toggle deliberately straddles the rail's own border
+   (half in / half out), so it can't live inside .c-sidebar without
+   being cut off. */
+.c-sidebar-toggle{position:absolute; display:flex; align-items:center; justify-content:center; background:none; border:none; border-radius:var(--radius-sm); color:var(--color-neutral-5); cursor:pointer;}
+.c-sidebar-toggle:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-sidebar:not(.is-collapsed) ~ .c-sidebar-toggle{top:32px; right:8px; transform:translateY(-50%); width:28px; height:28px;} /* same row as the logo, right-aligned, vertically centered */
+.c-sidebar:not(.is-collapsed) ~ .c-sidebar-toggle:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}
+.c-sidebar.is-collapsed ~ .c-sidebar-toggle{top:33px; right:-10px; transform:translateY(-50%); width:24px; height:24px; background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); box-shadow:var(--shadow-1);} /* floating overlay, straddles the rail's own border, sized down so it doesn't crowd the independently-centered logo */
+.c-sidebar.is-collapsed ~ .c-sidebar-toggle:hover{background:var(--color-neutral-2);}
+.c-sidebar-toggle svg{width:18px; height:18px;}
+.c-sidebar.is-collapsed ~ .c-sidebar-toggle svg{width:16px; height:16px;}
+
+/* Department switcher — expanded mode only, per DESIGN-SYSTEM.md
+   SidebarNav, Department switcher. The trigger pairs the header logo
+   with a chevron as one button; the dropdown is a sibling of .c-sidebar
+   inside .c-sidebar-shell (same positioning precedent as .c-sidebar-toggle
+   above), positioned via JS against the header's own rect. */
+.c-dept-trigger{display:inline-flex; align-items:center; gap:var(--spacing-8); width:auto; background:none; border:none; padding:2px 4px; margin:-2px -4px; cursor:pointer; font-family:inherit; border-radius:var(--radius-sm);}
+.c-dept-trigger:hover{background:var(--color-neutral-2);}
+.c-dept-chevron{font-size:var(--icon-micro); color:var(--color-neutral-5); flex:none;}
+.c-dept-logo-static{height:22px; display:block;}
+.c-sidebar.is-collapsed .c-dept-trigger{display:none;} /* no dropdown access collapsed, per Department switcher's Collapsed mode rule; .js-dept-logo-collapsed reuses .c-sidebar-logo-collapsed's own show/hide rule already */
+.c-dept-dropdown{position:absolute; width:240px; background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); box-shadow:var(--shadow-3); padding:var(--spacing-4); max-height:220px; overflow-y:auto; z-index:20;}
+.c-dept-dropdown[hidden]{display:none;}
+.c-dept-option{display:flex; align-items:center; gap:var(--spacing-12); height:40px; padding:0 var(--spacing-12); border-radius:var(--radius-sm); cursor:pointer;}
+.c-dept-option:hover{background:var(--color-neutral-2);}
+.c-dept-option.is-active{background:var(--color-neutral-2);}
+.c-dept-option-logo{height:22px; display:flex; align-items:center; justify-content:flex-start; flex:1;}
+/* Each lockup's own SVG canvas isn't uniformly proportioned to its
+   "collab" text — e.g. the default lockup's viewBox is 162 tall vs.
+   269 for the 4 department ones, so scaling every image to the same
+   box height (via height:100%) renders "collab" at visibly different
+   sizes across logos. --logo-scale is a per-image, tuned-by-eye
+   correction (set inline per <img>, defaults to 1 when the lockup's
+   own proportions already match) so every logo's "collab" reads at
+   the same size regardless of its own canvas height. */
+.c-dept-option-logo img{height:calc(100% * var(--logo-scale, 1)); width:auto; object-fit:contain;}
+.c-dept-check{font-size:var(--icon-sm); color:var(--color-neutral-9); visibility:hidden; flex:none;}
+.c-dept-option.is-active .c-dept-check{visibility:visible;}
+
+/* Collapsed — hover label. SidebarNav's own sub-pattern (not a
+   reused Tooltip instance) — see DESIGN-SYSTEM.md's "Collapsed —
+   hover label" row for why. A single shared element, `position:
+   fixed`, repositioned via JS to the hovered/focused icon. */
+.c-sidebar-hover-label{position:fixed; padding:6px 10px; border-radius:var(--radius-sm); background:var(--color-neutral-7); color:var(--color-neutral-1); font-size:var(--text-caption-size); font-weight:500; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity var(--duration-fast) var(--ease-standard); z-index:20;}
+.c-sidebar-hover-label.is-visible{opacity:1;}
+.c-sidebar-item .c-sidebar-hover-text,
+.c-sidebar-user .c-sidebar-hover-text{display:none;} /* text source only — read by JS, never shown itself */
+
+/* User account section — lives inside .c-sidebar-footer, per
+   DESIGN-SYSTEM.md's own "User account section". Avatar recipe is
+   Card's own Profile card avatar (36px, Neutral-2/Neutral-9, weight
+   700, label2 size), reused verbatim rather than a new avatar token. */
+.c-sidebar-user{display:flex; align-items:center; gap:var(--spacing-12); width:100%; height:56px; flex-shrink:0; padding:0 var(--spacing-12); border:0; border-radius:var(--radius-sm); background:transparent; cursor:pointer; text-align:left; font-family:inherit; transition:background-color var(--duration-fast) var(--ease-standard);}
+.c-sidebar-user:hover,
+.c-sidebar-user.is-open{background:var(--color-neutral-2);}
+.c-sidebar-user:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-sidebar-user-avatar{flex:none; width:36px; height:36px; border-radius:var(--radius-pill); background:var(--color-neutral-2); color:var(--color-neutral-9); display:flex; align-items:center; justify-content:center; font-family:var(--font-primary); font-weight:700; font-size:var(--text-label2-size);}
+.c-sidebar-user-text{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;}
+.c-sidebar-user-name{font-size:var(--text-body2-size); font-weight:700; color:var(--color-neutral-9); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.c-sidebar-user-role{font-size:var(--text-caption-size); font-weight:400; color:var(--color-neutral-5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+/* Collapsed — avatar only, independently centered, same precedent as
+   the header logo and every other collapsed nav item icon. */
+.c-sidebar.is-collapsed .c-sidebar-user{justify-content:center; padding:0; gap:0;}
+.c-sidebar.is-collapsed .c-sidebar-user-text{display:none;}
+
+/* Menu — a sibling of .c-sidebar inside .c-sidebar-shell (same
+   positioning precedent as .c-dept-dropdown), positioned via JS
+   against the trigger's own rect. Opens upward: the trigger sits at
+   the bottom of the viewport by design, so a downward panel would
+   routinely overflow — see DESIGN-SYSTEM.md's Menu → Placement row. */
+.c-user-menu{position:absolute; width:240px; background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); box-shadow:var(--shadow-3); padding:var(--spacing-4); z-index:20;}
+.c-user-menu[hidden]{display:none;}
+.c-user-menu-item{display:flex; align-items:center; gap:var(--spacing-12); width:100%; height:40px; padding:0 var(--spacing-12); border:0; border-radius:var(--radius-sm); background:transparent; color:var(--color-neutral-9); font-family:inherit; font-size:var(--text-body2-size); font-weight:500; cursor:pointer; text-align:left;}
+.c-user-menu-item:hover{background:var(--color-neutral-2);}
+.c-user-menu-item i{font-size:var(--icon-base); flex:none;}
+.c-user-menu-divider{border:none; border-top:1px solid var(--color-neutral-3); margin:var(--spacing-4) 0;}
+
+/* Second-level navigation — a parent item expanding to show its own
+   child items, one level deep. Chevron is Tier 1, Regular (per
+   Iconography's own Tier 1 examples — "chevron up/down", "expand,
+   collapse"). Clicking anywhere on the parent toggles it, not just
+   the chevron. Each parent's open/closed state is independent — no
+   single-open-at-a-time grouping. */
+/* Same icon tier/style as the Department switcher's own chevron —
+   Phosphor caret, icon-micro, Neutral-5 — swapped via class rather
+   than rotated/path-swapped, for visual consistency between the two
+   expand/collapse affordances in the same sidebar. */
+.c-sidebar-item .c-nav-parent-toggle{margin-left:auto; display:flex; align-items:center; justify-content:center; flex:none;}
+.c-sidebar-item .c-nav-parent-toggle i{font-size:var(--icon-micro); color:var(--color-neutral-5);}
+/* "Active parent with active child — parent shows weight 700 text,
+   but no active fill" — the fill signal stays exclusively on the
+   active child. */
+.c-sidebar-item.parent-active-child{font-weight:700; background:transparent; color:var(--color-neutral-9);}
+/* Collapsed — the "no fill, text stays the only signal" rule above
+   relies on the label, which is hidden entirely at 72px (see
+   .c-sidebar.is-collapsed .c-sidebar-item span.label above), so a
+   parent with an active child would look identical to a plain
+   inactive icon with nothing else to look at. The child's own fill
+   isn't around to compete with here either — it's hidden too — so
+   the collapsed parent icon safely takes the normal Active fill
+   instead, same as any other active item gets. */
+.c-sidebar.is-collapsed .c-sidebar-item.parent-active-child{background:var(--color-neutral-2);}
+/* Grid 0fr->1fr technique: animating max-height directly squeezes
+   fixed-height child buttons via flex-shrink instead of properly
+   sizing them (see DESIGN-SYSTEM.md's "Expand/collapse transition"
+   row) — a single-row grid track animates to the content's real
+   height with no guessed cap. */
+.c-nav-children{display:grid; grid-template-rows:0fr; flex-shrink:0; transition:grid-template-rows var(--duration-slow) var(--ease-standard);}
+.c-nav-children.is-open{grid-template-rows:1fr;}
+.c-nav-children-inner{overflow:hidden; min-height:0; display:flex; flex-direction:column; gap:var(--spacing-4);}
+.c-sidebar.is-collapsed .c-nav-children,
+.c-sidebar.is-collapsed .c-sidebar-item .c-nav-parent-toggle{display:none;} /* accordion closes, children aren't accessible while collapsed */
+/* Child item — 36px (one-off literal, not a token — same precedent
+   as Tooltip's 6px/10px padding and Checkbox's 6px radius), full
+   width with spacing-16 left padding doing the indent instead of an
+   outer margin. */
+.c-nav-child{height:36px; width:100%; flex-shrink:0; padding:0 var(--spacing-12) 0 var(--spacing-16); border-radius:var(--radius-sm); display:flex; align-items:center; font-size:var(--text-body2-size); line-height:var(--text-body2-lh); font-weight:var(--text-body2-weight); background:transparent; border:0; cursor:pointer; font-family:inherit; text-align:left; color:var(--color-neutral-5); transition:background-color var(--duration-fast) var(--ease-standard);}
+.c-nav-child:hover{background:var(--color-neutral-2);}
+.c-nav-child:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:-2px;}
+.c-nav-child.active{background:var(--color-neutral-2); color:var(--color-neutral-9); font-weight:700;}
+
+/* SidebarNav — Mobile responsive behavior, per DESIGN-SYSTEM.md's own
+   "Mobile responsive behavior" row, replacing App Shell's earlier
+   off-canvas-drawer description at this breakpoint. Below 768px the
+   rail stops stretching to fill its container's height and becomes a
+   content-sized card instead — same instance, same interactions, only
+   its own footprint changes. Positioning it as a floating overlay on
+   top of page content is the consuming app's own placement decision
+   (see App Shell's own Responsive row), not something this component's
+   own CSS should assume. */
+@media (max-width:768px){
+  .c-sidebar{height:auto; max-height:calc(100dvh - 32px); width:min(240px, calc(100vw - 32px)); overflow-y:auto; box-shadow:var(--shadow-3);}
+  /* Collapsed goes further than desktop's fixed 72px icon rail — every
+     item and the footer hide entirely, not just their labels, so the
+     card shrinks in both dimensions down to just its own header/logo. */
+  .c-sidebar.is-collapsed{width:auto; height:auto; max-height:none;}
+  .c-sidebar.is-collapsed .c-sidebar-item,
+  .c-sidebar.is-collapsed .c-sidebar-footer{display:none;}
+}
+
+/* App Shell — designed not sourced. Structure/layout only —
+   placement, size, spacing. Never restates a component's own style;
+   main nav below is SidebarNav's .c-sidebar completely unmodified,
+   just inset from the shell's edges via margin instead of centered on
+   a page. One component, one spec, in two placement contexts. */
+/* Canvas warm is DESIGN-SYSTEM.md's documented default page background
+   "everywhere" (Color Palette's Warm canvas note), but until now that
+   was prose only — nothing actually set it, so a page only got it if
+   someone remembered to add it by hand. .c-shell is App Shell's own
+   full-viewport container, so this is where "every screen" becomes a
+   real, automatic default instead of a convention to remember. */
+.c-shell{display:flex; height:480px; background:var(--color-canvas-warm);}
+/* Wraps .c-sidebar-shell, not .c-sidebar directly, now that SidebarNav
+   has its own collapse toggle sitting outside .c-sidebar's clip (see
+   SidebarNav's own comment above) — the shell wrapper is what actually
+   sits in App Shell's flex row. flex:0 0 auto + display:flex here lets
+   the wrapper stretch to the row's full height (default align-items:
+   stretch) and pass that height down to .c-sidebar itself, which is
+   how calc(100dvh - 32px) from DESIGN-SYSTEM.md's Main nav table
+   happens without a literal calc() — no hardcoded width here either,
+   so collapsing to 72px inside App Shell works the same as it does in
+   SidebarNav's own standalone demo. */
+.c-shell .c-sidebar-shell{flex:0 0 auto; display:flex; margin:var(--spacing-16) 0 var(--spacing-16) var(--spacing-16);}
+.c-shell .c-sidebar{overflow-y:auto;}
+.c-shell-main{flex:1; display:flex; flex-direction:column; min-width:0;}
+.c-shell-content{flex:1; overflow-y:auto; padding:var(--page-gutter); padding-top:var(--section-gap);}
+.c-shell .c-pageheader{margin-bottom:var(--section-gap);}
+
+/* App Shell — Main nav's own mobile placement, per DESIGN-SYSTEM.md's
+   App Shell → Responsive row: below 768px the rail stops being an
+   in-flow flex child and floats on top of Content region instead,
+   which — no longer sharing a row with it — expands to fill .c-shell
+   on its own via its existing flex:1. Real production usage anchors
+   this `position: fixed` to the viewport (see that row); this demo
+   anchors it to `.c-shell` itself instead (`position: absolute`, see
+   the Reference-implementation caveat directly below that row) since
+   the gallery's own shell is a bounded 480px-tall mockup box, not the
+   real page. Sizing/collapse itself is unchanged — the same shared
+   .c-sidebar mobile rules above, just repositioned. */
+@media (max-width:768px){
+  .c-shell{position:relative;}
+  .c-shell .c-sidebar-shell{position:absolute; top:var(--spacing-16); left:var(--spacing-16); margin:0; z-index:5;}
+  .c-shell .c-sidebar{max-height:calc(100% - 32px);}
+  /* Content clearance — Main nav starts collapsed on mobile load (see
+     preview.html's own init script), so Content region's first content
+     (Page header's title) needs enough top padding to clear the
+     collapsed rail's own rendered footprint (16px inset + its ~74px
+     collapsed height), or the title renders directly underneath the
+     floating overlay. spacing-120 is the nearest existing token above
+     that ~90px geometric minimum — same "reuse the nearest token above
+     the minimum rather than grow the scale for one case" precedent as
+     Static card sizing's own spacing-60 elsewhere in this system.
+     Expanding the rail afterward is expected to cover more of this
+     region again — that's the accepted floating-overlay/no-scrim
+     tradeoff documented in SidebarNav's own Mobile responsive behavior,
+     not something this padding tries to prevent. */
+  .c-shell-content{padding-top:var(--spacing-120);}
+}
+
+/* Content region — box grid, added 2026-08-05. General-purpose grid for
+   arranging cards/panels/boxes inside Content region — distinct from
+   Stat/KPI card's own .c-stats auto-fit grid below, which predates this
+   rule and isn't migrated onto it (see DESIGN-SYSTEM.md's Content
+   region note on that gap). 4 columns; a box's width is always a whole
+   span of 1-4 of them, never an arbitrary fraction. Row-gap is a fixed
+   spacing-24 default; column-gap stays the existing spacing-16-20
+   "pick one value, hold it" range, defaulting to spacing-16 here.
+   "All boxes in a row follow the tallest box's height" comes free from
+   CSS Grid's own align-items:stretch default — no explicit height math
+   needed, which is also why this is a grid and not a wrapping flex
+   row (a flex row's stretch only applies within one flex line, and
+   wrapping flex lines don't reliably map to a fixed column count the
+   way grid rows do). */
+.c-shell-grid{display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); column-gap:var(--spacing-16); row-gap:var(--spacing-24);} /* minmax(0, 1fr), not plain 1fr — a bare 1fr's implicit min-width:auto lets one box's text content inflate its own column past its fair 1/4 share; minmax(0, ...) removes that floor so all 4 columns stay genuinely equal regardless of what's inside them */
+.c-shell-grid > .c-shell-span-1{grid-column:span 1;}
+.c-shell-grid > .c-shell-span-2{grid-column:span 2;}
+.c-shell-grid > .c-shell-span-3{grid-column:span 3;}
+.c-shell-grid > .c-shell-span-4{grid-column:span 4;}
+
+/* Tabs — per DESIGN-SYSTEM.md's Tabs section. Icon is Tier 1, Regular
+   (Tabs are navigation controls, not expressive status indicators — the
+   same resolution Segmented Control's own icon already documents), so
+   markup uses the Regular `ph` glyph set, never `ph-fill`, here.
+   .c-tabs-scroll-wrap supplies the overflow edge-fades; .c-tabs itself
+   is the actual scrolling element, scrollbar hidden per spec. */
+.c-tabs-scroll-wrap{position:relative;}
+.c-tabs-scroll-wrap::before, .c-tabs-scroll-wrap::after{content:""; position:absolute; top:0; bottom:1px; width:32px; pointer-events:none; opacity:0; transition:opacity var(--duration-fast) var(--ease-standard); z-index:1;}
+.c-tabs-scroll-wrap::before{left:0; background:linear-gradient(to right, var(--color-neutral-1), transparent);}
+.c-tabs-scroll-wrap::after{right:0; background:linear-gradient(to left, var(--color-neutral-1), transparent);}
+.c-tabs-scroll-wrap.show-left::before{opacity:1;}
+.c-tabs-scroll-wrap.show-right::after{opacity:1;}
+.c-tabs{display:flex; gap:var(--spacing-4); border-bottom:1px solid var(--color-neutral-3); overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;}
+.c-tabs::-webkit-scrollbar{display:none;}
+.c-tab{display:inline-flex; align-items:center; height:40px; padding:0 var(--spacing-12); border:0; background:transparent; border-radius:var(--radius-sm) var(--radius-sm) 0 0; cursor:pointer; font-family:inherit; font-size:var(--text-body1-size); font-weight:700; color:var(--color-neutral-5); box-shadow:none; white-space:nowrap; flex:none; transition:color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);}
+.c-tab i{margin-right:var(--spacing-8); font-size:var(--icon-sm);}
+.c-tab.active{color:var(--color-neutral-9); box-shadow:inset 0 -2px 0 var(--color-obsidian);}
+.c-tab .count{margin-left:var(--spacing-4); font-size:var(--text-caption-size); color:var(--color-neutral-5); font-weight:700;}
+.c-tab.active .count{color:var(--color-neutral-9);}
+.c-tab:not(.active):not(.is-disabled):hover{background:var(--color-neutral-2); color:var(--color-neutral-7);}
+.c-tab:not(.is-disabled):active{background:var(--color-neutral-3);}
+.c-tab:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-tab.is-disabled{color:var(--color-neutral-4); opacity:.4; cursor:not-allowed; pointer-events:none;}
+
+/* Dropdown — Single select trigger. The box itself is Input Field's own
+   container — .c-field/.input-wrap/.icon-trailing/.c-field-error/
+   :disabled below are all reused verbatim, unmodified, the same way
+   Multiple select's own trigger reuses them; nothing here duplicates
+   that recipe. .c-dropdown-field only adds a Style axis Input Field
+   doesn't have (scoped to this class so bare .c-field — Input field,
+   Textarea, Password field, Search input — is untouched), plus the
+   dropdown-specific chevron/panel/open/has-value mechanics. Supersedes
+   an earlier draft that gave Single select its own Button-Secondary-
+   styled, radius-md trigger instead of reusing Input Field — that
+   recipe is gone; both Dropdown variants are Input-Field-based now. */
+.c-dropdown-field .input-wrap{cursor:pointer;}
+.c-dropdown-input{cursor:pointer; caret-color:transparent;}
+.c-dropdown-input::placeholder{color:var(--color-neutral-5);}
+.c-dropdown-chevron{transition:transform var(--duration-fast) var(--ease-standard);}
+
+/* Style — Outlined is Input Field's own default recipe above (no
+   modifier class). Border stays 1px at rest, colour only, in every
+   Style — the same compensation-free trick Multiple select's own
+   Style axis uses, so Open's 1px→2px Obsidian swap below needs no
+   per-style exception. Hover is a real :hover so a wired-up trigger
+   genuinely responds to the mouse; the .hover class exists only so a
+   static gallery card can depict the same look without real mouse
+   state. */
+.c-dropdown-field:hover input, .c-dropdown-field.hover input{background:var(--color-neutral-2);}
+
+/* Style — Borderless: transparent fill, no border — for inline
+   placements (toolbars, table headers) that shouldn't read as a boxed
+   field. */
+.c-dropdown-field.style-borderless input{background:transparent; border-color:transparent;}
+.c-dropdown-field.style-borderless:hover input, .c-dropdown-field.style-borderless.hover input{background:var(--color-neutral-2);}
+
+/* Explicit :focus/:disabled/.c-field-error overrides for Borderless —
+   without these, a real focus/disabled/error event and the plain
+   .style-borderless rule above have equal specificity, and source
+   order alone would decide which wins; this makes the win deliberate
+   rather than incidental. Error reusing .c-field-error is the same
+   recipe Input Field's own Error state uses — not a bespoke
+   error-text element. */
+.c-dropdown-field.style-borderless input:focus{border-color:var(--color-obsidian);}
+.c-dropdown-field.style-borderless input:disabled{background:var(--color-neutral-2); border-color:transparent;}
+.c-dropdown-field.style-borderless.c-field-error input{border-color:var(--color-red);}
+
+/* States — layer on top of whichever Style is active above. Focus and
+   Disabled/Error come free from Input Field's own :focus/:disabled/
+   .c-field-error (inherited, not redeclared); .open/.has-value/
+   .read-only below are what Input Field doesn't have. */
+.c-dropdown-field.open input{border:2px solid var(--color-obsidian); padding:0 11px;}
+.c-dropdown-field.open .c-dropdown-chevron{transform:rotate(180deg);}
+.c-dropdown-field.has-value input{border-color:var(--color-obsidian);}
+.c-dropdown-field.read-only .input-wrap{pointer-events:none;}
+.c-dropdown-field.read-only .icon-trailing{display:none;}
+/* Borderless stays borderless through every State — Open and Filled's
+   border-color swap above is deliberately suppressed here so this
+   Style never shows a solid border, the one thing "Borderless" is
+   supposed to guarantee. Only overrides border-color (not the whole
+   border shorthand), so the width/padding compensation math above
+   still runs identically in every Style — there's just nothing visible
+   riding on it in this one. */
+.c-dropdown-field.style-borderless.open input, .c-dropdown-field.style-borderless.has-value input{border-color:transparent;}
+
+/* Panel — width:100% of the same .c-dropdown parent the trigger fills,
+   so the panel always matches the trigger's rendered width exactly in
+   every Style variant; min-width is a floor for narrow fields only,
+   never a reason for the panel to run narrower than the trigger. */
+.c-dropdown-panel{position:static; margin-top:var(--spacing-8); width:100%; background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); box-shadow:var(--shadow-3); overflow:hidden;}
+.c-dropdown-list{max-height:320px; overflow-y:auto; padding:var(--spacing-8) 0;}
+
+/* Dropdown Option — the row sub-component inside Single select's panel */
+.c-dropdown-row{display:flex; align-items:center; justify-content:space-between; gap:var(--spacing-8); padding:var(--spacing-8) var(--spacing-12); cursor:pointer;}
+.c-dropdown-row:hover, .c-dropdown-row.hover{background:var(--color-neutral-2);}
+.c-dropdown-row.selected{background:var(--color-neutral-2);}
+.c-dropdown-row.disabled{color:var(--color-neutral-4); cursor:not-allowed; pointer-events:none;}
+.c-dropdown-row-label{font-family:var(--font-primary); font-size:var(--text-body2-size); font-weight:var(--text-body2-weight); color:var(--color-neutral-9);}
+.c-dropdown-row.disabled .c-dropdown-row-label{color:var(--color-neutral-4);}
+.c-dropdown-row-check{flex:none; font-size:var(--icon-sm); color:var(--color-obsidian); visibility:hidden;}
+.c-dropdown-row.selected .c-dropdown-row-check{visibility:visible;}
+
+/* Checkbox / Radio / Switch */
+.c-choice{display:flex; align-items:flex-start; gap:var(--spacing-8); cursor:pointer;}
+.c-choice.disabled{opacity:.5; cursor:not-allowed;}
+.c-choice input{position:absolute; opacity:0; width:0; height:0;}
+.c-choice .text{display:flex; flex-direction:column;}
+.c-choice .text .label{font-size:var(--text-body1-size); font-weight:500; color:var(--color-neutral-9);}
+.c-choice .text .desc{font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+.c-checkbox-box{width:18px; height:18px; flex:none; margin-top:2px; border-radius:6px; border:1px solid var(--color-neutral-3); background:var(--color-neutral-1); color:var(--color-neutral-1); display:flex; align-items:center; justify-content:center; font-size:12px; transition:background-color var(--duration-fast) var(--ease-standard),border-color var(--duration-fast) var(--ease-standard);}
+.c-checkbox-box.on{border-color:var(--color-obsidian); background:var(--color-obsidian);}
+.c-radio-circle{width:18px; height:18px; flex:none; margin-top:2px; border-radius:var(--radius-pill); border:1px solid var(--color-neutral-3); background:var(--color-neutral-1); display:flex; align-items:center; justify-content:center; transition:border-color var(--duration-fast) var(--ease-standard);}
+.c-radio-circle.on{border-color:var(--color-obsidian);}
+.c-radio-circle .dot{width:9px; height:9px; border-radius:var(--radius-pill); background:var(--color-obsidian);}
+.c-choice.switch{align-items:center; gap:var(--spacing-12);}
+.c-switch-track{position:relative; width:40px; height:24px; flex:none; border-radius:var(--radius-pill); background:var(--color-neutral-4); transition:background-color var(--duration-base) var(--ease-standard);}
+.c-switch-track.on{background:var(--color-obsidian);}
+.c-switch-thumb{position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:var(--radius-pill); background:var(--color-neutral-1); box-shadow:var(--shadow-1); transition:left var(--duration-base) var(--ease-settle);}
+.c-switch-track.on .c-switch-thumb{left:19px;}
+
+/* Toast */
+.c-toast{display:flex; align-items:flex-start; gap:var(--spacing-12); min-width:320px; max-width:420px; padding:var(--spacing-12) var(--spacing-16); background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); box-shadow:var(--shadow-3);}
+.c-toast i.tone{margin-top:2px; font-size:var(--icon-base);}
+.c-toast .tone-neutral{color:var(--color-neutral-9);}
+.c-toast .tone-success{color:var(--color-green);}
+.c-toast .tone-danger{color:var(--color-red);}
+.c-toast .tone-warning{color:var(--color-amber);}
+.c-toast .body{flex:1; min-width:0;}
+.c-toast .title{font-size:var(--text-body1-size); font-weight:700;}
+.c-toast .message{font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+/* Message-only layout variant — message becomes the primary content, so it
+   renders at body1 weight 500 rather than the secondary-caption treatment
+   it gets under a title. Per Toast, Layout variants. */
+.c-toast.is-message-only .message{font-size:var(--text-body1-size); line-height:var(--text-body1-lh); font-weight:var(--text-body1-weight); color:var(--color-neutral-9);}
+.c-toast .action{margin-top:var(--spacing-8);}
+
+/* Entrance/exit animation — duration-base + ease-standard (the non-elemental
+   default; Toast isn't owned by a specific brand element). Per Toast,
+   Animation. */
+.c-toast{transition:transform var(--duration-base) var(--ease-standard), opacity var(--duration-base) var(--ease-standard);}
+.c-toast.is-entering{opacity:0; transform:translateY(16px);}
+.c-toast.is-exiting{opacity:0; transform:translateY(8px);}
+@media (prefers-reduced-motion:reduce){
+  .c-toast{transition:none;}
+}
+
+/* Toast host — fixed bottom-right, spacing-24 offset, stacked newest-on-top
+   with a spacing-8 gap; collapses to a full-width bottom band with
+   spacing-12 margins under 640px. Per Toast, Positioning / Stacking
+   behaviour. z-index sits above page content — this system has no numeric
+   z-index scale, so "below modal overlays" is a structural note for
+   whoever wires a Modal in front of it, not a value here. */
+.c-toast-host{position:fixed; right:var(--spacing-24); bottom:var(--spacing-24); z-index:1000; display:flex; flex-direction:column-reverse; gap:var(--spacing-8); width:380px; max-width:calc(100vw - var(--spacing-24) * 2); pointer-events:none;}
+.c-toast-host .c-toast{pointer-events:auto; position:relative;}
+@media (max-width:640px){
+  .c-toast-host{left:var(--spacing-12); right:var(--spacing-12); bottom:var(--spacing-12); width:auto; max-width:none;}
+}
+
+/* Info Banner — inline, persistent, container-anchored (vs. Toast's
+   floating/viewport-level). No Title part — Message is the only text
+   content. Actions are always the last element, styled identically to
+   Message (underlined), no Ghost-button/Link split. */
+.c-banner{display:flex; align-items:center; gap:var(--spacing-12); width:100%; box-sizing:border-box; padding:var(--spacing-12) var(--spacing-16); border-radius:var(--radius-md); border:1px solid transparent; box-shadow:none;}
+.c-banner .icon{font-size:var(--icon-base); flex:none;}
+.c-banner .body{flex:1; min-width:0;}
+.c-banner .message{font-size:var(--text-body2-size); font-weight:var(--text-body2-weight); line-height:var(--text-body2-lh);}
+.c-banner .actions{display:flex; gap:var(--spacing-12); margin-top:var(--spacing-8);}
+.c-banner .actions .action{background:none; border:none; padding:0; font-family:inherit; font-size:var(--text-body2-size); font-weight:var(--text-body2-weight); text-decoration:underline; cursor:pointer;}
+.c-banner .close{margin-left:auto;}
+
+.c-banner-neutral{background:var(--color-neutral-2); border-color:var(--color-neutral-3);}
+.c-banner-neutral .icon{color:var(--color-neutral-9);}
+.c-banner-neutral .message,.c-banner-neutral .actions .action{color:rgba(8,8,8,.8);}
+
+.c-banner-info{background:rgba(20,115,230,.10); border-color:rgba(20,115,230,.28);}
+.c-banner-info .icon{color:var(--color-navy);}
+.c-banner-info .message,.c-banner-info .actions .action{color:rgba(20,115,230,.8);}
+
+.c-banner-success{background:rgba(0,194,110,.12); border-color:rgba(0,194,110,.32);}
+.c-banner-success .icon{color:var(--color-green);}
+.c-banner-success .message,.c-banner-success .actions .action{color:rgba(0,133,76,.8);}
+
+.c-banner-danger{background:rgba(253,51,67,.10); border-color:rgba(253,51,67,.30);}
+.c-banner-danger .icon{color:var(--color-red);}
+.c-banner-danger .message,.c-banner-danger .actions .action{color:rgba(253,51,67,.8);}
+
+.c-banner-warning{background:rgba(255,164,37,.14); border-color:rgba(255,164,37,.38);}
+.c-banner-warning .icon{color:var(--color-amber);}
+.c-banner-warning .message,.c-banner-warning .actions .action{color:rgba(154,92,0,.8);}
+
+/* AI Recommendation — reuses Prompt input bar's own glow gradient and
+   c-prompt-bar-glow-move keyframe verbatim (defined further down this
+   file), not a second copy of the animation. Fill and border are two
+   pseudo-element layers instead of a flat background/border-color pair,
+   since both need to animate independently of the tone's fixed text. */
+.c-banner-ai{position:relative; background:none; border-color:transparent; overflow:hidden;}
+.c-banner-ai .icon{position:relative; z-index:1; color:var(--color-neutral-9);}
+.c-banner-ai .body{position:relative; z-index:1;}
+.c-banner-ai .close{position:relative; z-index:1;}
+.c-banner-ai .message,.c-banner-ai .actions .action{color:rgba(8,8,8,.8);}
+.c-banner-ai::before,
+.c-banner-ai::after{
+  content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
+  border-radius:inherit;
+  background-image:linear-gradient(90deg,var(--color-fire-pastel) 0%,var(--color-wood-pastel) 20%,var(--color-earth-pastel) 40%,var(--color-water-pastel) 60%,var(--color-gold-pastel) 80%,var(--color-fire-pastel) 100%);
+  background-size:200% 100%;
+  animation:c-prompt-bar-glow-move 4s linear infinite;
+}
+.c-banner-ai::before{opacity:.12;}
+.c-banner-ai::after{
+  z-index:2; padding:1px;
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+}
+@media (prefers-reduced-motion:reduce){
+  .c-banner-ai::before, .c-banner-ai::after{animation:none;}
+}
+
+/* Tooltip — top placement (default). Visibility: opacity 0 → 1 on
+   hover or keyboard focus, pointer-events:none at all times, instant
+   on both show and hide (no artificial delay) per DESIGN-SYSTEM.md's
+   own Show/hide delay rule — the fade below is the Transition row's
+   own duration-fast/ease-standard, not a wait before it starts.
+   Rendering: the JS below moves the bubble to a document-<body>-level
+   portal on show (position:fixed, computed from the trigger's own
+   getBoundingClientRect) and back into .c-tooltip-wrap on hide — per
+   DESIGN-SYSTEM.md's own Z-index and stacking rule, escaping any
+   ancestor's overflow/scroll clipping (this page's own .pane-left is
+   exactly such an ancestor). Visibility toggles via .is-visible rather
+   than a :hover selector, since the portaled bubble is no longer a
+   descendant of .c-tooltip-wrap while shown. */
+.c-tooltip-wrap{position:relative; display:inline-flex;}
+.c-tooltip-bubble{position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%); z-index:2; padding:6px 10px; border-radius:var(--radius-sm); background:var(--color-neutral-7); color:var(--color-neutral-1); font-size:var(--text-caption-size); font-weight:500; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity var(--duration-fast) var(--ease-standard);}
+.c-tooltip-bubble.is-visible{opacity:1;}
+.c-tooltip-bubble.is-portaled{position:fixed; bottom:auto; transform:none;}
+
+/* ElementBadge */
+.c-elbadge{display:inline-flex; align-items:center; gap:var(--spacing-12);}
+.c-elbadge-chip{display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:var(--radius-sm); flex:none; font-size:17px;}
+.c-elbadge-fire{background:color-mix(in srgb, var(--color-orange) 12%, transparent); color:var(--color-orange);}
+.c-elbadge-earth{background:color-mix(in srgb, var(--color-green) 12%, transparent); color:var(--color-green);}
+.c-elbadge-water{background:color-mix(in srgb, var(--color-navy) 12%, transparent); color:var(--color-navy);}
+.c-elbadge-gold{background:color-mix(in srgb, var(--color-amber) 12%, transparent); color:var(--color-amber);}
+.c-elbadge-wood{background:color-mix(in srgb, var(--color-salmon-pink) 12%, transparent); color:var(--color-salmon-pink);}
+.c-elbadge .text .name{display:block; font-size:var(--text-caption-size); font-weight:700; letter-spacing:var(--tracking-eyebrow); text-transform:uppercase; color:var(--color-neutral-9);}
+.c-elbadge .text .fn{display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+
+/* Stat / KPI card — designed not transcribed */
+.c-stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:var(--spacing-16);}
+.c-stat{background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg); box-shadow:var(--shadow-1); padding:var(--spacing-16); display:flex; flex-direction:column; gap:var(--spacing-8);}
+.c-stat-top{display:flex; align-items:flex-start; justify-content:space-between; gap:var(--spacing-12);}
+.c-stat-label{font-size:var(--text-caption-size); font-weight:700; letter-spacing:var(--tracking-eyebrow); text-transform:uppercase; color:var(--color-neutral-5);}
+.c-stat-value{font-size:var(--text-h1-size); font-weight:var(--text-h1-weight); color:var(--color-neutral-9);}
+.c-stat-value.hero{font-size:var(--text-display-size);}
+.c-stat-trend{display:inline-flex; align-items:center; gap:4px; font-size:var(--text-caption-size); font-weight:700;}
+.c-stat-trend.up{color:var(--color-green);}
+.c-stat-trend.down{color:var(--color-red);}
+.c-stat-trend.flat{color:var(--color-neutral-5);}
+.c-stat-trend .period{color:var(--color-neutral-5); font-weight:400;}
+.c-stat-footer{margin-top:var(--spacing-8); padding-top:var(--spacing-12); border-top:1px solid var(--color-neutral-3); font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+
+/* Filters — designed not transcribed. Two variants (see DESIGN-SYSTEM.md,
+   "Choosing a variant"): Default (named triggers, optionally Tiered
+   exposure past ~8 dimensions) and Compact filter (single icon-bearing
+   trigger). Reuses Checkbox's own glyph for dropdown option rows,
+   Button's Primary/Ghost for the footer, and Chip's own Input Chip /
+   overflow / show-less classes verbatim for applied filters — not
+   parallel recipes. */
+.c-filterbar{position:relative; display:flex; align-items:center; flex-wrap:wrap; gap:var(--spacing-8);}
+
+/* Search input — Search input's own Default variant verbatim, at the
+   Filter Bar's own 32px height. Border/radius/fill live on the <input>
+   itself, so :focus is a genuine swap, not a JS-toggled class. */
+.c-filter-search{position:relative; display:inline-flex; align-items:center; flex:0 0 auto;}
+.c-filter-search input{width:240px; height:32px; border-radius:var(--radius-sm); border:1px solid var(--color-neutral-3); background:var(--color-neutral-1); padding:0 30px; font-family:inherit; font-size:var(--text-body2-size); color:var(--color-neutral-9); outline:none; transition:border-color var(--duration-fast) var(--ease-standard);}
+.c-filter-search input::placeholder{color:var(--color-neutral-5);}
+.c-filter-search input:focus{border:2px solid var(--color-obsidian); padding:0 29px;}
+.c-filter-search .icon-leading{position:absolute; left:var(--spacing-8); font-size:var(--icon-sm); color:var(--color-neutral-5); pointer-events:none;}
+.c-filter-search-clear{position:absolute; right:4px; width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; border:0; background:transparent; border-radius:var(--radius-sm); color:var(--color-neutral-5); cursor:pointer; font-size:var(--icon-sm);}
+.c-filter-search-clear:hover{color:var(--color-neutral-9);}
+.c-filter-search-clear[hidden]{display:none;}
+.c-filter-search-clear:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+/* Divider after the search input, desktop only — only rendered when
+   both a search input and at least one trigger are present. */
+.c-filter-search-divider{width:1px; height:32px; background:var(--color-neutral-3); flex:0 0 auto;}
+@media (max-width:640px){
+  .c-filter-search{flex:1 1 100%; width:100%;}
+  .c-filter-search input{width:100%;}
+  .c-filter-search-divider{display:none;}
+}
+
+/* Filter trigger — Button Secondary recipe. Active state: border swaps
+   to Obsidian, trailing count badge sits inside the trigger's own
+   padding (not an external overlay). */
+.c-filter-trigger{position:relative; flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 var(--spacing-12); border-radius:var(--radius-sm); border:1px solid var(--color-neutral-3); background:var(--color-neutral-1); color:var(--color-neutral-9); font-family:inherit; font-size:var(--text-body2-size); font-weight:600; cursor:pointer; white-space:nowrap; transition:background-color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);}
+.c-filter-trigger:hover{background:var(--color-neutral-2);}
+.c-filter-trigger.is-open{background:var(--color-neutral-2);}
+.c-filter-trigger.active{border-color:var(--color-obsidian);}
+.c-filter-trigger:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-filter-trigger:disabled{opacity:.4; cursor:not-allowed; background:var(--color-neutral-1); border-color:var(--color-neutral-3);}
+.c-filter-trigger i.leading{font-size:var(--icon-sm);}
+.c-filter-trigger .chev{font-size:12px; color:var(--color-neutral-5);}
+.c-filter-trigger .count{display:inline-flex; align-items:center; justify-content:center; min-width:16px; height:16px; padding:0 4px; border-radius:var(--radius-pill); background:var(--color-obsidian); color:var(--color-neutral-1); font-size:var(--text-caption-size); font-weight:700; line-height:1;}
+.c-filter-trigger .count[hidden]{display:none;}
+
+/* Dropdown panel — radius-md popover, Neutral-3 border, shadow-3.
+   .is-right flips left/right alignment on edge collision (see
+   DESIGN-SYSTEM.md, "Dropdown panel — edge collision"). */
+.c-filter-panel{position:absolute; top:calc(100% + 8px); left:0; min-width:240px; max-width:calc(100vw - 24px); background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); box-shadow:var(--shadow-3); padding:var(--spacing-16); z-index:20; opacity:0; transform:translateY(-4px); pointer-events:none; transition:opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);}
+.c-filter-panel.is-right{left:auto; right:0;}
+.c-filter-panel.is-open{opacity:1; transform:translateY(0); pointer-events:auto;}
+.c-filter-panel-title{font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--color-neutral-5); margin:0 0 var(--spacing-12);}
+
+/* Dropdown Option (checkbox row) — reuses Dropdown's own Multiple
+   select row: Checkbox's real .c-checkbox-box glyph, Neutral-2 hover. */
+.c-filter-option{display:flex; align-items:center; gap:var(--spacing-8); padding:8px var(--spacing-8); margin:0 calc(var(--spacing-8) * -1); border-radius:var(--radius-sm); cursor:pointer; user-select:none; transition:background-color var(--duration-fast) var(--ease-standard);}
+.c-filter-option:hover{background:var(--color-neutral-2);}
+.c-filter-option .label{font-size:var(--text-body2-size); color:var(--color-neutral-9);}
+
+.c-filter-nested-list{display:flex; flex-direction:column; gap:2px;}
+.c-filter-nested-item{display:flex; align-items:center; justify-content:space-between; gap:var(--spacing-8); padding:8px var(--spacing-8); margin:0 calc(var(--spacing-8) * -1); border-radius:var(--radius-sm); cursor:pointer; font-size:var(--text-body2-size); font-weight:700; color:var(--color-neutral-9);}
+.c-filter-nested-item:hover{background:var(--color-neutral-2);}
+.c-filter-back{display:flex; align-items:center; gap:6px; width:100%; background:none; border:none; padding:0 0 var(--spacing-12); margin-bottom:var(--spacing-12); border-bottom:1px solid var(--color-neutral-3); font-family:inherit; font-weight:700; font-size:var(--text-body2-size); color:var(--color-neutral-9); cursor:pointer; text-align:left;}
+.c-filter-back:hover{color:var(--color-neutral-5);}
+.c-filter-back i{font-size:var(--icon-sm);}
+
+/* Dropdown panel footer — Ghost "Clear" + Primary "Done", reusing
+   Button's own .c-btn-ghost/.c-btn-primary verbatim rather than a
+   bespoke footer button recipe. */
+.c-filter-footer{display:flex; justify-content:space-between; gap:var(--spacing-8); margin-top:var(--spacing-12); padding-top:var(--spacing-12); border-top:1px solid var(--color-neutral-3);}
+
+/* Row 2 — Applied Filters tray: bordered container separating chips
+   from the trigger bar above. */
+.c-filter-tray{display:flex; flex-wrap:wrap; align-items:center; gap:var(--spacing-4); margin-top:var(--spacing-8); padding:var(--spacing-12); background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm);}
+.c-filter-tray[hidden]{display:none;}
+
+/* Clear All (Row 1) — Ghost, Red text, reuses .c-btn-ghost verbatim
+   plus a color override. Clear all (Row 2 / nested list) reuses Chip's
+   own .c-chip-showless class directly — same Link recipe. */
+.c-filter-clear-bar{color:var(--color-red);}
+.c-filter-clear-bar[hidden]{display:none;}
+
+/* Pagination — designed not transcribed. Two variants, chosen by
+   totalPages, never a manual flag: Default below, rendered while
+   totalPages < 10; Overflow below, taking over once totalPages >= 10
+   (pattern reference: Uber Base's own Pagination component, adapted
+   to this system's tokens and reused sub-components). See
+   DESIGN-SYSTEM.md's Pagination section for the full spec. */
+.c-pagination{display:flex; align-items:center; justify-content:space-between; padding-top:var(--spacing-16); border-top:1px solid var(--color-neutral-3); gap:var(--spacing-16); flex-wrap:wrap;}
+.c-pagination .count{font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+.c-page-controls{display:flex; align-items:center; gap:4px;}
+.c-page-btn{width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:0; border-radius:var(--radius-sm); background:transparent; color:var(--color-neutral-5); font-family:inherit; font-size:var(--text-caption-size); font-weight:700; cursor:pointer; transition:background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);}
+.c-page-btn:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}
+.c-page-btn:active{background:var(--color-neutral-3); color:var(--color-neutral-9);}
+.c-page-btn:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-page-btn.current{background:var(--color-obsidian); color:var(--color-neutral-1); cursor:default;}
+.c-page-btn.current:hover,.c-page-btn.current:active{background:var(--color-obsidian);}
+.c-page-btn:disabled{color:var(--color-neutral-4); cursor:not-allowed; background:transparent;}
+.c-page-ellipsis{width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--color-neutral-5); font-size:var(--text-caption-size);}
+
+/* Prev/Next (Default) — Ghost icon-buttons reusing Button Ghost's own
+   Default/Hover/Active/Focus-visible/Disabled tokens verbatim, kept as
+   a distinct class from .c-page-btn above since the resting icon color
+   (Neutral-9) differs from the numbered buttons' own Neutral-5. */
+.c-page-nav{width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:0; border-radius:var(--radius-sm); background:transparent; color:var(--color-neutral-9); font-size:var(--icon-sm); cursor:pointer; transition:background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);}
+.c-page-nav:hover{background:var(--color-neutral-2);}
+.c-page-nav:active{background:var(--color-neutral-3);}
+.c-page-nav:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-page-nav:disabled{color:var(--color-neutral-4); cursor:not-allowed; background:transparent;}
+
+/* Mobile indicator (Default) — hidden at rest, swapped in for the
+   numbered cluster + result count under 767px; see the @media block
+   below. Sits between the Prev/Next buttons in source order so the
+   flex row reads Prev / indicator / Next once the numbered slots are
+   hidden, with no reordering needed. */
+.c-pagination-indicator{display:none; font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-9); padding:0 var(--spacing-4);}
+
+@media (max-width:767px){
+  .c-pagination{justify-content:center;}
+  .c-pagination .count{display:none;}
+  .c-page-controls .c-page-btn,.c-page-controls .c-page-ellipsis{display:none;}
+  .c-pagination-indicator{display:inline-flex;}
+}
+
+/* Overflow pagination (totalPages >= 10) — Prev/Next become text-style
+   Ghost links (Button Ghost's own tokens, unmodified, just rendered as
+   label+icon instead of icon-only) and the numbered cluster is
+   replaced by Dropdown's Single select, Outlined style, reused
+   verbatim for both Rows-per-page and the current-page value. Value
+   text is set to caption (12px/16px) here, overriding Dropdown's own
+   documented body2 (14px) convention, so the numerals match "of
+   [total]" and Default's own page numbers instead of reading one size
+   up from their neighbors. */
+.c-pagination-overflow{display:flex; align-items:center; justify-content:space-between; padding-top:var(--spacing-16); border-top:1px solid var(--color-neutral-3); gap:var(--spacing-16); flex-wrap:wrap;}
+.c-pagination-overflow-rows{display:flex; align-items:center; gap:var(--spacing-8);}
+.c-pagination-overflow-rows label{font-size:var(--text-caption-size); color:var(--color-neutral-5); white-space:nowrap;}
+.c-pagination-overflow-controls{display:flex; align-items:center; gap:var(--spacing-4);}
+.c-pagination-overflow-select-wrap{position:relative; display:inline-flex; align-items:center;}
+.c-pagination-overflow-select{height:40px; border:1px solid var(--color-neutral-3); background:var(--color-neutral-1); border-radius:var(--radius-sm); padding:0 28px 0 var(--spacing-12); font-family:inherit; font-size:var(--text-caption-size); color:var(--color-neutral-9); appearance:none; -webkit-appearance:none; cursor:pointer;}
+.c-pagination-overflow-select:hover{background:var(--color-neutral-2);}
+.c-pagination-overflow-select:focus{outline:none; border:2px solid var(--color-obsidian); padding:0 27px 0 11px;}
+.c-pagination-overflow-select:disabled{color:var(--color-neutral-5); background:var(--color-neutral-2); cursor:not-allowed;}
+.c-pagination-overflow-select-wrap i{position:absolute; right:var(--spacing-8); pointer-events:none; color:var(--color-neutral-5); font-size:var(--icon-sm);}
+.c-pagination-overflow-nav{display:inline-flex; align-items:center; gap:var(--spacing-4); padding:6px var(--spacing-8); border-radius:var(--radius-sm); border:none; background:transparent; font-family:inherit; font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-9); cursor:pointer; transition:background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);}
+.c-pagination-overflow-nav:hover{background:var(--color-neutral-2);}
+.c-pagination-overflow-nav:active{background:var(--color-neutral-3);}
+.c-pagination-overflow-nav:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-pagination-overflow-nav:disabled{color:var(--color-neutral-4); cursor:not-allowed; background:transparent;}
+.c-pagination-overflow-total{font-size:var(--text-caption-size); color:var(--color-neutral-5); padding:0 var(--spacing-4);}
+
+@media (max-width:767px){
+  .c-pagination-overflow{justify-content:center;}
+  .c-pagination-overflow-rows{display:none;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .c-page-btn,.c-page-nav,.c-pagination-overflow-nav{transition:none;}
+}
+
+/* Date picker — designed not transcribed */
+.c-dp-trigger{display:inline-flex; align-items:center; gap:var(--spacing-8); height:40px; padding:0 var(--spacing-12); border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); background:var(--color-neutral-1); color:var(--color-neutral-9); font-family:inherit; font-size:var(--text-body1-size); font-weight:500;}
+.c-dp-trigger i{color:var(--color-neutral-5);}
+.c-dp-panel{width:280px; border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); box-shadow:var(--shadow-3); background:var(--color-neutral-1); padding:var(--spacing-16);}
+.c-dp-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--spacing-12);}
+.c-dp-header h5{margin:0; font-size:var(--text-h5-size); font-weight:var(--text-h5-weight);}
+.c-dp-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:2px;}
+.c-dp-weekday{text-align:center; font-size:var(--text-caption-size); font-weight:700; text-transform:uppercase; color:var(--color-neutral-5); padding-bottom:var(--spacing-4);}
+.c-dp-day{width:100%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); border:0; background:transparent; color:var(--color-neutral-9); font-family:inherit; font-size:var(--text-body2-size); cursor:pointer;}
+.c-dp-day:hover{background:var(--color-neutral-2);}
+.c-dp-day.today{border:1px solid var(--color-obsidian); background:transparent;}
+.c-dp-day.selected{background:var(--color-obsidian); color:var(--color-neutral-1);}
+.c-dp-day.range{background:var(--color-neutral-2); border-radius:0;}
+.c-dp-day.range-start{background:var(--color-obsidian); color:var(--color-neutral-1); border-radius:var(--radius-sm) 0 0 var(--radius-sm);}
+.c-dp-day.range-end{background:var(--color-obsidian); color:var(--color-neutral-1); border-radius:0 var(--radius-sm) var(--radius-sm) 0;}
+.c-dp-day.disabled{color:var(--color-neutral-4); cursor:not-allowed;}
+.c-dp-day.disabled:hover{background:transparent;}
+
+/* Chart color mapping — guideline reference, not a rendered component */
+.c-chartmap-row{display:flex; align-items:center; gap:var(--spacing-8); flex-wrap:wrap; margin-bottom:var(--spacing-16);}
+.c-chartmap-row:last-child{margin-bottom:0;}
+.c-chartmap-label{width:180px; flex:none; font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-5);}
+.c-chartmap-swatch{width:28px; height:20px; border-radius:4px; flex:none;}
+.c-chartmap-ramp{flex:1; min-width:160px; height:20px; border-radius:4px;}
+
+/* FileUploader — designed not transcribed
+   Drag-over reuses the Obsidian-border + Neutral-2-fill recipe this
+   system already uses for "currently engaged" states (Table
+   selected, SidebarNav active) — there's no Obsidian tint token to
+   invent a new background from. Kind badge reuses Badge-Neutral's box
+   model (22px, radius-pill, Neutral-2/Neutral-3), --font-primary same
+   as every other piece of text in the component. File rows reuse the
+   Filters/Date picker "panel" recipe (Neutral-1 fill, 1px Neutral-3
+   border), not Neutral-2, so the remove button's hover stays visually
+   distinct against the row. */
+.c-uploader{display:flex; flex-direction:column; gap:var(--spacing-12); max-width:360px;}
+.c-uploader-zone{cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:var(--spacing-8); padding:var(--spacing-24); text-align:center; border-radius:var(--radius-lg); border:1px dashed var(--color-neutral-3); background:var(--color-neutral-1);}
+.c-uploader-zone.dragover{border:2px dashed var(--color-obsidian); background:var(--color-neutral-2);}
+.c-uploader-zone i{font-size:20px; color:var(--color-neutral-5);}
+.c-uploader-label{font-family:var(--font-primary); font-size:var(--text-body2-size); line-height:var(--text-body2-lh); font-weight:var(--text-label1-weight); color:var(--color-neutral-5);}
+.c-uploader-hint{font-family:var(--font-primary); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); font-weight:var(--text-caption-weight); color:var(--color-neutral-5);}
+.c-uploader-files{display:flex; flex-direction:column; gap:var(--spacing-8);}
+.c-uploader-row{display:flex; align-items:center; gap:var(--spacing-12); padding:var(--spacing-8) var(--spacing-12); border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); background:var(--color-neutral-1);}
+.c-uploader-kind{flex:none; height:22px; display:inline-flex; align-items:center; padding:0 var(--spacing-8); border-radius:var(--radius-pill); background:var(--color-neutral-2); border:1px solid var(--color-neutral-3); color:var(--color-neutral-5); font-family:var(--font-primary); font-size:var(--text-caption-size); font-weight:700; white-space:nowrap;}
+.c-uploader-name{flex:1; min-width:0; font-family:var(--font-primary); font-size:var(--text-body2-size); line-height:var(--text-body2-lh); font-weight:var(--text-body2-weight); color:var(--color-neutral-9); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.c-uploader-size{flex:none; font-family:var(--font-primary); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); color:var(--color-neutral-5);}
+.c-uploader-remove{flex:none; width:24px; height:24px; display:flex; align-items:center; justify-content:center; border:none; background:transparent; border-radius:var(--radius-sm); color:var(--color-neutral-5); cursor:pointer;}
+.c-uploader-remove:hover{background:var(--color-neutral-2);}
+
+/* Dropdown — Multiple select (designed not transcribed — renamed from
+   the standalone MultiSelect component; every property value below is
+   unchanged from that component, only the .c-ms* class prefix moved to
+   .c-dropdown-multi* so it reads as this component's other variant.
+   Supersedes an earlier single-select DropdownMenuWithSelection draft
+   on this same file — replaced per explicit user direction.
+   Trigger default matches Button Secondary exactly (Neutral-1 fill,
+   1px Neutral-3 border, shadow-1, radius-md, md size). Has-Selection's
+   border swaps to 1px Obsidian, the same "holds a value" recipe
+   Filters' own Filter trigger — active state uses. Has selection shows
+   one Badge-Neutral chip per selected option's label (capped at 2,
+   then a "+N" overflow chip) instead of the placeholder, built on
+   Badge's real box model (22px, spacing-8 padding, radius-pill,
+   caption/700, nowrap, 1px border) rather than an ad-hoc chip — and
+   stays shown while open too, so the user can see what's active while
+   browsing the checklist. Each visible chip has its own 14px × to
+   remove just that option; the overflow "+N" chip has no × since it
+   doesn't represent one single, removable option. Open is 2px Obsidian
+   with padding reduced 1px/side to compensate, the same
+   swap-and-compensate pattern Input field's focus state uses. Dropdown
+   panel reuses Filters'/Date picker's popover convention (radius-md,
+   1px Neutral-3 border, shadow-3). Group labels reuse SidebarNav's own
+   Section label recipe (caption/700/tracking-eyebrow/uppercase/
+   Neutral-5), --font-primary same as every other piece of text in the
+   component. Checkbox rows reuse this system's own Checkbox component spec
+   exactly (18×18px, 6px radius, Obsidian border+fill when checked).
+   Footer reuses Button's Ghost/Primary variants at sm size with
+   Modal footer's divider convention. */
+/* Dropdown — Multiple select trigger (count-based, replaces the former
+   chip-based one). The box itself is Input Field's own container —
+   .c-field/.input-wrap/.icon-trailing/.c-field-error/:disabled below
+   are all reused verbatim, unmodified; nothing here duplicates that
+   recipe. .c-dropdown-multi-field only adds a Style axis Input Field
+   doesn't have (scoped to this class so bare .c-field — Input field,
+   Textarea, Password field, Search input — is untouched), plus the
+   dropdown-specific chevron/panel/open/filled mechanics. The value now
+   reads "N selected" as the input's own value/placeholder text, not a
+   row of removable chips. */
+.c-dropdown-multi-field .input-wrap{cursor:pointer;}
+.c-dropdown-multi-input{cursor:pointer; caret-color:transparent;}
+.c-dropdown-multi-input::placeholder{color:var(--color-neutral-5);}
+.c-dropdown-multi-chevron{transition:transform var(--duration-fast) var(--ease-standard);}
+
+/* Style — Outlined is Input Field's own default recipe above (no
+   modifier class). Border stays 1px at rest, colour only, in every
+   Style — the same compensation-free trick Single select's own Style
+   axis uses, so Open's 1px→2px Obsidian swap below needs no per-style
+   exception. */
+.c-dropdown-multi-field:hover input, .c-dropdown-multi-field.hover input{background:var(--color-neutral-2);}
+.c-dropdown-multi-field.style-borderless input{background:transparent; border-color:transparent;}
+.c-dropdown-multi-field.style-borderless:hover input, .c-dropdown-multi-field.style-borderless.hover input{background:var(--color-neutral-2);}
+/* Disabled flattens both Styles to Input Field's own muted look
+   (Neutral-2 fill, Neutral-5 text, from .c-field input:disabled) —
+   same explicit override precedent Single select's Style axis uses,
+   needed since .style-borderless's background:transparent would
+   otherwise tie in specificity and win by source order alone. */
+.c-dropdown-multi-field.style-borderless input:disabled{background:var(--color-neutral-2); border-color:transparent;}
+/* Error must win over Style too — .style-borderless's
+   border-color:transparent above outranks the existing, lower-
+   specificity .c-field-error rule on specificity alone, regardless of
+   which is declared later, so it needs an equally explicit override. */
+.c-dropdown-multi-field.style-borderless.c-field-error input{border-color:var(--color-red);}
+
+/* States — layer on top of whichever Style is active above. Real
+   :focus (Input Field's own swap, inherited free) already covers the
+   trigger being tabbed to before the panel is triggered — .open below
+   is a demo-only mirror of that same recipe, plus the panel itself. */
+.c-dropdown-multi-field.open input{border:2px solid var(--color-obsidian); padding:0 11px;}
+.c-dropdown-multi-field.open .c-dropdown-multi-chevron{transform:rotate(180deg);}
+.c-dropdown-multi-field.filled input{border-color:var(--color-obsidian);}
+.c-dropdown-multi-field.read-only .input-wrap{pointer-events:none;}
+.c-dropdown-multi-field.read-only .icon-trailing{display:none;}
+/* Borderless stays borderless through every State — Open and Filled's
+   border-color swap above is deliberately suppressed here so this
+   Style never shows a solid border, the one thing "Borderless" is
+   supposed to guarantee. Only overrides border-color (not the whole
+   border shorthand), so the width/padding compensation math above
+   still runs identically in every Style — there's just nothing visible
+   riding on it in this one. */
+.c-dropdown-multi-field.style-borderless.open input, .c-dropdown-multi-field.style-borderless.filled input{border-color:transparent;}
+
+/* Panel — width:100% of the same .c-field parent the trigger fills, so
+   it always matches the trigger's rendered width, same guarantee as
+   Single select's own panel. */
+.c-dropdown-multi-panel{position:static; margin-top:var(--spacing-8); width:100%; background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); box-shadow:var(--shadow-3); overflow:hidden;}
+.c-dropdown-multi-list{max-height:320px; overflow-y:auto; padding:var(--spacing-8) 0;}
+.c-dropdown-multi-divider{height:1px; background:var(--color-neutral-3); margin:var(--spacing-8) 0;}
+.c-dropdown-multi-group{padding:var(--spacing-4) var(--spacing-12); font-family:var(--font-primary); font-size:var(--text-caption-size); font-weight:700; letter-spacing:var(--tracking-eyebrow); text-transform:uppercase; color:var(--color-neutral-5);}
+
+/* Dropdown Option — the checkbox row sub-component inside Multiple
+   select's panel, including the pinned Select All row (With Select
+   All behaviour only). Reuses this system's own Checkbox glyph
+   (.c-checkbox-box/.on + ph-check/ph-minus, from the Checkbox
+   component) verbatim rather than a second, ad-hoc checkbox recipe —
+   only the row's own padding/hover chrome is new, since Checkbox
+   itself (a compact form control, not a list row) never needed it. */
+.c-dropdown-option{display:flex; align-items:center; gap:var(--spacing-8); padding:var(--spacing-8) var(--spacing-12); cursor:pointer;}
+.c-dropdown-option input{position:absolute; opacity:0; width:0; height:0;}
+.c-dropdown-option:hover, .c-dropdown-option.hover{background:var(--color-neutral-2);}
+.c-dropdown-option.disabled{color:var(--color-neutral-4); cursor:not-allowed; pointer-events:none;}
+.c-dropdown-option.disabled .c-checkbox-box{border-color:var(--color-neutral-3); background:var(--color-neutral-2);}
+.c-dropdown-option-label{font-family:var(--font-primary); font-size:var(--text-body2-size); font-weight:var(--text-body2-weight); color:var(--color-neutral-9);}
+.c-dropdown-option.disabled .c-dropdown-option-label{color:var(--color-neutral-4);}
+.c-dropdown-option.select-all .c-dropdown-option-label{font-weight:700;}
+
+.c-dropdown-multi-footer{display:flex; justify-content:space-between; gap:var(--spacing-8); padding:var(--spacing-12); border-top:1px solid var(--color-neutral-3);}
+.c-dropdown-multi-footer button{height:32px; padding:0 var(--spacing-12); border:none; border-radius:var(--radius-sm); font-family:var(--font-primary); font-size:var(--text-label2-size); font-weight:var(--text-label2-weight); cursor:pointer;}
+.c-dropdown-multi-footer .clear{background:transparent; color:var(--color-neutral-9);}
+.c-dropdown-multi-footer .clear:hover{background:var(--color-neutral-2);}
+.c-dropdown-multi-footer .done{background:var(--color-obsidian); color:var(--color-neutral-1);}
+.c-dropdown-multi-footer .done:hover{background:var(--color-neutral-8);}
+
+/* Stepper — designed not transcribed
+   Horizontal: .c-step is pinned to width:24px — exactly the
+   indicator's own width — instead of sizing to its natural (label-
+   driven) content width. That's the one change that actually fixes
+   connector spacing: before this, a long label like "Preferences"
+   made its own .c-step column wider than the 24px circle inside it,
+   so the neighboring connector (a sibling of .c-step, not the
+   indicator) ended up touching the wider COLUMN's edge, not the
+   indicator's edge — an uncontrolled gap that grew or shrank with
+   whatever label happened to sit next to it. Pinning the column's own
+   width to 24px makes the indicator's edge and the column's edge the
+   same edge, so .c-step-connector's flex:1 (still never a hardcoded
+   width — it fills exactly what's left between two 24px columns) plus
+   a fixed --spacing-4 margin on each side gives every connector the
+   same token-defined gap against the circle it meets, regardless of
+   label length. The label/description overflow the 24px column
+   visually (centered, via align-items:center) without affecting it —
+   a fixed-width flex item's overflowing content never changes that
+   item's own box or any sibling's layout math.
+   Vertical: unaffected by the above — .c-step-rail already isolates
+   the indicator+connector stack from .c-step-text as a sibling, so
+   label/description width never touched connector spacing here to
+   begin with. Connector is a fixed --spacing-16 length (not flex:1).
+   The rail's own `gap` (--spacing-8) holds it off the circle above,
+   and .c-stepper.vertical's `gap` (also --spacing-8) holds equal space
+   before the circle below — same value on both sides so the divider
+   never touches either neighboring step, and every step stays evenly
+   spaced regardless of description line count.
+   Both orientations: connector stroke weight and indicator border
+   weight are --border-width-sm/--border-width-md, not literal
+   1px/2px — the only component in this system where those are
+   tokenized so far (see tokens.css). */
+.c-stepper{display:flex; align-items:flex-start; container-type:inline-size;}
+.c-stepper.vertical{flex-direction:column; gap:var(--spacing-8);}
+.c-step{display:flex; flex:none;}
+.c-stepper:not(.vertical) .c-step{flex-direction:column; align-items:center; gap:var(--spacing-8); width:24px;}
+.c-stepper.vertical .c-step{gap:var(--spacing-12);}
+.c-step.is-disabled{opacity:.4; cursor:not-allowed;}
+.c-step-rail{display:flex; flex-direction:column; align-items:center;}
+.c-stepper.vertical .c-step-rail{gap:var(--spacing-8);}
+.c-step-indicator{flex:none; width:24px; height:24px; border-radius:var(--radius-pill); display:flex; align-items:center; justify-content:center; font-family:var(--font-primary); font-size:var(--text-caption-size); font-weight:var(--text-label1-weight);}
+/* Completed/Active — solid fill carries both states; Completed swaps
+   the step number for a check glyph outright rather than keeping an
+   outlined/numbered look. Upcoming stays the plain outlined/numbered
+   treatment for both.
+   Error/Warning are FLAGS layered on top of a step's derived state,
+   never a 4th/5th value in the state enum: Error is only ever added
+   to whichever step is currently Active, Warning only to a step
+   that's already Completed — enforced by the consuming app, not just
+   documented, since an Error on an Upcoming step or a Warning on the
+   Active one asserts something that hasn't happened. At most one
+   Error can exist at a time (follows from there only ever being one
+   Active step); Warnings are unbounded, since each is an independent
+   caveat about a step that's already done. A flagged step drops its
+   number/check for its own glyph and keeps a fill — deliberate for
+   Error even though a fill elsewhere in this indicator means
+   "settled," because Error has to be the loudest thing in the row.
+   Resolving an Error returns the step to plain Active; it does not
+   auto-advance — resolving and advancing are two separate acts.
+   Icons: check/x are Tier 1, Regular (`ph-check`/`ph-x` — both
+   already Iconography's own documented Tier 1 examples: "check...
+   the Checkbox marks" and the plain-`x` remove affordance) rather
+   than Tier 2 Fill's `ph-fill ph-check`/`ph-fill ph-x`, which this
+   icon set renders as a checkbox/x-in-a-square glyph, not a bare
+   mark — redundant framing once it sits inside this indicator's own
+   circle. `x-circle`, this system's usual Tier 2 status-error glyph
+   (see Toast), is skipped for the same reason: a second circle
+   nested inside the indicator's own. Warning has no such conflict —
+   `ph-fill ph-warning` is a plain triangle, a textbook Tier 2 case
+   (Iconography's own "status indicators" list). All three sized at
+   icon-micro (14px), one scale across the row. Warning's label/
+   description color matches Badge's own `.c-badge-warning` text
+   color exactly (`--color-neutral-9`), not Toast/Banner's darkened
+   amber ink. Contrast (Component Rule 5): Neutral-1 on Red `#FD3343`
+   measures 3.69:1; Obsidian on Amber `#FFA425` measures 7.13:1,
+   Neutral-1 on the same fill fails at 1.98:1. */
+.c-step-indicator.completed{background:var(--color-green); color:var(--color-neutral-1);}
+.c-step-indicator.active{background:var(--color-obsidian); color:var(--color-neutral-1);}
+.c-step-indicator.upcoming{background:var(--color-neutral-1); border:var(--border-width-sm) solid var(--color-neutral-3); color:var(--color-neutral-5);}
+.c-step-indicator.error{background:var(--color-red); color:var(--color-neutral-1);}
+.c-step-indicator.warning{background:var(--color-amber); color:var(--color-obsidian);}
+.c-step-indicator.completed i, .c-step-indicator.error i, .c-step-indicator.warning i{font-size:var(--icon-micro);}
+.c-step-connector{background:var(--color-neutral-3); flex:none;}
+.c-stepper:not(.vertical) .c-step-connector{flex:1; height:var(--border-width-sm); margin:var(--spacing-12) var(--spacing-4) 0;}
+.c-stepper.vertical .c-step-connector{width:var(--border-width-sm); height:var(--spacing-16);}
+.c-step-text{display:flex; flex-direction:column; gap:var(--spacing-4);}
+.c-stepper:not(.vertical) .c-step-text{text-align:center;}
+.c-step-label{font-family:var(--font-primary); font-size:var(--text-body2-size); line-height:var(--text-body2-lh);}
+.c-step-label.active{font-weight:var(--text-label1-weight); color:var(--color-neutral-9);}
+.c-step-label.completed, .c-step-label.upcoming{font-weight:var(--text-body2-weight); color:var(--color-neutral-5);}
+.c-step-label.error{font-weight:var(--text-body2-weight); color:var(--color-red);}
+.c-step-label.warning{font-weight:var(--text-body2-weight); color:var(--color-neutral-9);}
+/* Description is all-or-nothing per stepper (Component Rules), so a
+   flag's message reuses the same slot/line rather than adding a
+   second one — it replaces the step's description, the way Input
+   field's error text replaces its helper, instead of appending
+   beneath it. */
+.c-step-desc{font-family:var(--font-primary); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); font-weight:var(--text-caption-weight); color:var(--color-neutral-5);}
+.c-step-desc.error{color:var(--color-red); font-weight:700;}
+.c-step-desc.warning{color:var(--color-neutral-9); font-weight:700;}
+
+/* Mobile — below 480px of the stepper's own container width (a
+   container query, not viewport, so it responds inside a narrow
+   modal/drawer too): descriptions hide and an overlong label
+   truncates with an ellipsis, a density/scannability improvement for
+   small screens. Horizontal only — vertical is already a single
+   narrow column and needs nothing. */
+@container (max-width:480px){
+  .c-stepper:not(.vertical) .c-step-desc{display:none;}
+  .c-stepper:not(.vertical) .c-step{width:auto; flex:1 1 0; min-width:0;}
+  .c-stepper:not(.vertical) .c-step-label{display:block; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+}
+
+/* Back button (Level 2+ navigation) — designed from scratch, fulfils App
+   Shell's own reserved Level 2 placeholder. All four states reuse Button
+   Ghost's own tokens directly (hover Neutral-2, active/pressed Neutral-3,
+   focus-visible Obsidian outline) — no new color introduced. Sits above
+   .c-pageheader in markup, never inside it. */
+.c-back-button-row{margin-bottom:var(--spacing-12);}
+.c-back-button{display:inline-flex; align-items:center; gap:var(--spacing-8); padding:var(--spacing-8) var(--spacing-12); border:none; background:transparent; border-radius:var(--radius-sm); font-family:var(--font-primary); font-size:var(--text-label2-size); font-weight:var(--text-label2-weight); color:var(--color-neutral-9); cursor:pointer; transition:background-color var(--duration-fast) var(--ease-standard);}
+.c-back-button i{font-size:var(--icon-sm);}
+.c-back-button:hover{background:var(--color-neutral-2);}
+.c-back-button:active{background:var(--color-neutral-3);}
+.c-back-button:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+
+/* PageHeader — designed not transcribed. Formerly duplicated by App
+   Shell as its own .c-shell-page-header/.c-shell-actions — App Shell
+   now composes this component directly instead of a parallel copy.
+   Subtitle standardized on body2 (App Shell's own original text), not
+   body1 (the standalone spec's original text) — the two disagreed. */
+.c-pageheader{display:flex; flex-direction:column;}
+.c-pageheader-row{display:flex; align-items:flex-start; justify-content:space-between; gap:var(--spacing-16);}
+.c-pageheader-text{display:flex; flex-direction:column; gap:var(--spacing-8); min-width:0;}
+.c-pageheader h1{margin:0; font-family:var(--font-primary); font-weight:var(--text-h1-weight); font-size:var(--text-h1-size); line-height:var(--text-h1-lh); letter-spacing:var(--text-h1-tracking); color:var(--color-neutral-9);}
+.c-pageheader .sub{margin:0; font-family:var(--font-primary); font-weight:var(--text-body2-weight); font-size:var(--text-body2-size); line-height:var(--text-body2-lh); color:var(--color-neutral-5);}
+.c-pageheader-actions{display:flex; gap:var(--element-gap); flex:none;}
+
+/* Segmented Control — designed from scratch, not transcribed. Track/
+   segment box model, sizes, and states per DESIGN-SYSTEM.md. Hover/
+   active-pressed/disabled reuse Button Ghost's own tokens; focus-visible
+   reuses Button's exact token; nested radius-sm-inside-radius-md follows
+   SidebarNav's own nested-interactive-element convention.
+   The active fill/shadow/radius render on .c-seg-pill, a single shared
+   element per instance that slides/resizes between segments on
+   selection (see DESIGN-SYSTEM.md's "Transition — sliding Pill" — this
+   supersedes that section's original fill-swap-in-place design).
+   .c-seg-pill's translate() is computed in JS from the track's border
+   width subtracted out, since an absolutely-positioned child's
+   containing block is the track's own padding box (already inset by
+   that border) — see the Changelog entry for why that fix was needed. */
+.c-segctl{position:relative; display:inline-flex; background:var(--color-neutral-2); border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); padding:var(--spacing-4); gap:var(--spacing-4);}
+.c-seg-pill{position:absolute; left:0; top:0; background:var(--color-neutral-1); box-shadow:var(--shadow-1); border-radius:var(--radius-sm); z-index:0; pointer-events:none; transition:transform var(--duration-fast) var(--ease-standard), width var(--duration-fast) var(--ease-standard), height var(--duration-fast) var(--ease-standard);}
+.c-seg{position:relative; z-index:1; appearance:none; border:none; background:transparent; color:var(--color-neutral-5); font-family:var(--font-primary); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); font-weight:500; text-transform:uppercase; border-radius:var(--radius-sm); display:inline-flex; align-items:center; justify-content:center; gap:var(--spacing-4); cursor:pointer; flex:1; transition:color var(--duration-fast) var(--ease-standard);}
+.c-seg i{font-size:var(--icon-base); line-height:1;}
+.c-segctl-compact .c-seg i{font-size:var(--icon-micro);}
+.c-segctl-default .c-seg{padding:var(--spacing-8) var(--spacing-12); min-width:32px;}
+.c-segctl-compact .c-seg{padding:5px var(--spacing-12); min-width:32px;}
+.c-seg[aria-checked="true"]{color:var(--color-neutral-9); font-weight:700;}
+.c-segctl:not(.has-pill) .c-seg[aria-checked="true"]{background:var(--color-neutral-1); box-shadow:var(--shadow-1);}
+.c-seg:not([aria-checked="true"]):not(:disabled):hover{background:var(--color-neutral-2);}
+.c-seg:not([aria-checked="true"]):not(:disabled):active{background:var(--color-neutral-3);}
+.c-seg:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-seg:disabled{color:var(--color-neutral-4); opacity:.4; cursor:not-allowed;}
+.c-seg:disabled:hover{background:transparent;}
+.c-segctl-disabled{opacity:.4;}
+.c-segctl-disabled .c-seg{cursor:not-allowed;}
+@media (prefers-reduced-motion: reduce){ .c-seg-pill{transition:none;} }
+/* Icon-only tooltip — same bubble visuals as Tooltip, built as its own
+   small recipe rather than reused verbatim (Tooltip's own trigger-wrapper
+   model assumes no sibling absolutely-positioned Pill underneath it;
+   same rationale SidebarNav's own collapsed hover label already gives
+   for not reusing .c-tooltip-wrap/.c-tooltip-bubble as-is). */
+.c-seg-tt-wrap{position:relative; display:inline-flex; flex:1;}
+.c-seg-tt-bubble{position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%); z-index:2; padding:var(--spacing-4) var(--spacing-8); border-radius:var(--radius-sm); background:var(--color-neutral-7); color:var(--color-neutral-1); font-size:var(--text-caption-size); font-weight:500; text-transform:none; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity var(--duration-fast) var(--ease-standard);}
+.c-seg-tt-wrap:hover .c-seg-tt-bubble, .c-seg-tt-wrap:focus-within .c-seg-tt-bubble{opacity:1;}
+
+/* Slider — designed from scratch, not transcribed. Reuses Button Ghost's
+   hover/pressed recipe (via shadow-2/shadow-3 rung), Switch's thumb
+   anatomy, Tooltip's bubble visuals, and Button's focus-visible token.
+   Built and tested as a standalone reference file first — several rows
+   below exist specifically because that testing surfaced real bugs:
+   - The thumb must be vertically centered on the track's own line, not
+     the top of its own taller hit-target box (margin-top math on the
+     thumb, keyed to the rail's height).
+   - Track and min/max labels run the rail's full width, flush with its
+     edges, with the thumb allowed to overhang the ends by half its own
+     width at 0%/100% — normal for a point value, same as native OS
+     sliders; don't inset the rail to prevent it.
+   - Range's "thumbs may touch but never cross" rule is enforced by
+     clamping the moved handle's VALUE against its partner (see the JS),
+     never either handle's live min/max attribute — a native thumb's
+     on-screen position is rendered from that same attribute, so
+     mutating it to enforce the constraint also corrupts native
+     rendering, snapping the thumb to the wrong end of the track. */
+.c-slider-label{display:block; font-family:var(--font-primary); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); font-weight:700; color:var(--color-neutral-9); margin-bottom:var(--spacing-4);}
+.c-slider-group{width:100%;}
+.c-slider-rail{position:relative; height:24px;}
+.c-slider-track{position:absolute; top:50%; left:0; right:0; height:4px; transform:translateY(-50%); border-radius:var(--radius-pill); background:var(--color-neutral-3);}
+.c-slider-compact .c-slider-track{height:2px;}
+.c-slider-fill{position:absolute; top:0; height:100%; background:var(--color-obsidian); border-radius:var(--radius-pill);}
+.c-slider-input{position:absolute; top:0; left:0; right:0; height:100%; margin:0; background:transparent; appearance:none; -webkit-appearance:none;}
+.c-slider-range .c-slider-input{pointer-events:none;}
+.c-slider-input::-webkit-slider-runnable-track{background:transparent; height:100%;}
+.c-slider-input::-moz-range-track{background:transparent; height:100%; border:none;}
+.c-slider-input::-webkit-slider-thumb{appearance:none; -webkit-appearance:none; pointer-events:auto; width:20px; height:20px; border-radius:var(--radius-pill); background:var(--color-neutral-1); border:2px solid var(--color-obsidian); box-shadow:var(--shadow-2); cursor:pointer; margin-top:2px; transition:box-shadow var(--duration-fast) var(--ease-standard); position:relative;}
+.c-slider-input::-moz-range-thumb{pointer-events:auto; width:20px; height:20px; border-radius:var(--radius-pill); background:var(--color-neutral-1); border:2px solid var(--color-obsidian); box-shadow:var(--shadow-2); cursor:pointer; transition:box-shadow var(--duration-fast) var(--ease-standard);}
+.c-slider-compact .c-slider-input::-webkit-slider-thumb, .c-slider-compact .c-slider-input::-moz-range-thumb{width:16px; height:16px;}
+.c-slider-compact .c-slider-input::-webkit-slider-thumb{margin-top:4px;}
+.c-slider-input:hover::-webkit-slider-thumb, .c-slider-input:active::-webkit-slider-thumb, .c-slider-input:hover::-moz-range-thumb, .c-slider-input:active::-moz-range-thumb{box-shadow:var(--shadow-3);}
+.c-slider-input:hover, .c-slider-input:active{cursor:grab;}
+.c-slider-input:active{cursor:grabbing;}
+.c-slider-input:focus{outline:none;}
+.c-slider-input:focus-visible::-webkit-slider-thumb{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-slider-input:focus-visible::-moz-range-thumb{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-slider-disabled{opacity:.4;}
+.c-slider-disabled .c-slider-fill{background:var(--color-neutral-3);}
+.c-slider-disabled .c-slider-input, .c-slider-disabled .c-slider-input::-webkit-slider-thumb, .c-slider-disabled .c-slider-input::-moz-range-thumb{cursor:not-allowed; pointer-events:none;}
+.c-slider-disabled .c-slider-input::-webkit-slider-thumb, .c-slider-disabled .c-slider-input::-moz-range-thumb{border-color:var(--color-neutral-4); box-shadow:none;}
+.c-slider-tooltip{position:absolute; bottom:calc(100% + 8px); left:0; transform:translateX(-50%); padding:6px var(--spacing-8); border-radius:var(--radius-sm); background:var(--color-neutral-7); color:var(--color-neutral-1); font-family:var(--font-primary); font-size:var(--text-caption-size); font-weight:500; white-space:nowrap; pointer-events:none; opacity:0; transition:opacity var(--duration-fast) var(--ease-standard);}
+.c-slider-tooltip.is-visible{opacity:1; transition-delay:0s;}
+.c-slider-tooltip.is-hiding{opacity:0; transition-delay:var(--duration-base);}
+@media (prefers-reduced-motion: reduce){ .c-slider-input::-webkit-slider-thumb, .c-slider-input::-moz-range-thumb, .c-slider-tooltip{transition:none !important;} }
+.c-slider-minmax{display:flex; justify-content:space-between; margin-top:var(--spacing-4); font-family:var(--font-primary); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); color:var(--color-neutral-5);}
+.c-slider-static-value{display:flex; justify-content:flex-end; font-family:var(--font-primary); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); color:var(--color-neutral-9); margin-bottom:var(--spacing-4);}
+
+/* Chip — Input Chip (removable value, no toggle, no leading icon) and
+   Filter Chip (toggleable option, Single-select radiogroup or
+   Multi-select checkbox group — never both in one group). Filter Chip
+   carries no shadow at any state; Multi-select's active state gets a
+   leading tick (Checkbox's own ph-check glyph) that replaces a
+   category icon if one was showing, since Single-select's mutual
+   exclusivity already makes its own active chip unambiguous without
+   one. */
+.c-chip-group{display:flex; flex-wrap:wrap; gap:var(--spacing-4); align-items:center;}
+.c-chip{display:inline-flex; align-items:center; gap:var(--spacing-4); border-radius:var(--radius-pill); font-family:var(--font-primary); font-size:var(--text-label2-size); line-height:var(--text-label2-lh); font-weight:var(--text-label2-weight); color:var(--color-neutral-9); white-space:nowrap; user-select:none; transition:background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);}
+.c-chip[hidden]{display:none;}
+.c-chip .icon{font-size:var(--icon-sm); line-height:1; color:inherit;}
+.c-chip-input{height:24px; padding:0 var(--spacing-8); background:var(--color-neutral-2); border:1px solid var(--color-neutral-3);}
+.c-chip-input.is-disabled{opacity:.4; cursor:not-allowed;}
+.c-chip-remove{display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; margin-right:-6px; color:var(--color-neutral-5); background:transparent; border:none; cursor:pointer; border-radius:var(--radius-pill); font-size:var(--icon-micro); padding:0;}
+.c-chip-remove i{pointer-events:none;}
+.c-chip-remove:hover{color:var(--color-neutral-9);}
+.c-chip-remove:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-chip-overflow{height:24px; padding:0 var(--spacing-8); background:var(--color-neutral-2); border:1px solid var(--color-neutral-3); color:var(--color-neutral-5); cursor:pointer; font-family:inherit;}
+.c-chip-overflow:hover{color:var(--color-neutral-9); border-color:var(--color-neutral-4);}
+.c-chip-overflow:focus-visible, .c-chip-showless:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-chip-showless{display:inline-flex; align-items:center; height:24px; background:transparent; border:none; padding:0; margin:0; color:var(--color-neutral-9); font-family:var(--font-primary); font-size:var(--text-label2-size); font-weight:var(--text-label2-weight); line-height:var(--text-label2-lh); text-decoration:underline; text-underline-offset:3px; cursor:pointer;}
+.c-chip-filter{height:32px; padding:0 var(--spacing-12); background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); cursor:pointer; font-family:inherit;}
+.c-chip-filter:hover:not(.is-active):not(.is-disabled){background:var(--color-neutral-2);}
+.c-chip-filter:active:not(.is-disabled){background:var(--color-neutral-3);}
+.c-chip-filter.is-active{background:var(--color-obsidian); border-color:var(--color-obsidian); color:var(--color-neutral-1);}
+.c-chip-filter.is-active:hover:not(.is-disabled){background:var(--color-neutral-8); border-color:var(--color-neutral-8);}
+.c-chip-filter.is-active:active:not(.is-disabled){background:var(--color-neutral-7); border-color:var(--color-neutral-7);}
+.c-chip-filter:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-chip-filter.is-disabled{opacity:.4; cursor:not-allowed; pointer-events:none;}
+/* Trailing count (optional, Filter Chip only) — label2/400, one step
+   lighter than the label's own 700, spacing-4 gap (inherited from
+   .c-chip's own gap). Neutral-1 at 70% opacity when active keeps the
+   same lighter-than-label relationship on the dark fill. Disabled's
+   40% opacity is inherited from .c-chip-filter.is-disabled above, not
+   redeclared here. */
+.c-chip-filter .count{font-weight:400; color:var(--color-neutral-5);}
+.c-chip-filter.is-active .count{color:rgba(255,255,255,.7);}
+
+/* Progress Bar — designed from scratch, not transcribed. Reuses Slider's
+   track anatomy (Neutral-3 unfilled track, radius-pill), Obsidian as the
+   default value-committed fill (same value as Slider's own track fill and
+   Input field's focus border), department elemental colors for department
+   stacked breakdowns, and the Purple/Turquoise data viz reserve for
+   non-department ones. Indeterminate shimmer uses duration-ambient (900ms)
+   — this system's own token for continuous/looping motion, same as Search
+   input's Loading spinner — not a one-shot "movement settles" transition. */
+.c-progress{width:100%;}
+.c-progress-header{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:var(--spacing-4);}
+.c-progress-title{font-family:var(--font-primary); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); font-weight:700; color:var(--color-neutral-9);}
+.c-progress-value{font-family:var(--font-primary); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); font-weight:400; color:var(--color-neutral-5);}
+.c-progress-track{position:relative; width:100%; border-radius:var(--radius-pill); background:var(--color-neutral-3); overflow:hidden;}
+.c-progress-track.size-compact{height:4px;}
+.c-progress-track.size-default{height:8px;}
+.c-progress-track.size-large{height:16px;}
+.c-progress-fill{height:100%; border-radius:var(--radius-pill); background:var(--color-obsidian); transition:width var(--duration-base) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);}
+.c-progress-fill.tone-success, .c-progress-stack-segment.tone-success{background:var(--color-green);}
+.c-progress-fill.tone-error, .c-progress-stack-segment.tone-error{background:var(--color-red);}
+.c-progress-fill.tone-fire, .c-progress-stack-segment.tone-fire{background:var(--color-orange);}
+.c-progress-fill.tone-wood, .c-progress-stack-segment.tone-wood{background:var(--color-salmon-pink);}
+.c-progress-fill.tone-earth, .c-progress-stack-segment.tone-earth{background:var(--color-green);}
+.c-progress-fill.tone-water, .c-progress-stack-segment.tone-water{background:var(--color-navy);}
+.c-progress-fill.tone-gold, .c-progress-stack-segment.tone-gold{background:var(--color-amber);}
+.c-progress-fill-label{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:var(--font-primary); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); font-weight:700; color:var(--color-neutral-1); white-space:nowrap;}
+.c-progress-trailing-wrap{display:flex; align-items:center; gap:var(--spacing-8);}
+.c-progress-trailing-wrap .c-progress-track{flex:1;}
+.c-progress-trailing{font-family:var(--font-primary); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); font-weight:400; color:var(--color-neutral-5); flex:none;}
+
+/* Stacked — contiguous segments, radius-pill on outer edges only, interior
+   edges flush. Department breakdown uses the 5 department colors above;
+   General data breakdown uses Purple then Turquoise (only 2 colors exist
+   in that reserve, so its own overflow point is 2 segments, not 5) before
+   falling to the shared Neutral-4 overflow color. */
+.c-progress-track.stacked{display:flex;}
+.c-progress-stack-segment{height:100%; flex:none;}
+.c-progress-stack-segment:first-child{border-top-left-radius:var(--radius-pill); border-bottom-left-radius:var(--radius-pill);}
+.c-progress-stack-segment:last-child{border-top-right-radius:var(--radius-pill); border-bottom-right-radius:var(--radius-pill);}
+.c-progress-stack-remainder{flex:1; height:100%;}
+
+/* Indeterminate — Neutral-5 at 40% opacity, animated shimmer over the
+   Neutral-3 track. prefers-reduced-motion swaps it for a static Neutral-4
+   fill at 60% track width instead of animating at all. */
+.c-progress-track.indeterminate{position:relative;}
+.c-progress-indeterminate-fill{position:absolute; top:0; left:0; height:100%; width:40%; border-radius:var(--radius-pill); background:linear-gradient(90deg, transparent, rgba(90,90,90,.4), transparent); animation:c-progress-shimmer var(--duration-ambient) var(--ease-standard) infinite;}
+@keyframes c-progress-shimmer{
+  0%{ transform:translateX(-100%); }
+  100%{ transform:translateX(350%); }
+}
+@media (prefers-reduced-motion: reduce){
+  .c-progress-indeterminate-fill{ animation:none; position:static; width:60%; background:var(--color-neutral-4); }
+  .c-progress-fill{ transition:none; }
+}
+
+/* Legend — Stacked-only. Per DESIGN-SYSTEM.md's Label placement rules, a
+   Stacked bar's segment values live in a legend "at the usage level, not
+   inline on the bar itself" — this is that legend. Rule: always shown
+   below the bar by default; add .is-hidden to suppress it for a given
+   instance (not a hover-reveal — that's a separate, opt-in behavior). */
+.c-progress-legend{margin-top:var(--spacing-8); display:flex; flex-wrap:wrap; gap:var(--spacing-16);}
+.c-progress-legend.is-hidden{display:none;}
+.c-progress-legend-item{display:inline-flex; align-items:center; gap:6px; font-family:var(--font-primary); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); color:var(--color-neutral-5); white-space:nowrap;}
+.c-progress-legend-swatch{width:8px; height:8px; border-radius:2px; flex:none;}
+
+/* =========================================================
+   Prompt input bar — AI Native category. Floating bar variant
+   (the first of what may become Inline/Docked variants later,
+   without renaming anything — hence the plain .c-prompt-bar*
+   prefix, not .c-prompt-bar-floating*). See DESIGN-SYSTEM.md's
+   "Prompt input bar" section for full anatomy/states/behavior.
+   ========================================================= */
+.c-prompt-bar{
+  --prompt-bar-morph-dur:var(--duration-morph);
+  --prompt-bar-morph-ease:var(--ease-morph);
+  --prompt-bar-w:406px;
+  --prompt-bar-shift:0px;
+  --prompt-bar-push:0px;
+  position:absolute;
+  bottom:var(--spacing-24);
+  left:50%;
+  width:min(620px, calc(100% - var(--spacing-32)));
+  z-index:20;
+  opacity:0;
+  transform:translate(calc(-50% + var(--prompt-bar-shift) + var(--prompt-bar-push)), 16px);
+  transition:opacity var(--duration-reveal) var(--ease-reveal), transform var(--duration-reveal) var(--ease-reveal);
+  transition-delay:1150ms;
+}
+.c-prompt-bar.is-revealed{
+  opacity:1;
+  transform:translate(calc(-50% + var(--prompt-bar-shift) + var(--prompt-bar-push)), 0);
+}
+.c-prompt-bar.is-collapsed{width:var(--prompt-bar-w);}
+/* Declared AFTER .is-collapsed so it wins on source order once JS adds
+   it post-entrance — collapse/expand then run on the morph timing
+   instead of falling through to the slower entrance transition. */
+.c-prompt-bar.is-morphable{
+  transition:
+    transform var(--prompt-bar-morph-dur) var(--prompt-bar-morph-ease),
+    width var(--prompt-bar-morph-dur) var(--prompt-bar-morph-ease),
+    bottom var(--prompt-bar-morph-dur) var(--prompt-bar-morph-ease);
+}
+.c-prompt-bar.is-launched{opacity:0; pointer-events:none;}
+
+/* Glow layers — animated pastel gradient behind the surface, clipped
+   to a clean edge-glow by sitting a lower z-index than the surface. */
+.c-prompt-bar-glow-outer,
+.c-prompt-bar-glow-inner{
+  position:absolute; pointer-events:none;
+  background-image:linear-gradient(90deg,var(--color-fire-pastel) 0%,var(--color-wood-pastel) 20%,var(--color-earth-pastel) 40%,var(--color-water-pastel) 60%,var(--color-gold-pastel) 80%,var(--color-fire-pastel) 100%);
+  background-size:200% 100%;
+  animation:c-prompt-bar-glow-move 4s linear infinite;
+  mix-blend-mode:screen;
+  mix-blend-mode:plus-lighter;
+  transition:border-radius var(--prompt-bar-morph-dur) var(--prompt-bar-morph-ease);
+}
+.c-prompt-bar-glow-outer{inset:-4px; filter:blur(16px); opacity:.7; border-radius:calc(var(--radius-lg) + 4px);}
+.c-prompt-bar-glow-inner{inset:-1px; filter:blur(1px); opacity:1; border-radius:calc(var(--radius-lg) + 1px);}
+.c-prompt-bar.is-collapsed .c-prompt-bar-glow-outer,
+.c-prompt-bar.is-collapsed .c-prompt-bar-glow-inner{border-radius:var(--radius-pill);}
+@keyframes c-prompt-bar-glow-move{ from{background-position:0% 0;} to{background-position:200% 0;} }
+
+/* Surface */
+.c-prompt-bar-surface{
+  display:grid; grid-template-rows:auto 1fr;
+  position:relative; z-index:10;
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-4);
+  background:var(--color-neutral-1);
+  padding:var(--spacing-16);
+  transition:
+    grid-template-rows var(--prompt-bar-morph-dur) var(--prompt-bar-morph-ease),
+    border-radius var(--prompt-bar-morph-dur) var(--prompt-bar-morph-ease),
+    padding var(--prompt-bar-morph-dur) var(--prompt-bar-morph-ease);
+}
+.c-prompt-bar.is-collapsed .c-prompt-bar-surface{
+  grid-template-rows:auto 0fr;
+  border-radius:var(--radius-pill);
+  /* 11px top/bottom is a deliberate one-off, not the spacing scale —
+     it lands the pill at exactly ~46px against the input's own 24px
+     line box (spacing-8 undershoots to 40px, spacing-12 overshoots to
+     48px). 56px left is the same kind of one-off: 16 gutter + 32 mark
+     (real .c-btn-icon.c-btn-sm width) + 8 gap. Right stays spacing-16. */
+  padding:11px var(--spacing-16) 11px 56px;
+}
+
+/* AI mark — the real .c-btn Primary icon-only variant (c-btn-icon.c-btn-sm)
+   for fill/size/icon, radius overridden back to a true circle. Kept
+   non-interactive (pointer-events:none, aria-hidden, no handler) — a
+   Tier 2 Fill mark, not a control; the input's own aria-label already
+   names the component. Absolute, not a flex child, since the surface
+   is a grid — a flow child would become a grid item, and the mark
+   needs to arrive on opacity+transform, not a width that runs layout
+   every frame of the morph. */
+.c-prompt-bar-mark{
+  position:absolute; left:var(--spacing-16); top:50%;
+  border-radius:var(--radius-pill);
+  opacity:0; pointer-events:none;
+  transform:translateY(-50%) scale(.5);
+  transition:opacity var(--prompt-bar-morph-dur) var(--prompt-bar-morph-ease), transform var(--prompt-bar-morph-dur) var(--prompt-bar-morph-ease);
+}
+.c-prompt-bar.is-collapsed .c-prompt-bar-mark{opacity:1; transform:translateY(-50%) scale(1);}
+
+/* Field */
+.c-prompt-bar-field{position:relative; display:flex; align-items:center; min-width:0;}
+.c-prompt-bar-field input{
+  width:100%; border:none; outline:none; background:transparent;
+  font-family:var(--font-primary); font-size:var(--text-body1-size); line-height:var(--text-body1-lh); font-weight:var(--text-body1-weight);
+  color:var(--color-neutral-9);
+  position:relative; z-index:1;
+}
+.c-prompt-bar-field input::placeholder{color:transparent;} /* the real hint is the ghost line, not the native placeholder */
+
+/* Running ghost line — a span, not ::placeholder, since it needs to be
+   masked/transformed/measured once the box becomes a pill. Left-aligned
+   to match where real typed text lands, not centered. */
+.c-prompt-bar-ghost{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:flex-start;
+  overflow:hidden; white-space:nowrap; pointer-events:none;
+  font-family:var(--font-primary); font-size:var(--text-body1-size); line-height:var(--text-body1-lh); font-weight:var(--text-body1-weight);
+  color:var(--color-neutral-5);
+  transition:opacity var(--duration-fast) var(--ease-standard);
+}
+.c-prompt-bar-field.is-typing .c-prompt-bar-ghost{opacity:0;}
+.c-prompt-bar.is-collapsed .c-prompt-bar-ghost{
+  mask-image:linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
+  -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
+}
+.c-prompt-bar-ghost-text{display:inline-block;}
+.c-prompt-bar-ghost-text.is-caret-pulsing::after{
+  content:''; display:inline-block; width:1px; height:1em; margin-left:2px; vertical-align:middle;
+  background:var(--color-neutral-5);
+  animation:c-prompt-bar-caret-blink 500ms steps(1) infinite;
+}
+@keyframes c-prompt-bar-caret-blink{50%{opacity:0;}}
+.c-prompt-bar-ghost-static{display:none; font-family:var(--font-primary); font-size:var(--text-body1-size); color:var(--color-neutral-5);}
+
+/* Second row / toolbar — buttons inside are the real .c-btn Ghost/Primary
+   icon-only variants (c-btn-icon.c-btn-sm), not bespoke button classes. */
+.c-prompt-bar-more{
+  overflow:hidden; min-height:0;
+  display:flex; flex-direction:column;
+  padding-top:var(--spacing-12);
+  transition:padding-top var(--prompt-bar-morph-dur) var(--prompt-bar-morph-ease), opacity var(--prompt-bar-morph-dur) var(--prompt-bar-morph-ease);
+}
+.c-prompt-bar.is-collapsed .c-prompt-bar-more{padding-top:0; opacity:0;}
+.c-prompt-bar-toolbar{display:flex; align-items:center; justify-content:space-between;}
+.c-prompt-bar-group{display:flex; align-items:center; gap:var(--spacing-8);}
+
+/* Reduced motion */
+@media (prefers-reduced-motion:reduce){
+  .c-prompt-bar-glow-outer, .c-prompt-bar-glow-inner{animation:none;}
+  .c-prompt-bar-ghost-text.is-caret-pulsing::after{animation:none;}
+  .c-prompt-bar.is-morphable{transition:none;}
+  .c-prompt-bar-mark{transition:opacity var(--duration-fast) var(--ease-standard);}
+  .c-prompt-bar-ghost{display:none;}
+  .c-prompt-bar-ghost-static{display:block;}
+}
+
+/* Mobile — keeps the shrink, drops the parking, never becomes a pill */
+@media (max-width:640px){
+  .c-prompt-bar{
+    left:var(--spacing-16); right:var(--spacing-16); width:auto;
+    bottom:calc(var(--spacing-24) + env(safe-area-inset-bottom));
+  }
+  .c-prompt-bar, .c-prompt-bar.is-revealed{transform:none;}
+  .c-prompt-bar.is-collapsed{width:auto;}
+  .c-prompt-bar.is-collapsed .c-prompt-bar-surface{border-radius:var(--radius-lg);}
+  .c-prompt-bar.is-collapsed .c-prompt-bar-glow-outer{border-radius:calc(var(--radius-lg) + 4px);}
+  .c-prompt-bar.is-collapsed .c-prompt-bar-glow-inner{border-radius:calc(var(--radius-lg) + 1px);}
+}
+
+/* Prompt input bar — Inline variant (.c-prompt-bar--inline). Used as
+   Chat window's own composer: fixed in flow, never collapses, no AI
+   mark, a plain ::placeholder instead of the running ghost line. Diffs
+   from the Floating bar variant only — see DESIGN-SYSTEM.md's own
+   diff table for the full Floating-vs-Inline comparison. */
+/* "static" per spec means "in flow, not anchored by absolute
+   positioning" — implemented as relative, not literal position:static,
+   since the glow layers are absolutely positioned against this element
+   and need a positioned ancestor to contain them. */
+.c-prompt-bar--inline{position:relative; left:auto; bottom:auto; width:100%; opacity:1; transition:none;}
+/* .c-prompt-bar.is-revealed (2 classes, components.css) carries its own
+   -50%-centering transform for the Floating bar's absolute positioning
+   — at equal specificity it was winning over the single-class rule
+   above and shifting the Inline composer half its own width off-screen.
+   Matched here at the same 2-class specificity to actually override it. */
+.c-prompt-bar--inline.is-revealed{transform:none;}
+.c-prompt-bar--inline .c-prompt-bar-surface{box-shadow:var(--shadow-2);}
+.c-prompt-bar--inline .c-prompt-bar-glow-outer{inset:-7px; filter:blur(13px); opacity:.4; mix-blend-mode:normal;}
+.c-prompt-bar--inline .c-prompt-bar-glow-inner{inset:-1.5px; filter:blur(2px); opacity:.5; mix-blend-mode:normal;}
+.c-prompt-bar--inline .c-prompt-bar-field input::placeholder{color:var(--color-neutral-5);}
+/* The shared .c-prompt-bar-surface grid track sizes to its content's
+   min-content by default (no min-width:0 on its grid items) — fine at
+   the Floating bar's fixed 620px, but the Inline variant runs at 100%
+   of its container and can go narrower than the toolbar's own
+   min-content once the rail hides in single-column mode. Scoped to
+   --inline only, so the Floating bar's own sizing is untouched. */
+.c-prompt-bar--inline .c-prompt-bar-field,
+.c-prompt-bar--inline .c-prompt-bar-more,
+.c-prompt-bar--inline .c-prompt-bar-toolbar,
+.c-prompt-bar--inline .c-prompt-bar-group{min-width:0;}
+/* Send stays the real Primary icon-only button for fill/size, radius
+   overridden back to a pill — same override technique as the Floating
+   bar's own AI mark. The other two toolbar buttons keep the real
+   radius-sm Ghost recipe untouched. */
+.c-prompt-bar-send{border-radius:var(--radius-pill);}
+
+/* Model switcher — shared by both variants, same right-group slot
+   (model switcher, Voice input, Send) on Floating bar and Inline
+   alike, not scoped to .c-prompt-bar--inline despite living in this
+   file section. On Inline it replaces the earlier plain-text "Reading:
+   this workspace" context label; on Floating bar the slot is new
+   outright. Trigger reuses the real Button Ghost variant
+   (c-btn-ghost.c-btn-sm) verbatim; only the menu below is new. See
+   DESIGN-SYSTEM.md's own "Model switcher" subsection for the full
+   anatomy/behavior spec. */
+.c-prompt-bar-model{position:relative; flex:none;}
+.c-prompt-bar-model-trigger{gap:6px; color:var(--color-neutral-7); max-width:160px;}
+.c-prompt-bar-model-label{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.c-prompt-bar-model-trigger i{font-size:12px; color:var(--color-neutral-5); flex:none;}
+/* position:fixed, not absolute — .c-prompt-bar-more (this menu's
+   nearest positioned ancestor) has its own overflow:hidden, required
+   for the Floating bar's collapse-to-0fr morph, and it silently clips
+   an absolutely-positioned descendant that tries to render outside it.
+   Same failure Chat window's own .c-chat-menu already hit and solved;
+   positioned in JS from the trigger's own getBoundingClientRect(), the
+   same way, so no ancestor's overflow can clip it. */
+.c-prompt-bar-model-menu{
+  position:fixed; z-index:60; display:none;
+  min-width:180px; background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
+  border-radius:var(--radius-md); box-shadow:var(--shadow-3); padding:var(--spacing-4);
+}
+.c-prompt-bar-model-menu.is-open{display:block;}
+.c-prompt-bar-model-item{display:flex; align-items:center; gap:var(--spacing-12); width:100%; height:36px; padding:0 var(--spacing-12); border-radius:var(--radius-sm); background:transparent; border:none; font-family:inherit; font-size:var(--text-body2-size); line-height:var(--text-body2-lh); color:var(--color-neutral-9); text-align:left; cursor:pointer;}
+.c-prompt-bar-model-item:hover{background:var(--color-neutral-2);}
+.c-prompt-bar-model-item span{flex:1 1 auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+/* Trailing check, visibility-toggled rather than added/removed — same
+   idiom Department switcher's own dropdown uses for its selected item
+   — so every row reserves the same width and the label column never
+   shifts depending on which one is active. */
+.c-prompt-bar-model-item i{font-size:var(--icon-sm); color:var(--color-neutral-9); visibility:hidden; flex:none;}
+.c-prompt-bar-model-item.is-active i{visibility:visible;}
+
+/* Chat window — modal chat surface (conversation history rail + active
+   thread), the expanded form of Prompt input bar's own Floating variant.
+   Class prefix .c-chat*, kept flat rather than .c-chat-window-* — there
+   is only one chat surface in the system. See DESIGN-SYSTEM.md's own
+   Chat window section for the full anatomy/states/behavior spec,
+   including Message actions and Jump to present. */
+
+.c-chat{position:fixed; inset:0; z-index:95; perspective:1600px; display:none;}
+.c-chat.is-open{display:block;}
+
+.c-chat-veil{position:absolute; inset:0; background:rgba(20,20,20,.42); opacity:0; transition:opacity 480ms var(--ease-standard); cursor:pointer;}
+.c-chat.is-shown .c-chat-veil{opacity:1;}
+
+.c-chat-shell{position:absolute; inset:0; margin:auto; width:min(1200px, calc(100vw - var(--spacing-48))); height:min(820px, calc(100vh - var(--spacing-48))); display:grid; grid-template-columns:288px minmax(0,1fr); background:var(--color-neutral-1); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-4); transform-origin:0 0; opacity:0; container-type:inline-size;}
+.c-chat-shell.is-folding-open{animation:c-chat-fold-open .8s cubic-bezier(.25,.9,.35,1) forwards;}
+.c-chat-shell.is-folding-closed{animation:c-chat-fold-close .55s cubic-bezier(.3,.6,.35,1) forwards;}
+@keyframes c-chat-fold-open{0%{ opacity:.55; transform:translate(var(--fold-dx,0px),var(--fold-dy,0px)) scale(var(--fold-sx,.2),var(--fold-sy,.2)) rotateY(calc(var(--fold-dir,1) * 10deg)); } 100%{ opacity:1; transform:translate(0,0) scale(1,1) rotateY(0deg); }}
+@keyframes c-chat-fold-close{0%{ opacity:1; transform:translate(0,0) scale(1,1) rotateY(0deg); } 100%{ opacity:0; transform:translate(var(--fold-dx,0px),var(--fold-dy,0px)) scale(var(--fold-sx,.2),var(--fold-sy,.2)) rotateY(calc(var(--fold-dir,1) * -10deg)); }}
+
+/* Rail and main fade in as their own layer once the fold settles,
+   distinct from the shell's own opacity/transform. */
+.c-chat-rail, .c-chat-main{opacity:0; transition:opacity var(--duration-base) var(--ease-standard);}
+.c-chat.is-shown .c-chat-rail, .c-chat.is-shown .c-chat-main{opacity:1;}
+
+/* ---------------- Left rail ---------------- */
+.c-chat-rail{display:flex; flex-direction:column; min-width:0; min-height:0; border-right:1px solid var(--color-neutral-3); padding:var(--spacing-16); gap:var(--spacing-16);}
+.c-chat-new{width:100%; justify-content:center;}
+
+.c-chat-pillars{display:flex; flex-direction:column; gap:var(--spacing-8); flex:none;}
+.c-chat-flabel{font-size:var(--text-label3-size); font-weight:800; letter-spacing:var(--tracking-eyebrow); text-transform:uppercase; color:var(--color-neutral-5); width:100%;}
+
+.c-chat-conversations{flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; display:flex; flex-direction:column; gap:2px;}
+.c-chat-group{display:flex; flex-direction:column; gap:2px;}
+.c-chat-conversations-head{font-size:var(--text-caption-size); font-weight:700; letter-spacing:var(--tracking-eyebrow); text-transform:uppercase; color:var(--color-neutral-5); padding:var(--spacing-12) var(--spacing-8) var(--spacing-4);}
+.c-chat-conversation{display:flex; flex-direction:column; gap:1px; width:100%; padding:var(--spacing-8) var(--spacing-12); border-radius:var(--radius-sm); background:transparent; border:none; font-family:inherit; font-size:var(--text-body2-size); line-height:var(--text-body2-lh); color:var(--color-neutral-5); text-align:left; cursor:pointer; transition:background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);}
+.c-chat-conversation:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}
+.c-chat-conversation:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-chat-conversation.is-active{background:var(--color-neutral-2); color:var(--color-neutral-9); font-weight:700;}
+.c-chat-conversation.is-off-pillar{display:none;}
+.c-chat-conversation-title{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+/* Not uppercased, unlike every other eyebrow in the system — these are
+   camelCase product names (CollabSales) and the eyebrow recipe would
+   render them COLLABSALES, losing the seam the capital S provides. */
+.c-chat-conversation-pillar{font-size:var(--text-label3-size); font-weight:700; color:var(--color-neutral-4); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.c-chat-conversations.pillar-selected .c-chat-conversation-pillar{display:none;}
+.c-chat-empty{display:none; font-size:var(--text-caption-size); color:var(--color-neutral-5); padding:var(--spacing-16) var(--spacing-8); text-align:center;}
+.c-chat-empty.is-visible{display:block;}
+
+/* ---------------- Right panel ---------------- */
+.c-chat-main{display:flex; flex-direction:column; min-width:0; min-height:0;}
+.c-chat-hd{display:flex; align-items:flex-start; justify-content:space-between; gap:var(--spacing-16); padding:var(--spacing-20) var(--spacing-24); border-bottom:1px solid var(--color-neutral-3);}
+.c-chat-hd h2{margin:0; font-size:var(--text-h5-size); line-height:var(--text-h5-lh); font-weight:800; letter-spacing:0; color:var(--color-neutral-9);}
+.c-chat-hd p{margin:var(--spacing-4) 0 0; font-size:var(--text-caption-size); line-height:var(--text-caption-lh); color:var(--color-neutral-5);}
+
+/* Wraps the thread so Jump to present has a containing block whose
+   bottom edge is the top of the composer, without measuring the
+   composer's own height. Adds nothing visual, no new properties on
+   .c-chat-thread itself. */
+.c-chat-thread-wrap{position:relative; flex:1 1 auto; min-height:0; display:flex; flex-direction:column;}
+
+.c-chat-thread{flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:var(--spacing-24); display:flex; flex-direction:column; gap:var(--spacing-24);}
+.c-chat-thread-inner{max-width:760px; margin:0 auto; width:100%; display:flex; flex-direction:column; gap:var(--spacing-24);}
+
+/* Jump to present — a scroll pin with a button attached, not a button
+   with a scroll handler. Overlay, not a child of the scroller, so it
+   holds still while content moves under it. */
+.c-chat-jump{position:absolute; bottom:var(--spacing-16); left:50%; width:32px; height:32px; border-radius:var(--radius-pill); display:flex; align-items:center; justify-content:center; background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); box-shadow:var(--shadow-2); color:var(--color-neutral-9); padding:0; cursor:pointer; opacity:0; visibility:hidden; transform:translateX(-50%) translateY(8px); transition:opacity var(--duration-base) var(--ease-settle), transform var(--duration-base) var(--ease-settle), visibility 0s linear var(--duration-base), background-color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);}
+.c-chat-jump i{font-size:var(--icon-sm);}
+/* Transparent hit-area lift to 44px, no layout shift. */
+.c-chat-jump::after{content:''; position:absolute; inset:-6px;}
+.c-chat-jump:hover{background:var(--color-neutral-2); box-shadow:var(--shadow-3);}
+.c-chat-jump:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-chat-jump.is-visible{opacity:1; visibility:visible; transform:translateX(-50%) translateY(0); transition:opacity var(--duration-base) var(--ease-settle), transform var(--duration-base) var(--ease-settle), visibility 0s linear 0s, background-color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);}
+/* New-content dot — SidebarNav's own collapsed trailing-count
+   convention (8px dot, overlaid top-right, Neutral-1 ring). Obsidian
+   here since there's no owning element to tint it. */
+.c-chat-jump.has-new::before{content:''; position:absolute; top:-2px; right:-2px; width:8px; height:8px; border-radius:var(--radius-pill); background:var(--color-obsidian); box-shadow:0 0 0 2px var(--color-neutral-1);}
+@media (prefers-reduced-motion:reduce){
+  .c-chat-jump, .c-chat-jump.is-visible{transform:translateX(-50%);}
+}
+
+.c-chat-msg{display:flex; gap:var(--spacing-12);}
+.c-chat-msg.is-me{justify-content:flex-end;}
+/* AI turns stack bubble + action row vertically — no extra wrapper
+   needed, the message container itself just switches axis. User
+   turns stay a row (single bubble, no action row at all). */
+.c-chat-msg.is-ai{flex-direction:column;}
+
+/* AI bubble: plain text on the page — no fill, no border, no radius.
+   Deliberate asymmetry — the reader's own turns are tinted/right-
+   aligned; the assistant's run as page copy, which is also why there's
+   no AI avatar mark anywhere in this thread. */
+.c-chat-msg.is-ai .c-chat-bubble{font-size:var(--text-body1-size); line-height:1.65; color:var(--color-neutral-9); max-width:100%;}
+.c-chat-msg.is-me .c-chat-bubble{max-width:78%; padding:var(--spacing-12) var(--spacing-16); background:var(--color-neutral-2); border-radius:var(--radius-md); color:var(--color-neutral-9); font-size:var(--text-body1-size); line-height:1.5;}
+.c-chat-bubble p{margin:0 0 var(--spacing-12);}
+.c-chat-bubble p:last-child{margin-bottom:0;}
+.c-chat-bubble ul{margin:0 0 var(--spacing-12); padding-left:var(--spacing-20);}
+.c-chat-bubble ul:last-child{margin-bottom:0;}
+.c-chat-bubble li{margin-bottom:var(--spacing-4);}
+.c-chat-bubble li:last-child{margin-bottom:0;}
+.c-chat-bubble b{font-weight:700;}
+
+/* Citation — reuses Badge, Neutral variant, verbatim. Only addition:
+   top margin and the flex-wrap it sits in. */
+.c-chat-cite{margin-top:var(--spacing-4);}
+.c-chat-cite i{font-size:var(--icon-micro); color:inherit;}
+
+/* Message actions — ActionBar in industry terms (assistant-ui, Vercel
+   AI Elements). Always in flow, never revealed by height — animating
+   height would reflow the thread on every hover and jump the scroll
+   position, the same reason nothing else here animates a layout
+   property. Opacity-only. */
+.c-chat-actions{display:flex; align-items:center; gap:2px; height:28px; margin-top:var(--spacing-4); opacity:0; transition:opacity var(--duration-fast) var(--ease-standard);}
+.c-chat-msg:hover .c-chat-actions,
+.c-chat-msg:focus-within .c-chat-actions,
+.c-chat-actions.is-open{opacity:1;}
+/* A hover-only affordance is unreachable on the tablets this is read on. */
+@media (hover:none), (pointer:coarse){
+  .c-chat-actions{opacity:1;}
+}
+/* Mid-stream the buttons must not be tabbable, and a Copy that fires
+   on half a response is a bug, not a feature — display:none, not
+   opacity:0, removes them from the tab order outright. */
+.c-chat-msg.is-streaming .c-chat-actions{display:none;}
+
+.c-chat-action{position:relative; flex:none; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); background:transparent; border:none; padding:0; cursor:pointer; color:var(--color-neutral-5); font-size:var(--icon-sm); transition:background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);}
+/* Transparent hit-area lift to 44px — doesn't change the painted box
+   or shift layout. */
+.c-chat-action::after{content:''; position:absolute; inset:-8px;}
+.c-chat-action:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}
+.c-chat-action:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+.c-chat-action.is-copied{color:var(--color-green);}
+/* Read aloud — loading spinner, same treatment as Search input's own
+   Loading state: an ongoing process, Tier 1 Regular, not a status mark. */
+.c-chat-action.is-loading i{animation:c-chat-action-spin var(--duration-ambient) linear infinite;}
+@keyframes c-chat-action-spin{ to{ transform:rotate(360deg); } }
+.c-chat-action.is-playing{color:var(--color-neutral-9);}
+/* Thumbs — fill-vs-outline carries the pressed state, same logic as
+   Checkbox/Radio/Stepper; not a tier change. */
+.c-chat-action[aria-pressed="true"]{color:var(--color-neutral-9);}
+
+.c-chat-time{margin-left:var(--spacing-8); flex:none; font-size:var(--text-caption-size); line-height:var(--text-caption-lh); color:var(--color-neutral-5); font-variant-numeric:tabular-nums; white-space:nowrap;}
+
+/* More options menu — a fresh row/popover recipe. No .c-account-menu-item
+   exists to reuse: DESIGN-SYSTEM.md's own App Shell section (Don't list)
+   lists an account menu as an explicitly deferred, not-yet-
+   built requirement. Built from the same real popover shell already
+   used elsewhere (Filters/Dept switcher/Search dropdown: shadow-3,
+   radius-md, 1px Neutral-3 border, Neutral-1 fill, spacing-4 padding)
+   instead. */
+.c-chat-menu{position:fixed; z-index:60; display:none; min-width:180px; background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); box-shadow:var(--shadow-3); padding:var(--spacing-4);}
+.c-chat-menu.is-open{display:block;}
+.c-chat-menu-item{display:flex; align-items:center; gap:var(--spacing-12); width:100%; height:36px; padding:0 var(--spacing-12); border-radius:var(--radius-sm); background:transparent; border:none; font-family:inherit; font-size:var(--text-body2-size); line-height:var(--text-body2-lh); color:var(--color-neutral-9); text-align:left; cursor:pointer;}
+.c-chat-menu-item i{font-size:var(--icon-sm); color:var(--color-neutral-5); flex:none;}
+.c-chat-menu-item:hover{background:var(--color-neutral-2);}
+.c-chat-menu-item:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:-2px;}
+
+.sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
+
+.c-chat-composer{flex:none; padding:var(--spacing-16) var(--spacing-24) var(--spacing-24); background:var(--color-canvas-warm); border-top:1px solid var(--color-neutral-3);}
+.c-chat-composer-inner{max-width:760px; margin:0 auto;}
+
+.c-chat-foot{max-width:760px; margin:var(--spacing-8) auto 0; font-size:var(--text-caption-size); color:var(--color-neutral-5); text-align:center;}
+
+/* Single column ≤820px — measured against the SHELL's own width via a
+   container query, not the viewport, since the shell is itself capped
+   at min(1200px, 100vw-48px) and can be narrower than the window. Below
+   that width the rail becomes a slide-in drawer instead of vanishing
+   outright — reachable via the toggle in the header, .c-chat-rail-toggle
+   below, which only exists in this same narrow state. */
+/* A size container query can't restyle the container element itself
+   (.c-chat-shell here) — only its descendants. Rather than trying to
+   flip grid-template-columns on the shell (which browsers ignore),
+   let .c-chat-main span both tracks and layer the rail on top as an
+   absolutely-positioned drawer instead — both are real descendants
+   the query can reach. */
+/* Hidden outside the narrow state below — no drawer to open, so no
+   control and no scrim to show. Declared BEFORE the @container block
+   on purpose: a plain rule and a matched @container rule at equal
+   specificity resolve by source order, so the unconditional reset has
+   to come first or it would always beat the conditional override. */
+.c-chat-rail-toggle{display:none;}
+.c-chat-rail-scrim{display:none;}
+@container (max-width:820px){
+  .c-chat-rail{
+    position:absolute; top:0; bottom:0; left:0; z-index:30;
+    width:288px; max-width:85%; border-right:none;
+    background:var(--color-neutral-1);
+    box-shadow:var(--shadow-4);
+    transform:translateX(-100%);
+    transition:transform var(--duration-base) var(--ease-standard);
+  }
+  .c-chat-rail.is-open{transform:translateX(0);}
+  /* position+z-index here isn't cosmetic — .c-chat-main is a CSS grid
+     item, and a grid item's stacking is ambiguous relative to a later
+     sibling's z-index when the item itself has no explicit position/
+     z-index of its own (its .c-prompt-bar-surface descendant's own
+     z-index:10 was winning against the scrim's z-index:20 regardless
+     of how high the scrim's z-index went, until main got a real,
+     comparable position+z-index of its own). Kept lower than the
+     scrim's 20 so the scrim still wins while it's open. */
+  .c-chat-main{grid-column:1 / -1; position:relative; z-index:1;}
+  .c-chat-rail-toggle{display:flex;}
+  .c-chat-rail-scrim{
+    display:block; position:absolute; inset:0; z-index:20;
+    background:rgba(20,20,20,.42); opacity:0; pointer-events:none;
+    transition:opacity var(--duration-base) var(--ease-standard);
+  }
+  .c-chat-rail-scrim.is-open{opacity:1; pointer-events:auto;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .c-chat-veil{transition:none;}
+  .c-chat-shell{animation:none !important;}
+  .c-chat-rail, .c-chat-main{transition:none;}
+  .c-chat-rail-scrim{transition:none;}
+}
