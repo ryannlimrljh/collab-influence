@@ -347,21 +347,10 @@
   .inf-viewbtn:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}
   .inf-viewbtn.is-active{background:var(--color-obsidian); color:var(--color-neutral-1);}
   .inf-viewbtn:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:-2px;}
-  /* Density is a single borderless toggle, NOT a second segmented
-     control: two identical segments side by side read as one broken
-     four-button control. Borderless keeps it clearly subordinate to the
-     view switch, which is the real mode change. */
-  .inf-densitybtn{display:none; align-items:center; justify-content:center;
-    width:34px; height:34px; align-self:center; flex:none;
-    border:0; background:transparent; border-radius:var(--radius-sm);
-    color:var(--color-neutral-5); font-size:var(--icon-sm); cursor:pointer;
-    transition:background-color var(--duration-fast) var(--ease-standard),
-      color var(--duration-fast) var(--ease-standard);}
-  .inf-densitybtn.is-on{display:flex;}
-  .inf-densitybtn:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}
-  .inf-densitybtn[aria-pressed="true"]{color:var(--color-neutral-9);
-    background:var(--color-neutral-2);}
-  .inf-densitybtn:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:-2px;}
+  /* The density control is gone: the view switch is the only mode
+     control this row should carry. Comfortable rows are the single
+     density; .is-compact below stays as dead-simple styling in case
+     density returns as a preference rather than a toolbar button. */
 
   /* ── List view — the DLS standalone table.
      Fixed layout so the browser honours the column widths below instead
@@ -450,11 +439,16 @@
   .inf-tier-3{background:var(--color-water-bg); color:var(--color-navy);
     border-color:color-mix(in srgb, var(--color-navy) 22%, transparent);}
   .inf-tier-4{background:var(--color-fire-bg); color:var(--color-orange);
-    border-color:color-mix(in srgb, var(--color-orange) 30%, transparent);}
-  /* Mega is the one that should stop the eye: full element fill. */
-  .inf-tier-5{background:var(--color-amber); color:var(--color-obsidian);
-    border-color:color-mix(in srgb, var(--color-obsidian) 12%, transparent);}
-  .inf-tier-5 .dot{background:var(--color-obsidian);}
+    border-color:color-mix(in srgb, var(--color-orange) 22%, transparent);}
+  /* Mega follows the same formula as every other tier — pale element
+     background, element-coloured text and dot. The solid amber fill it
+     had before was the only pill built differently, so it read as a
+     mistake rather than as emphasis. Amber on its own pale ground is
+     too light for body text, so the label takes the darker bronze the
+     DLS pairs with gold. */
+  .inf-tier-5{background:var(--color-gold-bg); color:#8A5A00;
+    border-color:color-mix(in srgb, var(--color-amber) 40%, transparent);}
+  .inf-tier-5 .dot{background:var(--color-amber);}
 
   .inf-list-plat{white-space:nowrap;}
   .inf-plat{display:flex; align-items:center; justify-content:flex-end;
@@ -671,10 +665,6 @@
           <div class="inf-pillbar" id="infPillbar"></div>
           <button class="c-btn c-btn-ghost c-btn-sm c-filter-clear-bar" id="infClearAll" type="button" hidden>Clear all</button>
         </div>
-        <button class="inf-densitybtn" type="button" id="infDensityBtn"
-                aria-pressed="false" aria-label="Compact rows" title="Compact rows">
-          <i class="ph ph-rows"></i>
-        </button>
         <div class="inf-viewseg" role="group" aria-label="View">
           <button class="inf-viewbtn" type="button" data-view="list" aria-label="List view" title="List view"><i class="ph ph-list-bullets"></i></button>
           <button class="inf-viewbtn is-active" type="button" data-view="tile" aria-label="Tile view" title="Tile view"><i class="ph ph-squares-four"></i></button>
@@ -1128,33 +1118,10 @@
      wins on every later visit. */
   var view = 'list';
   try { view = localStorage.getItem(VIEW_KEY) === 'tile' ? 'tile' : 'list'; } catch (e) {}
-  /* Row density — a list-only concern, remembered like the view. */
-  var DENSITY_KEY = 'collab-influencers-density-v2';
-  var density = 'comfortable';
-  try { density = localStorage.getItem(DENSITY_KEY) === 'compact' ? 'compact' : 'comfortable'; } catch (e) {}
-  function applyDensity(){
-    var btn = document.getElementById('infDensityBtn');
-    var compact = density === 'compact';
-    btn.classList.toggle('is-on', view === 'list');
-    btn.setAttribute('aria-pressed', String(compact));
-    /* The icon shows the state you are IN, the label says what a press
-       will do — so the control never claims to be something it isn't. */
-    btn.innerHTML = '<i class="ph ' + (compact ? 'ph-list-dashes' : 'ph-rows') + '"></i>';
-    btn.title = compact ? 'Comfortable rows' : 'Compact rows';
-    btn.setAttribute('aria-label', btn.title);
-    mainEl.classList.toggle('is-compact', compact);
-  }
-  document.getElementById('infDensityBtn').addEventListener('click', function(){
-    density = density === 'compact' ? 'comfortable' : 'compact';
-    try { localStorage.setItem(DENSITY_KEY, density); } catch (err) {}
-    applyDensity();
-  });
-
   function applyViewButtons(){
     document.querySelectorAll('.inf-viewbtn[data-view]').forEach(function(b){
       b.classList.toggle('is-active', b.dataset.view === view);
     });
-    applyDensity();
     /* The rail stays up in both views while the order IS A–Z; a manual
        column sort breaks that order, so the rail steps aside with it. */
     railEl.style.display = (view === 'list' && !isDefaultSort()) ? 'none' : '';
@@ -1887,11 +1854,15 @@
     var badges = (r.niches || []).map(function(n){
       return '<span class="c-badge c-badge-neutral">' + esc(n) + '</span>';
     }).join(' ');
+    /* Same tier pill the list and the cards use — the tier was the one
+       thing this panel still spelled out as parenthetical text. */
     var plats = (r.platforms || []).map(function(p){
       var t = tierOf(p.followers);
       return '<div class="inf-kv"><dt>' + esc(p.label) + '</dt><dd>' +
         (p.link ? '<a href="' + esc(p.link) + '" target="_blank" rel="noopener" style="color:var(--color-navy)">@' + esc(p.handle) + '</a>' : (p.handle ? '@' + esc(p.handle) : '—')) +
-        (p.followers != null ? ' · ' + fmtFollowers(p.followers) + ' followers' + (t ? ' (' + t.name + ')' : '') : '') +
+        (p.followers != null ? ' · ' + fmtFollowers(p.followers) + ' followers' : '') +
+        (t ? ' <span class="inf-tier inf-tier-' + t.rank + '">' +
+             (t.rank ? '<span class="dot"></span>' : '') + t.name + '</span>' : '') +
         '</dd></div>';
     }).join('');
     var pii = r.pii || {};
