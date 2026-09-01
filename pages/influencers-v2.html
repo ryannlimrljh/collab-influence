@@ -195,6 +195,15 @@
     transition:opacity var(--duration-base) var(--ease-standard),
       transform var(--duration-base) var(--ease-standard);}
 
+  /* The native scrollbar is hidden here on purpose. It is an overlay
+     scrollbar (zero layout width), so it paints straight over the A–Z
+     rail's strip the moment you scroll — the two occupy the same 20px
+     of screen. The rail already reports position far better than a bar
+     does, so the bar is the one that goes. Scrolling itself, including
+     the wheel, trackpad and keyboard, is untouched. */
+  .c-shell .c-shell-content{scrollbar-width:none; -ms-overflow-style:none;}
+  .c-shell .c-shell-content::-webkit-scrollbar{width:0; height:0;}
+
   /* ── A–Z rail — the scrolling indicator, kept quiet: just small grey
      letters, the current one in ink, letters with nothing to jump to
      faded near-out. Functional weight, whisper visual weight. */
