@@ -347,6 +347,10 @@
   .inf-viewbtn:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}
   .inf-viewbtn.is-active{background:var(--color-obsidian); color:var(--color-neutral-1);}
   .inf-viewbtn:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:-2px;}
+  /* The density control is a list-view concern only; it reuses the view
+     segment's own shape so the two read as one control cluster. */
+  .inf-densityseg{display:none;}
+  .inf-densityseg.is-on{display:flex;}
 
   /* ── List view — the DLS standalone table.
      Fixed layout so the browser honours the column widths below instead
@@ -401,8 +405,36 @@
     color:var(--color-neutral-5); font-weight:400; margin-top:2px;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .inf-rowpin{color:var(--color-neutral-5); font-size:var(--icon-micro); flex:none;}
+  /* Compact density — the niche subline is the only thing dropped, so
+     a row loses its second line and about a third of its height. At 495
+     rows that is the difference between 15 and 22 rows on screen. */
+  .is-compact .inf-rowsub{display:none;}
+  .is-compact tbody td{padding-top:6px; padding-bottom:6px;}
+  .is-compact .inf-rowcell .c-card-profile-avatar{width:24px; height:24px;}
+  /* Avatars are the fastest recognition cue in a row; 28 was small. */
+  .inf-rowcell .c-card-profile-avatar{width:34px; height:34px;}
   /* Platform cells: number and tier pill each get their own aligned
      sub-column, so the figures line up down the table. */
+  /* Sticky header — 495 rows is far past the point where losing the
+     column labels, the sort controls and the select-all box matters. */
+  .inf-table thead th{position:sticky; top:0; z-index:4;
+    background:var(--color-neutral-2);}
+
+  /* Tier as an ORDINAL ramp, not five categorical hues. The old pills
+     said pink/green/blue/orange/amber, which carry no sense of rank —
+     you had to read the word to know Macro beats Micro. One neutral
+     ramp, darkening with reach, says it at a glance and stops 900-odd
+     pills from shouting over the names and the follower counts. */
+  .inf-tier{display:inline-block; padding:2px 7px; border-radius:var(--radius-pill);
+    font-size:var(--text-footnote-size); font-weight:700; line-height:16px;
+    white-space:nowrap;}
+  .inf-tier-0{background:var(--color-neutral-2); color:var(--color-neutral-5);}
+  .inf-tier-1{background:var(--color-neutral-2); color:var(--color-neutral-6, var(--color-neutral-5));}
+  .inf-tier-2{background:var(--color-neutral-3); color:var(--color-neutral-9);}
+  .inf-tier-3{background:var(--color-neutral-4); color:var(--color-neutral-9);}
+  .inf-tier-4{background:var(--color-neutral-6, #6b6b6b); color:var(--color-neutral-1);}
+  .inf-tier-5{background:var(--color-obsidian); color:var(--color-neutral-1);}
+
   .inf-list-plat{white-space:nowrap;}
   .inf-plat{display:flex; align-items:center; justify-content:flex-end;
     gap:var(--spacing-8);}
@@ -619,6 +651,10 @@
           <span class="c-filter-search-divider" aria-hidden="true"></span>
           <div class="inf-pillbar" id="infPillbar"></div>
           <button class="c-btn c-btn-ghost c-btn-sm c-filter-clear-bar" id="infClearAll" type="button" hidden>Clear all</button>
+        </div>
+        <div class="inf-viewseg inf-densityseg" role="group" aria-label="Row density" id="infDensitySeg">
+          <button class="inf-viewbtn" type="button" data-density="comfortable" aria-label="Comfortable rows" title="Comfortable rows"><i class="ph ph-rows"></i></button>
+          <button class="inf-viewbtn" type="button" data-density="compact" aria-label="Compact rows" title="Compact rows"><i class="ph ph-list-dashes"></i></button>
         </div>
         <div class="inf-viewseg" role="group" aria-label="View">
           <button class="inf-viewbtn" type="button" data-view="list" aria-label="List view" title="List view"><i class="ph ph-list-bullets"></i></button>
@@ -843,13 +879,15 @@
     if (n >= 1e3) return (n / 1e3).toFixed(n % 1e3 ? 1 : 0).replace(/\.0$/, '') + 'K';
     return String(n);
   }
+  /* rank drives the list's ordinal ramp (see .inf-tier-*); cls stays for
+     the cards' element-coloured tier dot. */
   var TIERS = [
-    {max:1e3,  name:'Seeder', cls:''},
-    {max:5e3,  name:'Nano',   cls:'c-tag-wood'},
-    {max:2e4,  name:'Micro',  cls:'c-tag-earth'},
-    {max:1e5,  name:'Mid',    cls:'c-tag-water'},
-    {max:5e5,  name:'Macro',  cls:'c-tag-fire'},
-    {max:Infinity, name:'Mega', cls:'c-tag-gold'}
+    {max:1e3,  name:'Seeder', cls:'',            rank:0},
+    {max:5e3,  name:'Nano',   cls:'c-tag-wood',  rank:1},
+    {max:2e4,  name:'Micro',  cls:'c-tag-earth', rank:2},
+    {max:1e5,  name:'Mid',    cls:'c-tag-water', rank:3},
+    {max:5e5,  name:'Macro',  cls:'c-tag-fire',  rank:4},
+    {max:Infinity, name:'Mega', cls:'c-tag-gold', rank:5}
   ];
   function tierOf(n){
     if (n == null) return null;
@@ -1071,10 +1109,30 @@
      wins on every later visit. */
   var view = 'list';
   try { view = localStorage.getItem(VIEW_KEY) === 'tile' ? 'tile' : 'list'; } catch (e) {}
+  /* Row density — a list-only concern, remembered like the view. */
+  var DENSITY_KEY = 'collab-influencers-density-v2';
+  var density = 'comfortable';
+  try { density = localStorage.getItem(DENSITY_KEY) === 'compact' ? 'compact' : 'comfortable'; } catch (e) {}
+  function applyDensity(){
+    document.getElementById('infDensitySeg').classList.toggle('is-on', view === 'list');
+    document.querySelectorAll('[data-density]').forEach(function(b){
+      b.classList.toggle('is-active', b.dataset.density === density);
+    });
+    mainEl.classList.toggle('is-compact', density === 'compact');
+  }
+  document.getElementById('infDensitySeg').addEventListener('click', function(e){
+    var b = e.target.closest('[data-density]');
+    if (!b || b.dataset.density === density) return;
+    density = b.dataset.density;
+    try { localStorage.setItem(DENSITY_KEY, density); } catch (err) {}
+    applyDensity();
+  });
+
   function applyViewButtons(){
-    document.querySelectorAll('.inf-viewbtn').forEach(function(b){
+    document.querySelectorAll('.inf-viewbtn[data-view]').forEach(function(b){
       b.classList.toggle('is-active', b.dataset.view === view);
     });
+    applyDensity();
     /* The rail stays up in both views while the order IS A–Z; a manual
        column sort breaks that order, so the rail steps aside with it. */
     railEl.style.display = (view === 'list' && !isDefaultSort()) ? 'none' : '';
@@ -1160,7 +1218,7 @@
     return '<i class="ph ' + (sortDir === 1 ? 'ph-caret-up' : 'ph-caret-down') + ' inf-sorticon is-on"></i>';
   }
 
-  function listRow(r){
+  function listRow(r, cols){
     var pinned = influencerStore.isPinned(r.id);
     var plat = {};
     (r.platforms || []).forEach(function(p){ plat[p.platform] = p; });
@@ -1170,7 +1228,7 @@
       return '<td class="inf-list-plat"><span class="inf-plat">' +
         '<span class="pnum">' + (p && p.followers != null ? fmtFollowers(p.followers) : '—') + '</span>' +
         '<span class="ptier">' +
-        (t ? '<span class="c-tag ' + t.cls + '">' + (t.cls ? '<span class="dot"></span>' : '') + t.name + '</span>' : '') +
+        (t ? '<span class="inf-tier inf-tier-' + t.rank + '">' + t.name + '</span>' : '') +
         '</span></span></td>';
     }
     var sel = selected.has(r.id);
@@ -1191,7 +1249,7 @@
       '<td class="inf-cell-text">' + esc(r.age || '—') + '</td>' +
       '<td class="inf-cell-text">' + esc(r.gender || '—') + '</td>' +
       '<td class="inf-cell-text" title="' + esc(r.location || '') + '">' + esc(r.location || '—') + '</td>' +
-      platCell('tiktok') + platCell('instagram') + platCell('xhs') +
+      cols.map(platCell).join('') +
       '<td class="c-table-action-col"><span class="inf-kebab">' +
         '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon inf-kebab-btn" type="button" aria-label="Options for ' + esc(r.name) + '" aria-haspopup="true"><i class="ph ph-dots-three-vertical"></i></button>' +
         '<span class="inf-menu">' +
@@ -1201,8 +1259,24 @@
           '<button class="inf-menu-item is-danger" type="button" data-act="remove" data-id="' + r.id + '"><i class="ph ph-trash"></i> Remove</button>' +
         '</span></span></td></tr>';
   }
+  var PLATS = [{key:'tiktok', label:'TikTok'},
+               {key:'instagram', label:'Instagram'},
+               {key:'xhs', label:'Xiaohongshu'}];
   function listHTML(pinnedHits, restHits){
-    var rows = pinnedHits.concat(restHits).map(listRow).join('');
+    var shown = pinnedHits.concat(restHits);
+    /* A platform column only earns its width if something in the CURRENT
+       result set uses it. The KULT export ships XHS columns with zero
+       values in all 495 rows, so that column was pure dead space — and
+       this now adapts to filters too, rather than hard-coding the fix. */
+    var cols = PLATS.filter(function(p){
+      return shown.some(function(r){
+        return (r.platforms || []).some(function(x){
+          return x.platform === p.key && (x.followers != null || x.handle);
+        });
+      });
+    }).map(function(p){ return p.key; });
+    if (!cols.length) cols = ['tiktok'];
+    var rows = shown.map(function(r){ return listRow(r, cols); }).join('');
     function sth(key, label, num, col){
       return '<th class="c-table-sort-th' + (num ? ' num' : '') + ' ' + col +
         '" data-sort="' + key + '" role="button" tabindex="0" aria-label="Sort by ' + label + '">' +
@@ -1225,9 +1299,10 @@
       sth('age', 'Age', false, 'inf-col-age') +
       sth('gender', 'Gender', false, 'inf-col-gender') +
       sth('location', 'Location', false, 'inf-col-loc') +
-      sth('tiktok', 'TikTok', true, 'inf-col-plat') +
-      sth('instagram', 'Instagram', true, 'inf-col-plat') +
-      sth('xhs', 'XHS', true, 'inf-col-plat') +
+      cols.map(function(k){
+        var label = k === 'xhs' ? 'XHS' : PLATS.filter(function(p){ return p.key === k; })[0].label;
+        return sth(k, label, true, 'inf-col-plat');
+      }).join('') +
       '<th class="no-sort c-table-action-col inf-col-act"><span class="sr-only">Actions</span></th>' +
       '</tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
