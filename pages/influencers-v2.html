@@ -518,9 +518,20 @@
   /* Platform cells: number and tier pill each get their own aligned
      sub-column, so the figures line up down the table. */
   /* Sticky header — 495 rows is far past the point where losing the
-     column labels, the sort controls and the select-all box matters. */
+     column labels, the sort controls and the select-all box matters.
+     The corners are carried by the header cells themselves because the
+     wrapper no longer clips (it was un-clipped so the kebab menu could
+     escape its cell), so the radius has nothing to inherit. */
   .inf-table thead th{position:sticky; top:0; z-index:4;
-    background:var(--color-neutral-2);}
+    background:var(--color-neutral-2);
+    transition:border-radius var(--duration-fast) var(--ease-standard);}
+  .inf-table thead th:first-child{border-top-left-radius:var(--radius-lg);}
+  .inf-table thead th:last-child{border-top-right-radius:var(--radius-lg);}
+  /* Once pinned, the header spans a hard edge against the rows still
+     scrolling under it — rounded corners there would leave two notches
+     of background showing through. */
+  .inf-table.is-stuck thead th:first-child,
+  .inf-table.is-stuck thead th:last-child{border-radius:0;}
 
   /* Tier keeps the DLS element hues so the list and the cards say the
      same thing about the same profile — the cards' tier dot uses these
@@ -1526,6 +1537,25 @@
     }
   }
 
+  /* Squares the sticky header's top corners once it pins. Measured off
+     the scroll position rather than with an IntersectionObserver: an
+     observer needs the page to be compositing to compute intersections,
+     so it silently never fires in a window that is painted but not
+     composited — the same condition that stalls animation clocks here.
+     A rect comparison is one cheap read and always right. */
+  function syncStick(){
+    var table = mainEl.querySelector('.inf-table');
+    if (!table) return;
+    var head = table.querySelector('thead');
+    table.classList.toggle('is-stuck',
+      head.getBoundingClientRect().top <= scroller.getBoundingClientRect().top + 0.5);
+  }
+  function watchStick(){ syncStick(); }
+  /* Called straight off the scroll event, not through rAF: rAF is
+     driven by the same frame loop that stalls when the page is not
+     compositing. Two rect reads and no writes, so it cannot thrash. */
+  scroller.addEventListener('scroll', syncStick, {passive: true});
+
   var lastPaintView = view;
   function render(keepPills){
     refreshData();
@@ -1545,6 +1575,7 @@
           '<h4>No influencers found</h4>' +
           '<p>Nothing matches. Clear the search or filters to see the full roster.</p></div>';
       playMove(before);
+      watchStick();
       if (avatarIO) {
         mainEl.querySelectorAll('img[data-avatar-for]').forEach(function(img){
           avatarIO.observe(img);
