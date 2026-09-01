@@ -47,10 +47,17 @@
     color:var(--color-neutral-5);}
   .inf-letter-head .rule{flex:1; border-top:1px solid var(--color-neutral-3);
     align-self:center;}
-  .inf-section{margin-bottom:var(--spacing-32);}
-  /* perspective feeds the hover tilt: without it rotateX/rotateY flatten. */
+  /* content-visibility lets a full re-render (search keystroke, filter
+     toggle) lay out only the sections near the viewport instead of all
+     495 cards — the single biggest cost in a rebuild. The intrinsic
+     size keeps the scrollbar and the A–Z jump targets honest. */
+  .inf-section{margin-bottom:var(--spacing-32);
+    content-visibility:auto; contain-intrinsic-size:auto 640px;}
+  /* No perspective here: the tilt carries its own perspective() inside
+     the inline transform, so idle grids stay flat 2D — a page-wide 3D
+     context on every section was a real compositing cost. */
   .inf-grid{display:grid; grid-template-columns:repeat(4, 1fr);
-    gap:var(--spacing-20); align-items:stretch; perspective:900px;}
+    gap:var(--spacing-20); align-items:stretch;}
   @media (max-width:1180px){.inf-grid{grid-template-columns:repeat(3, 1fr);}}
   @media (max-width:880px){.inf-grid{grid-template-columns:repeat(2, 1fr);}}
 
@@ -70,7 +77,8 @@
      pointer instead of lagging a quarter-second behind it. Dropping the
      class hands the return trip back to the settle curve above. */
   .inf-card.is-tilting{transition:transform .16s ease-out,
-    box-shadow var(--duration-base) var(--ease-settle); z-index:5;}
+    box-shadow var(--duration-base) var(--ease-settle); z-index:5;
+    will-change:transform;} /* own layer while tilting — no repaints per move */
   .inf-card:focus-visible{box-shadow:var(--shadow-focus); outline:none;}
   @media (prefers-reduced-motion:reduce){.inf-card:hover{transform:none;}}
   /* Banner — the reference's three-image strip: three 4:5 tiles with a
@@ -1142,11 +1150,20 @@
      A card arriving from a filter fades in instead — it has nowhere to
      travel from. Off-screen cards are skipped; so is the whole pass
      when the view type changed (a card cannot morph into a table row). */
+  /* Both passes bail out the moment they measure past the viewport:
+     the cards come back in document order, so everything after the
+     first below-the-fold rect is also below the fold. That turns ~1000
+     getBoundingClientRect calls per keystroke into a couple dozen. */
+  var FLIP_PAD = 240;
   function snapshotRects(){
-    var map = {};
-    mainEl.querySelectorAll('.inf-card[data-id], tr[data-id]').forEach(function(el){
-      map[el.dataset.id] = el.getBoundingClientRect();
-    });
+    var map = {}, vh = window.innerHeight;
+    var els = mainEl.querySelectorAll('.inf-card[data-id], tr[data-id]');
+    for (var i = 0; i < els.length; i++) {
+      var rc = els[i].getBoundingClientRect();
+      if (rc.top > vh + FLIP_PAD) break;
+      if (rc.bottom < -FLIP_PAD) continue;
+      map[els[i].dataset.id] = rc;
+    }
     return map;
   }
   function playMove(before){
@@ -1154,29 +1171,32 @@
     var hadAny = false;
     for (var k in before) { hadAny = true; break; }
     var moved = 0, appeared = 0, vh = window.innerHeight;
-    mainEl.querySelectorAll('.inf-card[data-id], tr[data-id]').forEach(function(el){
-      var was = before[el.dataset.id];
+    var els = mainEl.querySelectorAll('.inf-card[data-id], tr[data-id]');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
       var now = el.getBoundingClientRect();
-      if (now.top > vh + 240 && (!was || was.top > vh + 240)) return;
+      if (now.top > vh + FLIP_PAD) break;
+      if (now.bottom < -FLIP_PAD) continue;
+      var was = before[el.dataset.id];
       if (!was) {
-        if (!hadAny) return; /* first real paint — the arrival CSS owns it */
+        if (!hadAny) continue; /* first real paint — the arrival CSS owns it */
         el.animate([
           {opacity: 0, transform: 'translateY(10px) scale(.98)'},
           {opacity: 1, transform: 'none'}
         ], {duration: 300, delay: Math.min(appeared * 14, 180),
             easing: 'cubic-bezier(.32,.72,.3,1)', fill: 'backwards'});
         appeared++;
-        return;
+        continue;
       }
       var dx = was.left - now.left, dy = was.top - now.top;
-      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
       el.animate([
         {transform: 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px)'},
         {transform: 'translate(0,0)'}
       ], {duration: 520, delay: Math.min(moved * 22, 220),
           easing: 'cubic-bezier(.32,.72,.3,1)', fill: 'backwards'});
       moved++;
-    });
+    }
   }
 
   var lastPaintView = view;
@@ -1435,9 +1455,23 @@
       ? mainEl.querySelector('tr[data-letter="' + row.dataset.letter + '"]')
       : document.getElementById('letter-' + (row.dataset.letter === '#' ? 'hash' : row.dataset.letter));
     if (!target) return;
-    var top = (target.getBoundingClientRect().top - scroller.getBoundingClientRect().top)
-      + scroller.scrollTop - (view === 'list' ? 56 : 4);
-    scroller.scrollTo({top: top, behavior: document.hidden ? 'auto' : 'smooth'});
+    /* Iterative jump: sections above the target that have never been
+       painted only have ESTIMATED heights (content-visibility), so the
+       first landing can be off — each pass scrolls, lets the freshly
+       revealed sections take their real size, and re-measures until the
+       target stops moving. Instant scrolls, or a smooth glide would be
+       chasing a moving floor. */
+    var offset = view === 'list' ? 56 : 4;
+    var tries = 0;
+    (function land(){
+      var delta = target.getBoundingClientRect().top
+        - scroller.getBoundingClientRect().top - offset;
+      if (Math.abs(delta) < 2 || tries++ > 7) return;
+      scroller.scrollTo({top: scroller.scrollTop + delta, behavior: 'auto'});
+      /* setTimeout, not rAF: sizes only settle at the next rendering
+         step, and rAF never fires while the tab is hidden. */
+      setTimeout(land, 60);
+    })();
   });
 
   /* Scroll-spy — the letter whose section owns the current viewport top. */
@@ -1979,12 +2013,26 @@
      is cached at pointerover because measuring a card mid-tilt returns
      its ROTATED bounding box, which feeds the angle back into itself. */
   var TILT_MAX = 4; /* whisper-level: the card leans, it doesn't swivel */
-  var tiltCard = null, tiltRect = null;
+  var tiltCard = null, tiltRect = null, tiltRAF = 0, tiltX = 0, tiltY = 0;
   function untilt(){
+    if (tiltRAF) { cancelAnimationFrame(tiltRAF); tiltRAF = 0; }
     if (!tiltCard) return;
     tiltCard.classList.remove('is-tilting');
     tiltCard.style.transform = '';
     tiltCard = null; tiltRect = null;
+  }
+  /* One transform write per FRAME, not per pointer event — a 120Hz mouse
+     otherwise floods style recalc and this is exactly what dragged the
+     whole page down. perspective() lives inside the transform so only
+     the tilting card is ever a 3D context. */
+  function tiltFrame(){
+    tiltRAF = 0;
+    if (!tiltCard) return;
+    var px = (tiltX - tiltRect.left) / tiltRect.width;
+    var py = (tiltY - tiltRect.top) / tiltRect.height;
+    tiltCard.style.transform = 'perspective(700px) translateY(-2px) scale(1.015)' +
+      ' rotateX(' + (-(py - 0.5) * 2 * TILT_MAX).toFixed(2) + 'deg)' +
+      ' rotateY(' + ((px - 0.5) * 2 * TILT_MAX).toFixed(2) + 'deg)';
   }
   mainEl.addEventListener('pointerover', function(e){
     if (REDUCED || e.pointerType !== 'mouse' || view !== 'tile') return;
@@ -1994,16 +2042,12 @@
     if (!card) return;
     tiltCard = card;
     tiltRect = card.getBoundingClientRect();
+    card.classList.add('is-tilting');
   });
   mainEl.addEventListener('pointermove', function(e){
     if (!tiltCard || e.pointerType !== 'mouse') return;
-    if (!e.target.closest || e.target.closest('.inf-card[data-id]') !== tiltCard) return;
-    var px = (e.clientX - tiltRect.left) / tiltRect.width;
-    var py = (e.clientY - tiltRect.top) / tiltRect.height;
-    tiltCard.classList.add('is-tilting');
-    tiltCard.style.transform = 'translateY(-2px) scale(1.015)' +
-      ' rotateX(' + (-(py - 0.5) * 2 * TILT_MAX).toFixed(2) + 'deg)' +
-      ' rotateY(' + ((px - 0.5) * 2 * TILT_MAX).toFixed(2) + 'deg)';
+    tiltX = e.clientX; tiltY = e.clientY;
+    if (!tiltRAF) tiltRAF = requestAnimationFrame(tiltFrame);
   });
   mainEl.addEventListener('pointerout', function(e){
     if (!tiltCard) return;
