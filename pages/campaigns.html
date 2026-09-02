@@ -584,7 +584,28 @@
      keystroke, the way the roster page's filters do. */
   function renderAnimated(){
     var root = E(view === 'board' ? 'cmpBoardView' : 'cmpListView');
-    cascade(root, root, function(){ render(); });
+    cascade(root, root, function(){ render(); revealStageColumn(); });
+  }
+  /* The board scrolls sideways, so a filtered stage can be a column
+     that is off-screen. Bring it in: the column lands on the content
+     margin, where the first column sits at rest; clearing the filter
+     glides back to the start. */
+  function revealStageColumn(){
+    var board = E('cmpBoard');
+    if (view !== 'board') return;
+    var target = 0;
+    if (stageFilter) {
+      var col = board.querySelector('.cmp-col[data-col="' + stageFilter + '"]');
+      if (!col) return;
+      var pad = parseFloat(getComputedStyle(board).paddingLeft) || 0;
+      /* Measured against the board, not the page: the board is bled
+         out to the gutter, so offsetLeft alone would carry that shift. */
+      var rel = col.getBoundingClientRect().left - board.getBoundingClientRect().left + board.scrollLeft;
+      target = Math.max(0, Math.min(rel - pad, board.scrollWidth - board.clientWidth));
+    }
+    if (Math.abs(board.scrollLeft - target) < 2) return;
+    /* A hidden document never advances a smooth scroll, so jump there. */
+    board.scrollTo({left: target, behavior: (REDUCED || document.hidden) ? 'auto' : 'smooth'});
   }
   /* Name marquee — measured on hover, only when the text overflows. */
   function startMarquee(item){
@@ -1002,6 +1023,7 @@
   skeleton();
   setTimeout(function(){
     render();
+    if (stageFilter) setTimeout(revealStageColumn, 200);
     if (params.get('new')) setTimeout(openAdd, 350);
     setTimeout(function(){ E('cmpContent').classList.remove('cmp-arriving'); }, 1100);
   }, REDUCED ? 0 : 480);
