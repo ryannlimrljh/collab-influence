@@ -1732,11 +1732,24 @@
       for (var i = 0; i < 9; i++) rows += skRow();
       mainEl.innerHTML = '<div class="c-table-standalone-wrap">' + rows + '</div>';
     } else {
-      var cards = '';
-      for (var j = 0; j < 8; j++) cards += skCard();
+      /* Fill WHOLE rows. The grid is auto-fill, so the column count
+         depends on the viewport — a fixed 8 bones leaves a ragged
+         half-row (5 + 3 at desktop width), which reads as a broken
+         layout rather than a loading one. Measure the columns off the
+         real grid, then lay down exactly two full rows. */
       mainEl.innerHTML = '<section class="inf-section">' +
         '<div class="inf-letter-head"><span class="inf-sk-bar inf-sk-head"></span></div>' +
-        '<div class="inf-grid">' + cards + '</div></section>';
+        '<div class="inf-grid"></div></section>';
+      var grid = mainEl.querySelector('.inf-grid');
+      /* Derived from the grid's width, NOT from gridTemplateColumns: an
+         auto-fill grid with no children reports a collapsed track list,
+         so measuring it here would say 1 column. These two numbers are
+         the minmax minimum and the gap in .inf-grid above. */
+      var MIN_TRACK = 200, GAP = 20;
+      var cols = Math.max(1, Math.floor((grid.clientWidth + GAP) / (MIN_TRACK + GAP)));
+      var cards = '';
+      for (var j = 0; j < cols * 2; j++) cards += skCard();
+      grid.innerHTML = cards;
     }
     document.getElementById('infSub').textContent = 'Loading the roster…';
   }
