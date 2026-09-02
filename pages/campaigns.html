@@ -84,7 +84,7 @@
     font-size:var(--text-caption-size); color:var(--color-neutral-4);}
   .cmp-card{position:relative; display:block; background:var(--color-neutral-1);
     border:1px solid var(--color-neutral-3); border-radius:var(--radius-md);
-    box-shadow:var(--shadow-1); padding:var(--spacing-16) var(--spacing-16) var(--spacing-16) var(--spacing-20);
+    box-shadow:var(--shadow-1); padding:var(--spacing-20) var(--spacing-20) var(--spacing-16) var(--spacing-24);
     cursor:pointer; overflow:hidden; text-align:left; font:inherit; width:100%;
     transition:box-shadow var(--duration-fast) var(--ease-standard),
       transform var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard);}
@@ -92,29 +92,50 @@
   .cmp-card:hover{box-shadow:var(--shadow-2); transform:translateY(-2px);}
   .cmp-card:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
   .cmp-card.is-dragging{opacity:.35; transform:scale(.98);}
-  .cmp-card-top{display:flex; align-items:center; gap:var(--spacing-12); min-width:0;}
-  .cmp-card-top .cmp-logo{width:32px; height:32px;}
-  .cmp-card-top .cmp-logo img{width:20px; height:20px;}
+  /* Anatomy, top to bottom: who (mark, name, brand), when (one quiet
+     line), how much (two labelled stats, the influencer card's own stat
+     treatment), then who owns it and where the run stands. Four groups
+     with real gaps between them — the card breathes because each group
+     is one idea, not because the padding is large. */
+  .cmp-card-top{display:flex; align-items:flex-start; gap:var(--spacing-12); min-width:0;}
+  .cmp-card-top .cmp-logo{width:36px; height:36px; margin-top:1px;}
+  .cmp-card-top .cmp-logo img{width:22px; height:22px;}
   .cmp-card-top .cmp-txt{min-width:0;}
   .cmp-card-top .cmp-name{font-size:var(--text-body1-size); line-height:var(--text-body1-lh);}
-  .cmp-card-top .cmp-sub{margin-top:3px;}
-  .cmp-card-meta{display:flex; flex-direction:column; gap:8px; margin-top:var(--spacing-16);
-    font-size:var(--text-caption-size); line-height:var(--text-caption-lh); color:var(--color-neutral-5);}
-  .cmp-card-meta span{display:inline-flex; align-items:center; gap:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .cmp-card-meta i{font-size:var(--icon-sm); color:var(--color-neutral-4); flex:none;}
-  .cmp-card-meta b{font-weight:700; color:var(--color-neutral-9);}
+  .cmp-card-top .cmp-sub{margin-top:2px;}
+  .cmp-card-dates{display:flex; align-items:center; gap:8px; margin-top:var(--spacing-16);
+    font-size:var(--text-caption-size); line-height:var(--text-caption-lh); color:var(--color-neutral-5); white-space:nowrap;}
+  .cmp-card-dates i{font-size:var(--icon-sm); color:var(--color-neutral-4); flex:none;}
+  .cmp-card-stats{display:grid; grid-template-columns:1fr 1fr; gap:var(--spacing-12); margin-top:var(--spacing-16);}
+  .cmp-stat .k{display:block; font-size:10px; font-weight:700; text-transform:uppercase;
+    letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5); margin-bottom:3px;}
+  .cmp-stat .v{display:block; font-size:var(--text-h5-size); font-weight:800; color:var(--color-neutral-9);
+    font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cmp-stat .v.dash{color:var(--color-neutral-4); font-weight:400;}
   .cmp-card-foot{display:flex; align-items:center; justify-content:space-between; gap:var(--spacing-8);
     margin-top:var(--spacing-16); padding-top:var(--spacing-12); border-top:1px solid var(--color-neutral-2);}
   .cmp-ini{width:26px; height:26px; border-radius:var(--radius-pill); background:var(--color-neutral-2);
     border:1px solid var(--color-neutral-3); display:inline-flex; align-items:center; justify-content:center;
     font-size:10px; font-weight:700; color:var(--color-neutral-5); flex:none;}
   .cmp-ini + .cmp-ini{margin-left:-8px;}
-  .cmp-cue{display:inline-flex; align-items:center; gap:6px; font-size:var(--text-caption-size); font-weight:700;
-    color:var(--color-neutral-5); white-space:nowrap;}
+  /* Truncated names roll their hidden tail into view on hover — the
+     roster page's marquee, same pace, same rest at each end. */
+  .cmp-name.is-marquee{text-overflow:clip;}
+  .cmp-name.is-marquee > span{display:inline-block; will-change:transform;
+    animation:cmp-marquee var(--dur, 4s) linear infinite;}
+  @keyframes cmp-marquee{
+    0%, 12%{transform:translateX(0);}
+    58%, 70%{transform:translateX(calc(var(--shift, 0px) * -1));}
+    100%{transform:translateX(0);}
+  }
+  @media (prefers-reduced-motion:reduce){ .cmp-name.is-marquee > span{animation:none;} }
+  .cmp-cue{display:inline-flex; align-items:center; gap:6px; height:24px; padding:0 10px;
+    border-radius:var(--radius-pill); font-size:var(--text-label3-size); font-weight:700;
+    color:var(--color-neutral-5); background:var(--color-neutral-2); white-space:nowrap; min-width:0;}
   .cmp-cue i{font-size:var(--icon-micro);}
-  .cmp-cue.warn{color:#9a5c00;}
-  .cmp-cue.live{color:#00854c;}
-  .cmp-cue.done{color:var(--color-neutral-4);}
+  .cmp-cue.warn{color:#9a5c00; background:var(--color-gold-bg);}
+  .cmp-cue.live{color:#00854c; background:var(--color-earth-bg);}
+  .cmp-cue.done{color:var(--color-neutral-5); background:var(--color-neutral-2);}
   .cmp-view{display:none;} .cmp-view.is-on{display:block;}
 
   /* ── Skeleton first paint — bones in the shape of the pipeline and
@@ -473,13 +494,88 @@
   var VIEW_KEY = 'collab-campaign-view';
   var view = 'board';
   try { view = sessionStorage.getItem(VIEW_KEY) || 'board'; } catch (e) {}
+  var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function applyView(){
+    document.querySelectorAll('.cmp-viewbtn').forEach(function(b){ b.classList.toggle('is-active', b.dataset.view === view); });
+    E('cmpBoardView').classList.toggle('is-on', view === 'board');
+    E('cmpListView').classList.toggle('is-on', view === 'list');
+    E('cmpCount').textContent = E('cmpCount').textContent.replace(/ · drag a card.*$/, '') +
+      (view === 'board' && hits.length ? ' · drag a card between columns to change its stage' : '');
+  }
+  /* The items in play for a switch: cards or rows near the viewport. */
+  function visibleItems(root){
+    var els = root.querySelectorAll('.cmp-card[data-id], tr[data-id]');
+    var vh = window.innerHeight, out = [];
+    for (var i = 0; i < els.length; i++) {
+      var r = els[i].getBoundingClientRect();
+      if (r.top > vh + 120) break;
+      if (r.bottom < -120) continue;
+      out.push(els[i]);
+    }
+    return out;
+  }
+  /* Switching views is a change of representation, not of content, so
+     the items leave and arrive individually — the roster page's own
+     cascade: the outgoing layout lifts and thins out, the incoming one
+     drops (cards) or slides in along its reading axis (rows). */
   function setView(v){
+    var prev = view;
     view = v;
     try { sessionStorage.setItem(VIEW_KEY, v); } catch (e) {}
-    document.querySelectorAll('.cmp-viewbtn').forEach(function(b){ b.classList.toggle('is-active', b.dataset.view === v); });
-    E('cmpBoardView').classList.toggle('is-on', v === 'board');
-    E('cmpListView').classList.toggle('is-on', v === 'list');
+    if (prev === v || REDUCED || document.hidden || !document.body.animate) { applyView(); return; }
+    var outRoot = E(prev === 'board' ? 'cmpBoardView' : 'cmpListView');
+    var inRoot = E(v === 'board' ? 'cmpBoardView' : 'cmpListView');
+    visibleItems(outRoot).forEach(function(el, i){
+      el.animate([{opacity: 1, transform: 'none'}, {opacity: 0, transform: 'translateY(-8px) scale(.97)'}],
+        {duration: 200, delay: Math.min(i * 9, 110), easing: 'cubic-bezier(.4,0,1,1)', fill: 'both'});
+    });
+    var out = outRoot.animate([{opacity: 1}, {opacity: 0}], {duration: 210, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards'});
+    var swapped = false;
+    function swap(){
+      if (swapped) return; swapped = true;
+      out.cancel();
+      applyView();
+      outRoot.getAnimations({subtree: true}).forEach(function(a){ a.cancel(); });
+      var board = v === 'board';
+      var from = board ? {opacity: 0, transform: 'translateY(14px) scale(.94)'} : {opacity: 0, transform: 'translateX(-18px)'};
+      var running = [inRoot.animate([{opacity: 0}, {opacity: 1}], {duration: 200, easing: 'ease-out'})];
+      visibleItems(inRoot).forEach(function(el, i){
+        running.push(el.animate([from, {opacity: 1, transform: 'none'}],
+          {duration: board ? 420 : 340, delay: Math.min(i * (board ? 26 : 16), 320),
+           easing: 'cubic-bezier(.22,.9,.3,1)', fill: 'backwards'}));
+      });
+      /* A stalled animation clock (occluded window) would otherwise hold
+         items at opacity 0 for good; sweep up anything unfinished. */
+      setTimeout(function(){ running.forEach(function(a){ if (a.playState !== 'finished') a.cancel(); }); }, 1200);
+    }
+    out.onfinish = swap;
+    setTimeout(swap, 300);
   }
+  /* Name marquee — measured on hover, only when the text overflows. */
+  function startMarquee(item){
+    var name = item.querySelector('.cmp-name');
+    if (!name || name.classList.contains('is-marquee') || !name.firstElementChild) return;
+    var shift = name.scrollWidth - name.clientWidth;
+    if (shift <= 1) return;
+    name.style.setProperty('--shift', shift + 'px');
+    name.style.setProperty('--dur', Math.max(2.4, shift / 41).toFixed(1) + 's');
+    name.classList.add('is-marquee');
+  }
+  function stopMarquee(item){
+    var name = item.querySelector('.cmp-name.is-marquee');
+    if (name) name.classList.remove('is-marquee');
+  }
+  document.addEventListener('pointerover', function(e){
+    if (REDUCED || e.pointerType !== 'mouse') return;
+    var item = e.target.closest && e.target.closest('.cmp-card[data-id], tr[data-id]');
+    if (item) startMarquee(item);
+  });
+  document.addEventListener('pointerout', function(e){
+    var item = e.target.closest && e.target.closest('.cmp-card[data-id], tr[data-id]');
+    if (!item) return;
+    if (e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.cmp-card[data-id], tr[data-id]') === item) return;
+    stopMarquee(item);
+  });
 
   function matches(c){
     if (stageFilter && c.stage !== stageFilter) return false;
@@ -546,22 +642,20 @@
     return null;
   }
   function cardHtml(c){
-    var plats = (c.platforms || []).map(function(p){ return PLAT_ICON[p] || ''; }).join('');
     var q = cue(c);
     return '<div class="cmp-card" draggable="true" tabindex="0" role="button" data-id="' + c.id + '" style="--bar:' + S.colorOf(c.color) + '">' +
       '<div class="cmp-card-top"><span class="cmp-logo" data-logo-for="' + c.id + '"><span class="ini">' + esc(S.initials(c.brand || c.name)) + '</span><img alt="" hidden /></span>' +
-        '<span class="cmp-txt"><span class="cmp-name" title="' + esc(c.name) + '">' + esc(c.name) + '</span>' +
+        '<span class="cmp-txt"><span class="cmp-name" title="' + esc(c.name) + '"><span>' + esc(c.name) + '</span></span>' +
         '<span class="cmp-sub">' + esc([c.brand, c.agency].filter(Boolean).join(' · ') || 'No brand yet') + '</span></span></div>' +
-      '<div class="cmp-card-meta">' +
-        '<span><i class="ph ph-calendar-blank"></i>' + esc(S.fmtRange(c.start, c.end)) + '</span>' +
-        '<span><i class="ph ph-users-three"></i>' + (c.pax != null ? '<b>' + S.fmtNum(c.pax) + '</b>&nbsp;pax' : '<span class="cmp-muted">pax not set</span>') +
-          (c.quote != null ? '<span style="color:var(--color-neutral-4)">·</span><b>' + S.fmtRM(c.quote) + '</b>' : '') + '</span>' +
-        (q ? '<span class="cmp-cue ' + q.cls + '"><i class="ph ' + q.icon + '"></i>' + q.text + '</span>' : '') +
+      '<div class="cmp-card-dates"><i class="ph ph-calendar-blank"></i>' + esc(S.fmtRange(c.start, c.end)) + '</div>' +
+      '<div class="cmp-card-stats">' +
+        '<div class="cmp-stat"><span class="k">Pax</span><span class="v' + (c.pax == null ? ' dash' : '') + '">' + (c.pax == null ? '—' : S.fmtNum(c.pax)) + '</span></div>' +
+        '<div class="cmp-stat"><span class="k">Quote</span><span class="v' + (c.quote == null ? ' dash' : '') + '">' + (c.quote == null ? '—' : S.fmtRM(c.quote)) + '</span></div>' +
       '</div>' +
       '<div class="cmp-card-foot">' +
-        '<span style="display:inline-flex; align-items:center; gap:var(--spacing-8)"><span class="cmp-ini" title="' + esc(c.pic || '') + '">' + esc(S.initials(c.pic || '?')) + '</span>' +
+        '<span style="display:inline-flex; align-items:center"><span class="cmp-ini" title="' + esc(c.pic || '') + '">' + esc(S.initials(c.pic || '?')) + '</span>' +
           (c.overseer ? '<span class="cmp-ini" title="' + esc(c.overseer) + '">' + esc(S.initials(c.overseer)) + '</span>' : '') + '</span>' +
-        (plats ? '<span class="cmp-plats">' + plats + '</span>' : '<span class="cmp-plats is-empty">—</span>') +
+        (q ? '<span class="cmp-cue ' + q.cls + '"><i class="ph ' + q.icon + '"></i>' + q.text + '</span>' : '') +
       '</div></div>';
   }
   function renderBoard(){
@@ -599,7 +693,7 @@
     return '<tr data-id="' + c.id + '">' +
       '<td><span class="cmp-cell-name">' +
         '<span class="cmp-logo" data-logo-for="' + c.id + '"><span class="ini">' + esc(S.initials(c.brand || c.name)) + '</span><img alt="" hidden /></span>' +
-        '<span class="cmp-txt"><span class="cmp-name" title="' + esc(c.name) + '">' + esc(c.name) + '</span>' +
+        '<span class="cmp-txt"><span class="cmp-name" title="' + esc(c.name) + '"><span>' + esc(c.name) + '</span></span>' +
         '<span class="cmp-sub">' + esc([c.brand, c.agency].filter(Boolean).join(' · ') || '—') + '</span></span></span></td>' +
       '<td>' + stageBadge(c) + '</td>' +
       '<td class="txt">' + esc(S.fmtRange(c.start, c.end)) + '</td>' +
@@ -806,7 +900,7 @@
     toast(c.name + ' moved to ' + S.stageOf(to).label + '.');
   });
   document.querySelector('.cmp-viewseg').addEventListener('click', function(e){
-    var b = e.target.closest('[data-view]'); if (b) setView(b.dataset.view);
+    var b = e.target.closest('[data-view]'); if (b && b.dataset.view !== view) setView(b.dataset.view);
   });
 
   /* ── Add. A hand-off from the influencers page arrives with
@@ -849,7 +943,7 @@
   });
 
   /* ── Boot: bones first, then the real page cascades in. */
-  setView(view);
+  applyView();
   function skeleton(){
     E('cmpPipe').innerHTML = S.STAGES.map(function(){
       return '<div class="cmp-node" style="pointer-events:none"><span class="cmp-sk" style="width:28px; height:22px"></span><span class="cmp-sk" style="width:64px; height:9px"></span></div>';
@@ -870,7 +964,6 @@
     }).join('');
     E('cmpCount').textContent = 'Loading campaigns…';
   }
-  var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   skeleton();
   setTimeout(function(){
     render();
