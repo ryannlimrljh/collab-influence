@@ -67,23 +67,24 @@
   /* ── Board — one column per stage, campaigns as cards. Dragging a
      card to another column is the stage change; the same change the
      badge menu makes in the table, just by hand. */
-  .cmp-board{display:grid; grid-template-columns:repeat(6, minmax(224px, 1fr));
-    gap:var(--spacing-12); align-items:start; overflow-x:auto; padding-bottom:var(--spacing-8);}
+  .cmp-board{display:grid; grid-template-columns:repeat(6, minmax(288px, 1fr));
+    gap:var(--spacing-16); align-items:stretch; overflow-x:auto; padding-bottom:var(--spacing-12);
+    scrollbar-width:thin;}
   .cmp-col{background:var(--color-neutral-2); border-radius:var(--radius-lg);
-    padding:var(--spacing-8); min-height:360px; display:flex; flex-direction:column; gap:var(--spacing-8);
+    padding:var(--spacing-12); min-height:420px; display:flex; flex-direction:column; gap:var(--spacing-12);
     border:2px dashed transparent; transition:border-color var(--duration-fast) var(--ease-standard),
       background var(--duration-fast) var(--ease-standard), opacity var(--duration-base) var(--ease-standard);}
   .cmp-col.is-over{border-color:var(--color-obsidian); background:var(--color-neutral-3);}
   .cmp-col.is-dim{opacity:.4;}
-  .cmp-col-head{display:flex; align-items:center; gap:6px; padding:var(--spacing-8) var(--spacing-8) var(--spacing-4);
+  .cmp-col-head{display:flex; align-items:center; gap:8px; padding:var(--spacing-8) var(--spacing-8) var(--spacing-4);
     font-size:var(--text-caption-size); font-weight:700; text-transform:uppercase;
     letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-9);}
   .cmp-col-head .n{margin-left:auto; font-weight:700; color:var(--color-neutral-5); text-transform:none; letter-spacing:0;}
-  .cmp-col-empty{margin:auto 0; padding:var(--spacing-24) var(--spacing-12); text-align:center;
+  .cmp-col-empty{margin:auto 0; padding:var(--spacing-32) var(--spacing-16); text-align:center;
     font-size:var(--text-caption-size); color:var(--color-neutral-4);}
   .cmp-card{position:relative; display:block; background:var(--color-neutral-1);
     border:1px solid var(--color-neutral-3); border-radius:var(--radius-md);
-    box-shadow:var(--shadow-1); padding:var(--spacing-12) var(--spacing-12) var(--spacing-12) var(--spacing-16);
+    box-shadow:var(--shadow-1); padding:var(--spacing-16) var(--spacing-16) var(--spacing-16) var(--spacing-20);
     cursor:pointer; overflow:hidden; text-align:left; font:inherit; width:100%;
     transition:box-shadow var(--duration-fast) var(--ease-standard),
       transform var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard);}
@@ -91,19 +92,20 @@
   .cmp-card:hover{box-shadow:var(--shadow-2); transform:translateY(-2px);}
   .cmp-card:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
   .cmp-card.is-dragging{opacity:.35; transform:scale(.98);}
-  .cmp-card-top{display:flex; align-items:center; gap:var(--spacing-8); min-width:0;}
-  .cmp-card-top .cmp-logo{width:26px; height:26px;}
-  .cmp-card-top .cmp-logo img{width:16px; height:16px;}
+  .cmp-card-top{display:flex; align-items:center; gap:var(--spacing-12); min-width:0;}
+  .cmp-card-top .cmp-logo{width:32px; height:32px;}
+  .cmp-card-top .cmp-logo img{width:20px; height:20px;}
   .cmp-card-top .cmp-txt{min-width:0;}
-  .cmp-card-top .cmp-name{font-size:var(--text-body2-size);}
-  .cmp-card-meta{display:flex; flex-direction:column; gap:4px; margin-top:var(--spacing-8);
-    font-size:var(--text-caption-size); color:var(--color-neutral-5);}
-  .cmp-card-meta span{display:inline-flex; align-items:center; gap:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .cmp-card-meta i{font-size:var(--icon-micro); color:var(--color-neutral-4); flex:none;}
+  .cmp-card-top .cmp-name{font-size:var(--text-body1-size); line-height:var(--text-body1-lh);}
+  .cmp-card-top .cmp-sub{margin-top:3px;}
+  .cmp-card-meta{display:flex; flex-direction:column; gap:8px; margin-top:var(--spacing-16);
+    font-size:var(--text-caption-size); line-height:var(--text-caption-lh); color:var(--color-neutral-5);}
+  .cmp-card-meta span{display:inline-flex; align-items:center; gap:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cmp-card-meta i{font-size:var(--icon-sm); color:var(--color-neutral-4); flex:none;}
   .cmp-card-meta b{font-weight:700; color:var(--color-neutral-9);}
   .cmp-card-foot{display:flex; align-items:center; justify-content:space-between; gap:var(--spacing-8);
-    margin-top:var(--spacing-8); padding-top:var(--spacing-8); border-top:1px solid var(--color-neutral-2);}
-  .cmp-ini{width:24px; height:24px; border-radius:var(--radius-pill); background:var(--color-neutral-2);
+    margin-top:var(--spacing-16); padding-top:var(--spacing-12); border-top:1px solid var(--color-neutral-2);}
+  .cmp-ini{width:26px; height:26px; border-radius:var(--radius-pill); background:var(--color-neutral-2);
     border:1px solid var(--color-neutral-3); display:inline-flex; align-items:center; justify-content:center;
     font-size:10px; font-weight:700; color:var(--color-neutral-5); flex:none;}
   .cmp-ini + .cmp-ini{margin-left:-8px;}
@@ -120,8 +122,8 @@
      page lands in place instead of popping. */
   .cmp-sk{height:12px; border-radius:var(--radius-sm); background:var(--color-neutral-2);}
   .cmp-sk-card{background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
-    border-radius:var(--radius-md); padding:var(--spacing-12) var(--spacing-16); display:flex; flex-direction:column; gap:10px;}
-  .cmp-sk-ava{width:26px; height:26px; border-radius:var(--radius-sm); background:var(--color-neutral-3);}
+    border-radius:var(--radius-md); padding:var(--spacing-16) var(--spacing-16) var(--spacing-16) var(--spacing-20); display:flex; flex-direction:column; gap:14px;}
+  .cmp-sk-ava{width:32px; height:32px; border-radius:var(--radius-sm); background:var(--color-neutral-3);}
   @media (prefers-reduced-motion:no-preference){
     .cmp-sk, .cmp-sk-ava{animation:cmp-sk-pulse 1.4s var(--ease-standard) infinite;}
     @keyframes cmp-sk-pulse{0%,100%{opacity:1;} 50%{opacity:.45;}}
