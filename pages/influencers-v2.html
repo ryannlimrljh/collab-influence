@@ -1933,18 +1933,57 @@
        revealed sections take their real size, and re-measures until the
        target stops moving. Instant scrolls, or a smooth glide would be
        chasing a moving floor. */
-    var offset = view === 'list' ? 56 : 4;
-    var tries = 0;
-    (function land(){
-      var delta = target.getBoundingClientRect().top
-        - scroller.getBoundingClientRect().top - offset;
-      if (Math.abs(delta) < 2 || tries++ > 7) return;
-      scroller.scrollTo({top: scroller.scrollTop + delta, behavior: 'auto'});
-      /* setTimeout, not rAF: sizes only settle at the next rendering
-         step, and rAF never fires while the tab is hidden. */
-      setTimeout(land, 60);
-    })();
+    glideTo(target, view === 'list' ? 56 : 4);
   });
+
+  /* Gentle glide to a letter instead of a hard jump.
+     Native scroll-behavior:smooth cannot be used here: sections above
+     the target are content-visibility:auto, so their heights are only
+     ESTIMATES until they paint, and the destination keeps moving while
+     the scroll is in flight — a native smooth scroll aims once and lands
+     in the wrong place. This chases instead: every frame it re-measures
+     the live distance and closes a fixed FRACTION of it, which is an
+     exponential ease-out that naturally re-aims as the layout settles
+     and decelerates into the target. */
+  var glideRAF = 0, glideStop = null;
+  function glideTo(target, offset){
+    cancelGlide();
+    var deltaNow = function(){
+      return target.getBoundingClientRect().top
+        - scroller.getBoundingClientRect().top - offset;
+    };
+    if (REDUCED) { scroller.scrollTop += deltaNow(); return; }
+    var started = Date.now();
+    var MAX_MS = 1100;               /* never glide forever */
+    function step(){
+      var d = deltaNow();
+      /* Close enough, or out of time: land exactly and stop. */
+      if (Math.abs(d) < 1 || Date.now() - started > MAX_MS) {
+        scroller.scrollTop += d;
+        cancelGlide();
+        return;
+      }
+      /* 0.16 of the remaining gap per frame — fast at first, gentle at
+         the end. Minimum step so the tail doesn't creep. */
+      var stepPx = d * 0.16;
+      if (Math.abs(stepPx) < 1) stepPx = d > 0 ? 1 : -1;
+      scroller.scrollTop += stepPx;
+      glideRAF = requestAnimationFrame(step);
+    }
+    glideRAF = requestAnimationFrame(step);
+    /* rAF stalls when the page is painted but not compositing, which
+       would strand the glide mid-flight; this lands it regardless. */
+    glideStop = setTimeout(function(){
+      if (glideRAF) { scroller.scrollTop += deltaNow(); cancelGlide(); }
+    }, MAX_MS + 150);
+    /* Touching the wheel or trackpad hands control straight back. */
+    scroller.addEventListener('wheel', cancelGlide, {once: true, passive: true});
+    scroller.addEventListener('touchstart', cancelGlide, {once: true, passive: true});
+  }
+  function cancelGlide(){
+    if (glideRAF) { cancelAnimationFrame(glideRAF); glideRAF = 0; }
+    if (glideStop) { clearTimeout(glideStop); glideStop = null; }
+  }
 
   /* Scroll-spy — the letter whose section owns the current viewport top. */
   var spyTick = false;
