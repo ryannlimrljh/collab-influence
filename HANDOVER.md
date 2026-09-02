@@ -42,8 +42,12 @@ does not appear, add a cache-buster: `?v=2`, `?v=3`, and so on.
 
 | File | What it is |
 |---|---|
-| `pages/influencers-v2.html` | **The current design.** All recent work is here. |
-| `pages/influencers.html` | The earlier version, kept for comparison. Not maintained. |
+| `pages/influencers-v2.html` | **The current roster design.** |
+| `pages/campaigns.html` | **Campaigns list** — pipeline track, board view (drag a card between columns to change its stage) and table view, Add campaign sheet. |
+| `pages/campaign.html?id=…` | **Campaign detail** — stage track, run-date timeline, Overview and KOL Selection tabs; Documents and Drafts are designed placeholders for the next build. |
+| `pages/influencers.html` | The earlier roster version, kept for comparison. Not maintained. |
+
+Open **http://localhost:8796/pages/campaigns.html** for the campaigns surface.
 
 Everything lives in that one file — markup, styles and behaviour — on purpose,
 so the prototype stays portable. It is long, but it is ordered: design tokens
@@ -60,6 +64,9 @@ shared/           generated data + small runtime helpers
   avatar-manifest.js     which profiles have a local photo (GENERATED)
   post-manifest.js       which profiles have post images (GENERATED)
   influencer-store.js    localStorage overlay: adds/edits/removes/pins
+  campaigns-data.js      5 seeded sample campaigns (hand-written, safe to edit)
+  campaign-store.js      localStorage overlay + stage/status vocabularies + shared formatting
+  campaign-form.js       the Add / Edit campaign sheet, shared by both campaign pages
 collabrium-dls/   the Collabrium design system, vendored. Do not edit.
 assets/avatars/   harvested profile photos
 assets/posts/     harvested TikTok post images
@@ -141,12 +148,16 @@ and vice versa. To wipe everything back to the generated dataset, run
 `influencerStore.reset()` in the console.
 
 Multi-select is deliberately **not** persisted — it is a working set for the
-action you are about to take, held in a plain `Set` called `selected`. That
-is the hook for the next build: the "Generate Client Preview" button
-currently confirms the selection with a toast and says the shareable link is
-still to come. It does not generate a real link, on purpose — a button that
-appears to hand over a client-ready URL and does not would be the wrong thing
-to leave in a demo.
+action you are about to take, held in a plain `Set` called `selected`.
+"Generate Client Preview" opens **Send to campaign**: the selection becomes a
+preview batch on an existing campaign (or a new one via
+`campaigns.html?new=1&picks=…`) and you land on that campaign's KOL Selection
+tab. Campaign edits, rosters and batches live in `localStorage` under
+`collab-campaigns-v1`; run `campaignStore.reset()` in the console to go back
+to the seeded five.
+
+The batch's "Open link" copies a placeholder URL. The client-facing preview
+page itself is still to come, and the toast says so.
 
 ## Things that look wrong but are not
 
@@ -165,5 +176,7 @@ to leave in a demo.
 ## Not done yet
 
 - 24 profiles still without a photo (rate-limited, re-runnable — see above).
-- "Generate Client Preview" is a stub.
+- The client-facing preview page (what "Open link" would open) does not exist yet.
+- Campaign Documents and Drafts tabs are placeholders: the roster shows, CoE/ADSIS
+  generation and deliverable tracking are the next build.
 - Nothing is wired to a backend; all edits are local to the browser.

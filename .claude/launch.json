@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "collab-influence",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8796"],
+      "port": 8796
+    }
+  ]
+}

@@ -1,0 +1,881 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Collab:Influence · Campaigns</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- Earth is Collab:Influence's element, so the mound is the tab mark. -->
+<link rel="icon" type="image/svg+xml" href="../collabrium-dls/SVG/earth.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700;800;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+<link rel="stylesheet" href="../collabrium-dls/tokens.css?v=0.9.41c" />
+<link rel="stylesheet" href="../collabrium-dls/components.css?v=0.9.41c" />
+<link rel="stylesheet" href="../shared/shell.css?v=0.9.44" />
+<style>
+  /* Page-local. Composes tokens only — no new colors, radii, or spacing.
+     Same header geometry as the influencers page so the two workspace
+     surfaces sit at the same height when you switch between them. */
+  .c-shell .c-shell-content{padding-top:0;}
+  .c-shell .c-pageheader{padding-top:var(--spacing-40); margin-bottom:var(--spacing-24);}
+  .cmp-divider{border:none; border-top:1px solid var(--color-neutral-3);
+    margin:0 0 var(--spacing-24);}
+
+  /* ── Pipeline — six stage nodes on one track. A campaign moves left
+     to right through these, so the counts sit on a line rather than in
+     a flat strip: the shape says "flow", not "six unrelated numbers".
+     Each node is also the fastest filter on the page. */
+  .cmp-pipe{position:relative; display:grid; grid-template-columns:repeat(6, minmax(0, 1fr));
+    gap:var(--spacing-12); margin-bottom:var(--spacing-24);}
+  .cmp-pipe::before{content:''; position:absolute; left:8%; right:8%; top:50%;
+    height:2px; background:var(--color-neutral-3); z-index:0; pointer-events:none;}
+  .cmp-node{position:relative; z-index:1; display:flex; flex-direction:column; gap:2px;
+    text-align:left; padding:var(--spacing-12) var(--spacing-16);
+    background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
+    border-radius:var(--radius-md); box-shadow:var(--shadow-1); font:inherit; cursor:pointer;
+    min-width:0; transition:box-shadow var(--duration-fast) var(--ease-standard),
+      border-color var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-standard);}
+  .cmp-node:hover{box-shadow:var(--shadow-2); transform:translateY(-1px);}
+  .cmp-node:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+  .cmp-node.is-on{border-color:var(--color-obsidian); box-shadow:var(--shadow-2), inset 0 -2px 0 var(--color-obsidian);}
+  .cmp-node .val{font-size:var(--text-h2-size); line-height:var(--text-h2-lh);
+    font-weight:var(--text-h2-weight); color:var(--color-neutral-9); font-variant-numeric:tabular-nums;}
+  .cmp-node .val.is-zero{color:var(--color-neutral-4);}
+  .cmp-node .lbl{display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis;
+    font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-5);}
+  .cmp-node.is-on .lbl{color:var(--color-neutral-9);}
+  .cmp-dot{width:6px; height:6px; border-radius:var(--radius-pill); flex:none;}
+  @media (max-width:900px){ .cmp-pipe{grid-template-columns:repeat(3, minmax(0, 1fr));} .cmp-pipe::before{display:none;} }
+
+  /* ── View toggle — board / list, same control the roster page uses. */
+  .cmp-viewseg{display:flex; align-self:center; flex:none; margin-left:auto;
+    border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm);
+    overflow:hidden; background:var(--color-neutral-1);}
+  .cmp-viewbtn{display:flex; align-items:center; justify-content:center;
+    width:36px; height:34px; border:0; background:transparent; cursor:pointer;
+    color:var(--color-neutral-5); font-size:var(--icon-sm);
+    transition:background-color var(--duration-fast) var(--ease-standard),
+      color var(--duration-fast) var(--ease-standard);}
+  .cmp-viewbtn:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}
+  .cmp-viewbtn.is-active{background:var(--color-obsidian); color:var(--color-neutral-1);}
+  .cmp-viewbtn:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:-2px;}
+
+  /* ── Board — one column per stage, campaigns as cards. Dragging a
+     card to another column is the stage change; the same change the
+     badge menu makes in the table, just by hand. */
+  .cmp-board{display:grid; grid-template-columns:repeat(6, minmax(224px, 1fr));
+    gap:var(--spacing-12); align-items:start; overflow-x:auto; padding-bottom:var(--spacing-8);}
+  .cmp-col{background:var(--color-neutral-2); border-radius:var(--radius-lg);
+    padding:var(--spacing-8); min-height:360px; display:flex; flex-direction:column; gap:var(--spacing-8);
+    border:2px dashed transparent; transition:border-color var(--duration-fast) var(--ease-standard),
+      background var(--duration-fast) var(--ease-standard), opacity var(--duration-base) var(--ease-standard);}
+  .cmp-col.is-over{border-color:var(--color-obsidian); background:var(--color-neutral-3);}
+  .cmp-col.is-dim{opacity:.4;}
+  .cmp-col-head{display:flex; align-items:center; gap:6px; padding:var(--spacing-8) var(--spacing-8) var(--spacing-4);
+    font-size:var(--text-caption-size); font-weight:700; text-transform:uppercase;
+    letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-9);}
+  .cmp-col-head .n{margin-left:auto; font-weight:700; color:var(--color-neutral-5); text-transform:none; letter-spacing:0;}
+  .cmp-col-empty{margin:auto 0; padding:var(--spacing-24) var(--spacing-12); text-align:center;
+    font-size:var(--text-caption-size); color:var(--color-neutral-4);}
+  .cmp-card{position:relative; display:block; background:var(--color-neutral-1);
+    border:1px solid var(--color-neutral-3); border-radius:var(--radius-md);
+    box-shadow:var(--shadow-1); padding:var(--spacing-12) var(--spacing-12) var(--spacing-12) var(--spacing-16);
+    cursor:pointer; overflow:hidden; text-align:left; font:inherit; width:100%;
+    transition:box-shadow var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard);}
+  .cmp-card::before{content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--bar, var(--color-obsidian));}
+  .cmp-card:hover{box-shadow:var(--shadow-2); transform:translateY(-2px);}
+  .cmp-card:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+  .cmp-card.is-dragging{opacity:.35; transform:scale(.98);}
+  .cmp-card-top{display:flex; align-items:center; gap:var(--spacing-8); min-width:0;}
+  .cmp-card-top .cmp-logo{width:26px; height:26px;}
+  .cmp-card-top .cmp-logo img{width:16px; height:16px;}
+  .cmp-card-top .cmp-txt{min-width:0;}
+  .cmp-card-top .cmp-name{font-size:var(--text-body2-size);}
+  .cmp-card-meta{display:flex; flex-direction:column; gap:4px; margin-top:var(--spacing-8);
+    font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+  .cmp-card-meta span{display:inline-flex; align-items:center; gap:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cmp-card-meta i{font-size:var(--icon-micro); color:var(--color-neutral-4); flex:none;}
+  .cmp-card-meta b{font-weight:700; color:var(--color-neutral-9);}
+  .cmp-card-foot{display:flex; align-items:center; justify-content:space-between; gap:var(--spacing-8);
+    margin-top:var(--spacing-8); padding-top:var(--spacing-8); border-top:1px solid var(--color-neutral-2);}
+  .cmp-ini{width:24px; height:24px; border-radius:var(--radius-pill); background:var(--color-neutral-2);
+    border:1px solid var(--color-neutral-3); display:inline-flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:700; color:var(--color-neutral-5); flex:none;}
+  .cmp-ini + .cmp-ini{margin-left:-8px;}
+  .cmp-cue{display:inline-flex; align-items:center; gap:6px; font-size:var(--text-caption-size); font-weight:700;
+    color:var(--color-neutral-5); white-space:nowrap;}
+  .cmp-cue i{font-size:var(--icon-micro);}
+  .cmp-cue.warn{color:#9a5c00;}
+  .cmp-cue.live{color:#00854c;}
+  .cmp-cue.done{color:var(--color-neutral-4);}
+  .cmp-view{display:none;} .cmp-view.is-on{display:block;}
+
+  /* ── Skeleton first paint — bones in the shape of the pipeline and
+     the board, swapped for the real thing after a short beat so the
+     page lands in place instead of popping. */
+  .cmp-sk{height:12px; border-radius:var(--radius-sm); background:var(--color-neutral-2);}
+  .cmp-sk-card{background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
+    border-radius:var(--radius-md); padding:var(--spacing-12) var(--spacing-16); display:flex; flex-direction:column; gap:10px;}
+  .cmp-sk-ava{width:26px; height:26px; border-radius:var(--radius-sm); background:var(--color-neutral-3);}
+  @media (prefers-reduced-motion:no-preference){
+    .cmp-sk, .cmp-sk-ava{animation:cmp-sk-pulse 1.4s var(--ease-standard) infinite;}
+    @keyframes cmp-sk-pulse{0%,100%{opacity:1;} 50%{opacity:.45;}}
+  }
+
+  /* ── Controls: search on the left, stage chips beside it. */
+  .cmp-controls{display:flex; flex-wrap:wrap; align-items:center;
+    gap:var(--spacing-12); margin-bottom:var(--spacing-12);}
+  .cmp-chips{display:flex; flex-wrap:wrap; gap:var(--spacing-8);}
+  .cmp-count{font-size:var(--text-caption-size); color:var(--color-neutral-5);
+    margin:0 0 var(--spacing-12);}
+
+  /* ── Table — the DLS standalone table, fixed layout so the columns
+     fit the viewport instead of the longest name. The wrapper is
+     un-clipped so the stage and row menus can escape their cells; the
+     header cells carry the radius themselves. */
+  .c-table-standalone-wrap{overflow:visible;}
+  .cmp-table{table-layout:fixed; width:100%;}
+  .cmp-table th, .cmp-table td{padding:var(--spacing-12) var(--spacing-16);}
+  .cmp-table th:first-child, .cmp-table td:first-child{padding-left:var(--spacing-20);}
+  .cmp-table th:last-child, .cmp-table td:last-child{padding-right:var(--spacing-12);}
+  .cmp-table thead th{position:sticky; top:0; z-index:4; background:var(--color-neutral-2);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cmp-table thead th:first-child{border-top-left-radius:var(--radius-lg);}
+  .cmp-table thead th:last-child{border-top-right-radius:var(--radius-lg);}
+  .cmp-table tbody tr:last-child td:first-child{border-bottom-left-radius:var(--radius-lg);}
+  .cmp-table tbody tr:last-child td:last-child{border-bottom-right-radius:var(--radius-lg);}
+  .cmp-table tbody tr{cursor:pointer;}
+  .cmp-table tbody tr:hover td{background:var(--color-neutral-2);}
+  .cmp-table td{vertical-align:middle;}
+  .cmp-table td.txt{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .cmp-col-name{width:26%;}
+  .cmp-col-stage{width:14%;}
+  .cmp-col-dates{width:15%;}
+  .cmp-col-pax{width:6%;}
+  .cmp-col-plat{width:8%;}
+  .cmp-col-num{width:8%;}
+  .cmp-col-owner{width:11%;}
+  .cmp-col-type{width:12%;}
+  .cmp-col-act{width:44px;}
+  th[data-sort]{cursor:pointer; user-select:none;}
+  .cmp-sorticon{font-size:var(--icon-micro); color:var(--color-neutral-4); vertical-align:middle;}
+  .cmp-sorticon.is-on{color:var(--color-neutral-9);}
+  th[data-sort]:hover .cmp-sorticon{color:var(--color-neutral-9);}
+  .cmp-table .num, .cmp-table td.num{text-align:right; font-variant-numeric:tabular-nums;}
+  /* Campaign cell: brand mark, then name over brand · agency. */
+  .cmp-cell-name{display:flex; align-items:center; gap:var(--spacing-12); min-width:0;}
+  .cmp-logo{flex:none; width:32px; height:32px; display:flex; align-items:center;
+    justify-content:center; background:var(--color-neutral-1);
+    border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm);
+    overflow:hidden;}
+  .cmp-logo img{width:20px; height:20px; object-fit:contain;}
+  .cmp-logo .ini{font-size:var(--text-label3-size); font-weight:700; color:var(--color-neutral-5);}
+  .cmp-txt{min-width:0; flex:1;}
+  .cmp-name{display:block; font-weight:700; color:var(--color-neutral-9);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cmp-sub{display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5);
+    margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cmp-owner{display:block; font-weight:700; color:var(--color-neutral-9);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cmp-owner-sub{display:block; font-size:var(--text-caption-size);
+    color:var(--color-neutral-5); margin-top:2px; white-space:nowrap;}
+  .cmp-plats{display:inline-flex; gap:6px; color:var(--color-neutral-9); font-size:var(--icon-sm);}
+  .cmp-plats.is-empty{color:var(--color-neutral-4);}
+  .cmp-muted{color:var(--color-neutral-4);}
+
+  /* ── Stage badge — the DLS badge with the stage's own dot, and a
+     caret because it is a control: clicking opens the stage menu. */
+  .cmp-stage{display:inline-flex; align-items:center; gap:6px; height:24px;
+    padding:0 8px 0 10px; border-radius:var(--radius-pill);
+    background:var(--color-neutral-2); border:1px solid var(--color-neutral-3);
+    font:inherit; font-size:var(--text-label3-size); font-weight:700;
+    color:var(--color-neutral-9); cursor:pointer; white-space:nowrap; max-width:100%;
+    transition:border-color var(--duration-fast) var(--ease-standard),
+      background var(--duration-fast) var(--ease-standard);}
+  .cmp-stage:hover, .cmp-stage.is-open{border-color:var(--color-neutral-5); background:var(--color-neutral-1);}
+  .cmp-stage .t{overflow:hidden; text-overflow:ellipsis;}
+  .cmp-stage .ph{font-size:var(--icon-micro); color:var(--color-neutral-5);}
+
+  /* ── Floating menu — one element for the stage picker and the row
+     kebab, positioned fixed so no table clipping can bite it. */
+  .cmp-menu{position:fixed; z-index:60; min-width:180px; padding:4px;
+    background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
+    border-radius:var(--radius-md); box-shadow:var(--shadow-3);
+    opacity:0; visibility:hidden; transform:translateY(-4px); pointer-events:none;
+    transition:opacity var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-standard),
+      visibility 0s linear var(--duration-fast);}
+  .cmp-menu.is-open{opacity:1; visibility:visible; transform:none;
+    pointer-events:auto; transition-delay:0s;}
+  .cmp-menu-item{display:flex; align-items:center; gap:var(--spacing-8); width:100%;
+    border:0; background:transparent; cursor:pointer; font:inherit;
+    font-size:var(--text-body2-size); color:var(--color-neutral-9);
+    padding:8px 10px; border-radius:var(--radius-sm); text-align:left; white-space:nowrap;}
+  .cmp-menu-item:hover{background:var(--color-neutral-2);}
+  .cmp-menu-item i{font-size:var(--icon-sm); color:var(--color-neutral-5);}
+  .cmp-menu-item .chk{margin-left:auto; color:var(--color-neutral-9);}
+  .cmp-menu-item.is-danger, .cmp-menu-item.is-danger i{color:var(--color-red);}
+  .cmp-menu-item.is-danger:hover{background:rgba(253,51,67,.08);}
+  .cmp-kebab{width:32px; height:32px; color:var(--color-neutral-5); background:transparent;}
+  .cmp-table tbody tr:hover .cmp-kebab{color:var(--color-neutral-9);}
+  .cmp-kebab.is-open{background:var(--color-neutral-1); color:var(--color-neutral-9);}
+
+  /* ── Row lifecycle — new rows glow in, deleted rows fade out. */
+  @keyframes cmp-arrive{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:none;}}
+  .cmp-arriving .cmp-pipe .cmp-node{animation:cmp-arrive 380ms var(--ease-settle) both;}
+  .cmp-arriving .cmp-node:nth-child(1){animation-delay:40ms;} .cmp-arriving .cmp-node:nth-child(2){animation-delay:80ms;}
+  .cmp-arriving .cmp-node:nth-child(3){animation-delay:120ms;} .cmp-arriving .cmp-node:nth-child(4){animation-delay:160ms;}
+  .cmp-arriving .cmp-node:nth-child(5){animation-delay:200ms;} .cmp-arriving .cmp-node:nth-child(6){animation-delay:240ms;}
+  .cmp-arriving .cmp-board{animation:cmp-arrive 420ms var(--ease-settle) both; animation-delay:180ms;}
+  .cmp-arriving .cmp-card{animation:cmp-arrive 380ms var(--ease-settle) both; animation-delay:520ms;}
+  .cmp-arriving .cmp-col:nth-child(1) .cmp-card:nth-child(2){animation-delay:260ms;}
+  .cmp-arriving .cmp-col:nth-child(1) .cmp-card:nth-child(3){animation-delay:300ms;}
+  .cmp-arriving .cmp-col:nth-child(1) .cmp-card:nth-child(4){animation-delay:340ms;}
+  .cmp-arriving .cmp-col:nth-child(1) .cmp-card:nth-child(5){animation-delay:380ms;}
+  .cmp-arriving .cmp-col:nth-child(2) .cmp-card{animation-delay:320ms;}
+  .cmp-arriving .cmp-col:nth-child(3) .cmp-card{animation-delay:380ms;}
+  .cmp-arriving .cmp-col:nth-child(4) .cmp-card{animation-delay:440ms;}
+  .cmp-arriving .cmp-col:nth-child(5) .cmp-card{animation-delay:500ms;}
+  .cmp-arriving .cmp-col:nth-child(6) .cmp-card{animation-delay:560ms;}
+  .cmp-arriving .cmp-controls, .cmp-arriving .cmp-count{animation:cmp-arrive 420ms var(--ease-settle) both; animation-delay:120ms;}
+  .cmp-arriving .c-table-standalone-wrap{animation:cmp-arrive 420ms var(--ease-settle) both; animation-delay:180ms;}
+  .cmp-arriving tbody tr{animation:cmp-arrive 380ms var(--ease-settle) both; animation-delay:520ms;}
+  .cmp-arriving tbody tr:nth-child(1){animation-delay:240ms;}
+  .cmp-arriving tbody tr:nth-child(2){animation-delay:280ms;}
+  .cmp-arriving tbody tr:nth-child(3){animation-delay:320ms;}
+  .cmp-arriving tbody tr:nth-child(4){animation-delay:360ms;}
+  .cmp-arriving tbody tr:nth-child(5){animation-delay:400ms;}
+  .cmp-arriving tbody tr:nth-child(6){animation-delay:440ms;}
+  .cmp-arriving tbody tr:nth-child(7){animation-delay:480ms;}
+  @keyframes cmp-glow{0%{background:var(--color-earth-bg-strong);} 100%{background:transparent;}}
+  tr.is-new td, .cmp-card.is-new{animation:cmp-glow 1.8s var(--ease-standard) both;}
+  tr.is-leaving{opacity:0; transition:opacity .22s var(--ease-standard);}
+  @media (prefers-reduced-motion:reduce){
+    .cmp-arriving *, tr.is-new td{animation:none !important;}
+  }
+
+  /* ── Delete confirmation. */
+  .cmp-scrim{position:fixed; inset:0; z-index:400; background:var(--shadow-overlay);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    transition:opacity var(--duration-base) var(--ease-standard);}
+  .cmp-scrim.is-open{opacity:1; pointer-events:auto;}
+  .c-toast-host{z-index:500;}
+
+  @media (max-width:1100px){ .cmp-hide-md{display:none;} }
+  @media (max-width:820px){ .cmp-hide-sm{display:none;} .cmp-col-name{width:40%;} }
+  @media (max-width:640px){
+    .c-pageheader-row{flex-wrap:wrap; gap:var(--spacing-12);}
+    .c-pageheader-text{width:100%;}
+    .c-shell .c-pageheader{padding-top:var(--spacing-24);}
+  }
+</style>
+</head>
+<body>
+
+<div class="c-shell">
+  <div class="c-sidebar-shell" id="shellSidebarShell">
+    <nav class="c-sidebar" id="shellSidebarNav">
+      <div class="c-sidebar-header">
+        <button class="c-dept-trigger js-dept-trigger" type="button" aria-haspopup="listbox"
+                aria-expanded="false" aria-label="Switch department, Influence" aria-controls="deptDropdown">
+          <span class="c-sidebar-logo-live-wrap js-dept-logo-live" style="display:none"><iframe src="../collabrium-dls/logo.html" title="Collabrium" scrolling="no"></iframe></span>
+          <img class="c-dept-logo-static js-dept-logo-static" src="../collabrium-dls/logo-lockups/collabInfluence.svg" alt="Influence" />
+          <i class="ph ph-caret-down js-dept-chevron c-dept-chevron"></i>
+        </button>
+        <span class="c-badge c-badge-neutral c-sidebar-beta">Beta</span>
+        <img class="c-sidebar-logo-collapsed js-dept-logo-collapsed" src="../collabrium-dls/SVG/earth.svg" alt="Collab:Influence" />
+      </div>
+      <a class="c-sidebar-item" href="#"><i class="ph-fill ph-house"></i><span class="label">Home</span><span class="c-sidebar-hover-text">Home</span></a>
+      <div class="c-sidebar-section">Workspace</div>
+      <a class="c-sidebar-item" href="influencers-v2.html"><i class="ph-fill ph-users-three"></i><span class="label">Influencers</span><span class="c-sidebar-hover-text">Influencers</span></a>
+      <a class="c-sidebar-item active" href="campaigns.html" aria-current="page"><i class="ph-fill ph-folder-open"></i><span class="label">Campaigns</span><span class="c-sidebar-hover-text">Campaigns</span></a>
+      <div class="c-sidebar-section">General</div>
+      <a class="c-sidebar-item" href="#"><i class="ph-fill ph-buildings"></i><span class="label">Agencies</span><span class="c-sidebar-hover-text">Agencies</span></a>
+      <a class="c-sidebar-item" href="#"><i class="ph-fill ph-tag"></i><span class="label">Brands</span><span class="c-sidebar-hover-text">Brands</span></a>
+      <div class="c-sidebar-footer">
+        <button class="c-sidebar-account" type="button" id="accountMenuTrigger"
+                aria-haspopup="menu" aria-expanded="false" aria-controls="accountMenu">
+          <span class="c-search-input-avatar">DT</span>
+          <span class="c-search-input-text">
+            <span class="c-search-input-title">Digital Team</span>
+            <span class="c-search-input-subtitle">Admin</span>
+          </span>
+        </button>
+      </div>
+    </nav>
+    <button class="c-sidebar-toggle" type="button" aria-label="Collapse sidebar" id="sidebarToggle">
+      <svg viewBox="0 0 20 20" fill="none">
+        <rect x="2.5" y="3.5" width="15" height="13" rx="2" stroke="currentColor" stroke-width="1.4"/>
+        <line x1="9" y1="3.5" x2="9" y2="16.5" stroke="currentColor" stroke-width="1.4"/>
+        <path id="sidebarArrow" d="M13.5 7 11 10l2.5 3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="c-shell-main">
+    <div class="c-shell-content cmp-arriving" id="cmpContent">
+
+      <header class="c-pageheader">
+        <div class="c-pageheader-row">
+          <div class="c-pageheader-text">
+            <h1>Campaigns</h1>
+            <p class="sub">Every influencer campaign, and the stage it has reached.</p>
+          </div>
+          <div class="c-pageheader-actions">
+            <button class="c-btn c-btn-primary c-btn-md" type="button" id="cmpAddBtn">
+              <i class="ph ph-plus"></i> Add campaign
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <hr class="cmp-divider" />
+
+      <div class="cmp-pipe" id="cmpPipe" role="group" aria-label="Campaigns by stage"></div>
+
+      <div class="cmp-controls">
+        <div class="c-filter-search">
+          <i class="ph ph-magnifying-glass icon-leading"></i>
+          <input type="text" id="cmpSearch" placeholder="Search campaigns, brands, owners" aria-label="Search campaigns" />
+          <button class="c-filter-search-clear" id="cmpSearchClear" aria-label="Clear search" hidden><i class="ph ph-x"></i></button>
+        </div>
+        <div class="cmp-chips" id="cmpChips" role="group" aria-label="Filter by stage"></div>
+        <div class="cmp-viewseg" role="group" aria-label="View">
+          <button class="cmp-viewbtn is-active" type="button" data-view="board" aria-label="Board view" title="Board view"><i class="ph ph-kanban"></i></button>
+          <button class="cmp-viewbtn" type="button" data-view="list" aria-label="List view" title="List view"><i class="ph ph-list-bullets"></i></button>
+        </div>
+      </div>
+      <p class="cmp-count" id="cmpCount"></p>
+
+      <div class="cmp-view is-on" id="cmpBoardView">
+        <div class="cmp-board" id="cmpBoard"></div>
+      </div>
+
+      <div class="cmp-view" id="cmpListView">
+      <div class="c-table-standalone-wrap" id="cmpTableWrap">
+        <table class="c-table c-table-standalone cmp-table">
+          <colgroup>
+            <col class="cmp-col-name" /><col class="cmp-col-stage" /><col class="cmp-col-dates" />
+            <col class="cmp-col-pax" /><col class="cmp-col-plat" /><col class="cmp-col-num" /><col class="cmp-col-num" />
+            <col class="cmp-col-owner" /><col class="cmp-col-type" /><col class="cmp-col-act" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th data-sort="name">Campaign <i class="ph ph-arrows-down-up cmp-sorticon"></i></th>
+              <th data-sort="stage">Stage <i class="ph ph-arrows-down-up cmp-sorticon"></i></th>
+              <th data-sort="start">Run dates <i class="ph ph-arrows-down-up cmp-sorticon"></i></th>
+              <th data-sort="pax" class="num">Pax <i class="ph ph-arrows-down-up cmp-sorticon"></i></th>
+              <th class="cmp-hide-sm">Platform</th>
+              <th data-sort="quote" class="num">Quote <i class="ph ph-arrows-down-up cmp-sorticon"></i></th>
+              <th data-sort="cost" class="num">Cost <i class="ph ph-arrows-down-up cmp-sorticon"></i></th>
+              <th data-sort="pic" class="cmp-hide-sm">Owner <i class="ph ph-arrows-down-up cmp-sorticon"></i></th>
+              <th class="cmp-hide-md">Type</th>
+              <th><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody id="cmpRows"></tbody>
+        </table>
+        <div id="cmpEmpty" hidden></div>
+      </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="c-sidebar-hover-label" id="shellSidebarHoverLabel" role="tooltip"></div>
+
+<div class="c-account-menu" id="accountMenu" role="menu" aria-hidden="true">
+  <button class="c-account-menu-item" type="button" role="menuitem"><i class="ph-fill ph-gear"></i><span>Settings</span></button>
+  <button class="c-account-menu-item" type="button" role="menuitem"><i class="ph-fill ph-sign-out"></i><span>Log out</span></button>
+</div>
+
+<div class="c-dept-dropdown" id="deptDropdown" role="listbox" aria-label="Departments" hidden>
+  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Collabrium (Default)" data-dept="default" data-name="Collabrium (Default)" data-element-icon="../collabrium-dls/SVG/coin.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabrium-default-logo.svg" alt="" style="--logo-scale:0.6" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Studio" data-dept="studio" data-name="Studio" data-logo="../collabrium-dls/logo-lockups/collabStudio.svg" data-element-icon="../collabrium-dls/SVG/fire.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabStudio.svg" alt="" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Sales" data-dept="sales" data-name="Sales" data-logo="../collabrium-dls/logo-lockups/collabSales.svg" data-element-icon="../collabrium-dls/SVG/gold.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabSales.svg" alt="" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Media" data-dept="media" data-name="Media" data-logo="../collabrium-dls/logo-lockups/collabMedia.svg" data-element-icon="../collabrium-dls/SVG/water.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabMedia.svg" alt="" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+  <div class="c-dept-option is-active" role="option" aria-selected="true" aria-label="Influence" data-dept="influence" data-name="Influence" data-logo="../collabrium-dls/logo-lockups/collabInfluence.svg" data-element-icon="../collabrium-dls/SVG/earth.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabInfluence.svg" alt="" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Content" data-dept="content" data-name="Content" data-logo="../collabrium-dls/logo-lockups/collabContent.svg" data-element-icon="../collabrium-dls/SVG/wood.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabContent.svg" alt="" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+</div>
+
+<!-- One floating menu: stage picker or row options, depending on who opened it. -->
+<div class="cmp-menu" id="cmpMenu" role="menu"></div>
+
+<!-- Delete confirmation -->
+<div class="cmp-scrim" id="cmpDelScrim">
+  <div class="c-modal" role="alertdialog" aria-modal="true" aria-labelledby="cmpDelTitle" style="margin:var(--spacing-16);">
+    <div class="c-modal-head"><h4 id="cmpDelTitle">Delete campaign?</h4>
+      <button class="c-icon-btn" type="button" id="cmpDelClose" aria-label="Close"><i class="ph ph-x"></i></button></div>
+    <div class="c-modal-body" id="cmpDelBody"></div>
+    <div class="c-modal-foot">
+      <button class="c-btn c-btn-ghost c-btn-md" type="button" id="cmpDelCancel">Cancel</button>
+      <button class="c-btn c-btn-primary c-btn-md" type="button" id="cmpDelConfirm" style="background:var(--color-red); border-color:var(--color-red);"><i class="ph ph-trash"></i> Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="c-toast-host" id="cmpToasts"></div>
+
+<script src="../shared/shell.js?v=0.9.46"></script>
+<script src="../shared/campaigns-data.js?v=1"></script>
+<script src="../shared/campaign-store.js?v=1"></script>
+<script src="../shared/campaign-form.js?v=1"></script>
+<script>
+(function () {
+  'use strict';
+  var S = window.campaignStore;
+  var E = function (id) { return document.getElementById(id); };
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  var PLAT_ICON = {
+    tiktok: '<i class="ph-fill ph-tiktok-logo" title="TikTok"></i>',
+    instagram: '<i class="ph-fill ph-instagram-logo" title="Instagram"></i>',
+    xhs: '<i class="ph-fill ph-book-open" title="Xiaohongshu"></i>'
+  };
+
+  /* ── State. The stage filter is one stage or none; sort defaults to
+     most recently touched, which is what the store already returns. */
+  var params = new URLSearchParams(location.search);
+  var stageFilter = params.get('stage') || null;
+  var query = '';
+  var sort = {key: null, dir: 1};
+  var all = [], hits = [];
+  var VIEW_KEY = 'collab-campaign-view';
+  var view = 'board';
+  try { view = sessionStorage.getItem(VIEW_KEY) || 'board'; } catch (e) {}
+  function setView(v){
+    view = v;
+    try { sessionStorage.setItem(VIEW_KEY, v); } catch (e) {}
+    document.querySelectorAll('.cmp-viewbtn').forEach(function(b){ b.classList.toggle('is-active', b.dataset.view === v); });
+    E('cmpBoardView').classList.toggle('is-on', v === 'board');
+    E('cmpListView').classList.toggle('is-on', v === 'list');
+  }
+
+  function matches(c){
+    if (stageFilter && c.stage !== stageFilter) return false;
+    if (query) {
+      var q = query.toLowerCase();
+      var hay = [c.name, c.brand, c.agency, c.pic, c.overseer, c.io].join(' ').toLowerCase();
+      if (hay.indexOf(q) < 0) return false;
+    }
+    return true;
+  }
+  function sorted(list){
+    if (!sort.key) return list;
+    var k = sort.key, d = sort.dir;
+    var stageIdx = {}; S.STAGES.forEach(function(s, i){ stageIdx[s.key] = i; });
+    return list.slice().sort(function(a, b){
+      var va, vb;
+      if (k === 'stage') { va = stageIdx[a.stage]; vb = stageIdx[b.stage]; }
+      else if (k === 'name' || k === 'pic' || k === 'start') { va = (a[k] || '').toLowerCase(); vb = (b[k] || '').toLowerCase(); }
+      else { va = S.num(a[k]); vb = S.num(b[k]); if (va == null) va = -Infinity; if (vb == null) vb = -Infinity; }
+      return va < vb ? -d : va > vb ? d : 0;
+    });
+  }
+
+  /* ── Pipeline + chips: counts over the whole list, never the filtered
+     one, so the numbers stay put while you narrow the view. */
+  function stageCounts(){
+    var counts = {};
+    S.STAGES.forEach(function(s){ counts[s.key] = 0; });
+    all.forEach(function(c){ if (counts[c.stage] != null) counts[c.stage] += 1; });
+    return counts;
+  }
+  function renderPipe(){
+    var counts = stageCounts();
+    E('cmpPipe').innerHTML = S.STAGES.map(function(s){
+      return '<button type="button" class="cmp-node' + (stageFilter === s.key ? ' is-on' : '') + '" data-stage="' + s.key + '" aria-pressed="' + (stageFilter === s.key) + '">' +
+        '<span class="val' + (counts[s.key] ? '' : ' is-zero') + '">' + counts[s.key] + '</span>' +
+        '<span class="lbl"><span class="cmp-dot" style="background:' + s.dot + '"></span>' + s.short + '</span></button>';
+    }).join('');
+    E('cmpChips').innerHTML = '<button type="button" class="c-chip c-chip-filter' + (!stageFilter ? ' is-active' : '') + '" data-stage="">All</button>' +
+      S.STAGES.map(function(s){
+        return '<button type="button" class="c-chip c-chip-filter' + (stageFilter === s.key ? ' is-active' : '') + '" data-stage="' + s.key + '">' + s.short +
+          (counts[s.key] ? ' <span class="count">' + counts[s.key] + '</span>' : '') + '</button>';
+      }).join('');
+  }
+
+  /* ── Board cards. The cue line is the one thing a card says beyond
+     its facts: where the run is against today, or what is missing. */
+  var TODAY = S.today();
+  function daysBetween(a, b){
+    return Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 864e5);
+  }
+  function cue(c){
+    if (c.stage === 'completed') return {cls:'done', icon:'ph-check-circle', text:'Wrapped'};
+    if (c.start && c.start > TODAY) {
+      var d = daysBetween(TODAY, c.start);
+      return {cls:'', icon:'ph-calendar-blank', text: d === 1 ? 'Starts tomorrow' : 'Starts in ' + d + ' days'};
+    }
+    if (c.end && c.end < TODAY) return {cls:'warn', icon:'ph-clock-counter-clockwise', text:'Run ended'};
+    if (c.end) {
+      var left = daysBetween(TODAY, c.end);
+      return {cls: left <= 7 ? 'warn' : 'live', icon:'ph-broadcast', text: left === 0 ? 'Ends today' : left + (left === 1 ? ' day left' : ' days left')};
+    }
+    if (!(c.roster || []).length) return {cls:'', icon:'ph-user-plus', text:'No roster yet'};
+    return null;
+  }
+  function cardHtml(c){
+    var plats = (c.platforms || []).map(function(p){ return PLAT_ICON[p] || ''; }).join('');
+    var q = cue(c);
+    return '<div class="cmp-card" draggable="true" tabindex="0" role="button" data-id="' + c.id + '" style="--bar:' + S.colorOf(c.color) + '">' +
+      '<div class="cmp-card-top"><span class="cmp-logo" data-logo-for="' + c.id + '"><span class="ini">' + esc(S.initials(c.brand || c.name)) + '</span><img alt="" hidden /></span>' +
+        '<span class="cmp-txt"><span class="cmp-name" title="' + esc(c.name) + '">' + esc(c.name) + '</span>' +
+        '<span class="cmp-sub">' + esc([c.brand, c.agency].filter(Boolean).join(' · ') || 'No brand yet') + '</span></span></div>' +
+      '<div class="cmp-card-meta">' +
+        '<span><i class="ph ph-calendar-blank"></i>' + esc(S.fmtRange(c.start, c.end)) + '</span>' +
+        '<span><i class="ph ph-users-three"></i>' + (c.pax != null ? '<b>' + S.fmtNum(c.pax) + '</b>&nbsp;pax' : '<span class="cmp-muted">pax not set</span>') +
+          (c.quote != null ? '<span style="color:var(--color-neutral-4)">·</span><b>' + S.fmtRM(c.quote) + '</b>' : '') + '</span>' +
+        (q ? '<span class="cmp-cue ' + q.cls + '"><i class="ph ' + q.icon + '"></i>' + q.text + '</span>' : '') +
+      '</div>' +
+      '<div class="cmp-card-foot">' +
+        '<span style="display:inline-flex; align-items:center; gap:var(--spacing-8)"><span class="cmp-ini" title="' + esc(c.pic || '') + '">' + esc(S.initials(c.pic || '?')) + '</span>' +
+          (c.overseer ? '<span class="cmp-ini" title="' + esc(c.overseer) + '">' + esc(S.initials(c.overseer)) + '</span>' : '') + '</span>' +
+        (plats ? '<span class="cmp-plats">' + plats + '</span>' : '<span class="cmp-plats is-empty">—</span>') +
+      '</div></div>';
+  }
+  function renderBoard(){
+    var counts = stageCounts();
+    var visible = all.filter(function(c){ return !query || matches(Object.assign({}, c, {stage: stageFilter || c.stage})); });
+    E('cmpBoard').innerHTML = S.STAGES.map(function(s){
+      var cards = visible.filter(function(c){ return c.stage === s.key; });
+      return '<div class="cmp-col' + (stageFilter && stageFilter !== s.key ? ' is-dim' : '') + '" data-col="' + s.key + '">' +
+        '<div class="cmp-col-head"><span class="cmp-dot" style="background:' + s.dot + '"></span>' + s.short + '<span class="n">' + cards.length + (query ? '/' + counts[s.key] : '') + '</span></div>' +
+        (cards.length ? cards.map(cardHtml).join('') : '<div class="cmp-col-empty">' + (query ? 'No match here' : 'Drop a campaign here') + '</div>') +
+      '</div>';
+    }).join('');
+  }
+  function attachLogos(root){
+    if (!window.collabBrand) return;
+    root.querySelectorAll('[data-logo-for]').forEach(function(cell){
+      var c = byId(cell.dataset.logoFor);
+      if (!c || !c.brand) return;
+      var img = cell.querySelector('img'), ini = cell.querySelector('.ini');
+      if (img.dataset.done) return;
+      img.dataset.done = '1';
+      collabBrand.attach(img, collabBrand.pick(c.brand, c.name), function(ok){
+        if (ok) { img.hidden = false; ini.hidden = true; }
+      });
+    });
+  }
+
+  function stageBadge(c){
+    var s = S.stageOf(c.stage);
+    return '<button type="button" class="cmp-stage" data-stage-for="' + c.id + '" aria-haspopup="menu" title="Change stage">' +
+      '<span class="cmp-dot" style="background:' + s.dot + '"></span><span class="t">' + s.label + '</span><i class="ph ph-caret-down"></i></button>';
+  }
+  function rowHtml(c){
+    var plats = (c.platforms || []).map(function(p){ return PLAT_ICON[p] || ''; }).join('');
+    return '<tr data-id="' + c.id + '">' +
+      '<td><span class="cmp-cell-name">' +
+        '<span class="cmp-logo" data-logo-for="' + c.id + '"><span class="ini">' + esc(S.initials(c.brand || c.name)) + '</span><img alt="" hidden /></span>' +
+        '<span class="cmp-txt"><span class="cmp-name" title="' + esc(c.name) + '">' + esc(c.name) + '</span>' +
+        '<span class="cmp-sub">' + esc([c.brand, c.agency].filter(Boolean).join(' · ') || '—') + '</span></span></span></td>' +
+      '<td>' + stageBadge(c) + '</td>' +
+      '<td class="txt">' + esc(S.fmtRange(c.start, c.end)) + '</td>' +
+      '<td class="num">' + (c.pax == null ? '<span class="cmp-muted">—</span>' : S.fmtNum(c.pax)) + '</td>' +
+      '<td class="cmp-hide-sm"><span class="cmp-plats' + (plats ? '' : ' is-empty') + '">' + (plats || '—') + '</span></td>' +
+      '<td class="num">' + (c.quote == null ? '<span class="cmp-muted">—</span>' : S.fmtNum(c.quote)) + '</td>' +
+      '<td class="num">' + (c.cost == null ? '<span class="cmp-muted">—</span>' : S.fmtNum(c.cost)) + '</td>' +
+      '<td class="cmp-hide-sm"><span class="cmp-owner">' + esc(c.pic || '—') + '</span><span class="cmp-owner-sub">' + esc(c.overseer || 'no overseer') + '</span></td>' +
+      '<td class="txt cmp-hide-md">' + esc((c.types || []).join(', ') || '—') + '</td>' +
+      '<td><button class="c-btn c-btn-ghost c-btn-sm c-btn-icon cmp-kebab" type="button" data-kebab-for="' + c.id + '" aria-label="Campaign options" aria-haspopup="menu"><i class="ph ph-dots-three-vertical"></i></button></td>' +
+    '</tr>';
+  }
+
+  function render(newId){
+    all = S.merged();
+    hits = sorted(all.filter(matches));
+    renderPipe();
+    renderBoard();
+    var rows = E('cmpRows');
+    rows.innerHTML = hits.map(rowHtml).join('');
+    if (newId) {
+      var tr = rows.querySelector('tr[data-id="' + newId + '"]');
+      if (tr) tr.classList.add('is-new');
+      var card = E('cmpBoard').querySelector('.cmp-card[data-id="' + newId + '"]');
+      if (card) { card.classList.add('is-new'); card.scrollIntoView({block:'nearest', inline:'nearest'}); }
+    }
+    /* Brand marks resolve through the shell's logo chain; a chain that
+       dries out leaves the initials in place. */
+    attachLogos(rows); attachLogos(E('cmpBoard'));
+    var none = !hits.length;
+    rows.closest('table').style.display = none ? 'none' : '';
+    E('cmpEmpty').hidden = !none;
+    if (none) {
+      var what = query ? '“' + query + '”' : (stageFilter ? 'the ' + S.stageOf(stageFilter).short + ' stage' : '');
+      E('cmpEmpty').innerHTML = '<div class="c-empty is-section"><i class="ph-fill ph-folder-open"></i>' +
+        '<h4>' + (what ? 'No campaigns here' : 'No campaigns yet') + '</h4>' +
+        '<p>' + (what ? 'Nothing matches ' + what + '. Clear the filter, or start a new campaign.' : 'Start your first influencer campaign and it will appear here.') + '</p>' +
+        '<div class="c-empty-actions">' + (what ? '<button class="c-btn c-btn-secondary c-btn-md" type="button" id="cmpEmptyClear">Clear filters</button>' : '') +
+        '<button class="c-btn c-btn-primary c-btn-md" type="button" id="cmpEmptyAdd"><i class="ph ph-plus"></i> Add campaign</button></div></div>';
+    }
+    E('cmpCount').textContent = hits.length + (hits.length === 1 ? ' campaign' : ' campaigns') +
+      (hits.length !== all.length ? ' of ' + all.length : '') +
+      (view === 'board' ? ' · drag a card between columns to change its stage' : '');
+    document.querySelectorAll('th[data-sort]').forEach(function(th){
+      var on = th.dataset.sort === sort.key;
+      var ic = th.querySelector('.cmp-sorticon');
+      ic.className = 'ph cmp-sorticon ' + (on ? (sort.dir > 0 ? 'ph-arrow-up' : 'ph-arrow-down') + ' is-on' : 'ph-arrows-down-up');
+    });
+  }
+
+  /* ── Toasts. */
+  function toast(msg, tone){
+    var host = E('cmpToasts');
+    var el = document.createElement('div');
+    el.className = 'c-toast is-message-only is-entering';
+    el.innerHTML = '<i class="ph-fill ' + (tone === 'danger' ? 'ph-trash tone tone-danger' : 'ph-check-circle tone tone-success') +
+      '"></i><div class="body"><div class="message">' + esc(msg) + '</div></div>';
+    host.appendChild(el);
+    requestAnimationFrame(function(){ el.classList.remove('is-entering'); });
+    setTimeout(function(){ el.classList.add('is-entering'); setTimeout(function(){ el.remove(); }, 240); }, 2600);
+  }
+
+  /* ── Floating menu. */
+  var menu = E('cmpMenu'), menuAnchor = null;
+  function openMenu(anchor, html, align){
+    menu.innerHTML = html;
+    menu.classList.add('is-open');
+    if (menuAnchor) menuAnchor.classList.remove('is-open');
+    menuAnchor = anchor; anchor.classList.add('is-open');
+    var r = anchor.getBoundingClientRect();
+    var w = menu.offsetWidth, h = menu.offsetHeight;
+    var left = align === 'right' ? r.right - w : r.left;
+    left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
+    var top = r.bottom + 4;
+    if (top + h > window.innerHeight - 8) top = r.top - h - 4;
+    menu.style.left = left + 'px'; menu.style.top = top + 'px';
+  }
+  function closeMenu(){
+    menu.classList.remove('is-open');
+    if (menuAnchor) menuAnchor.classList.remove('is-open');
+    menuAnchor = null;
+  }
+  function stageMenuHtml(c){
+    return S.STAGES.map(function(s){
+      var on = s.key === c.stage;
+      return '<button type="button" class="cmp-menu-item" role="menuitemradio" aria-checked="' + on + '" data-set-stage="' + s.key + '" data-id="' + c.id + '">' +
+        '<span class="cmp-dot" style="background:' + s.dot + '"></span>' + s.label + (on ? '<i class="ph ph-check chk"></i>' : '') + '</button>';
+    }).join('');
+  }
+  function rowMenuHtml(c){
+    return '<button type="button" class="cmp-menu-item" role="menuitem" data-open="' + c.id + '"><i class="ph ph-arrow-square-out"></i> Open campaign</button>' +
+      '<button type="button" class="cmp-menu-item" role="menuitem" data-edit="' + c.id + '"><i class="ph ph-pencil-simple"></i> Edit details</button>' +
+      '<button type="button" class="cmp-menu-item is-danger" role="menuitem" data-del="' + c.id + '"><i class="ph ph-trash"></i> Delete campaign</button>';
+  }
+  function byId(id){ return all.filter(function(c){ return c.id === id; })[0]; }
+
+  E('cmpRows').addEventListener('click', function(e){
+    var sb = e.target.closest('[data-stage-for]');
+    if (sb) { e.stopPropagation(); if (menuAnchor === sb) return closeMenu(); return openMenu(sb, stageMenuHtml(byId(sb.dataset.stageFor))); }
+    var kb = e.target.closest('[data-kebab-for]');
+    if (kb) { e.stopPropagation(); if (menuAnchor === kb) return closeMenu(); return openMenu(kb, rowMenuHtml(byId(kb.dataset.kebabFor)), 'right'); }
+    var tr = e.target.closest('tr[data-id]');
+    if (tr) location.href = 'campaign.html?id=' + encodeURIComponent(tr.dataset.id);
+  });
+  menu.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    e.stopPropagation();
+    if (b.dataset.setStage) {
+      var c = byId(b.dataset.id);
+      closeMenu();
+      if (c.stage === b.dataset.setStage) return;
+      S.update(c.id, {stage: b.dataset.setStage});
+      render();
+      toast(c.name + ' moved to ' + S.stageOf(b.dataset.setStage).label + '.');
+    } else if (b.dataset.open) {
+      location.href = 'campaign.html?id=' + encodeURIComponent(b.dataset.open);
+    } else if (b.dataset.edit) {
+      var rec = byId(b.dataset.edit); closeMenu();
+      campaignForm.open({rec: rec, onSave: function(fields, id){
+        S.update(id, fields); render(id); toast('Changes saved.');
+      }});
+    } else if (b.dataset.del) {
+      var d = byId(b.dataset.del); closeMenu(); askDelete(d);
+    }
+  });
+  document.addEventListener('click', function(e){
+    if (menu.classList.contains('is-open') && !e.target.closest('#cmpMenu')) closeMenu();
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeMenu(); });
+  window.addEventListener('scroll', closeMenu, true);
+  window.addEventListener('resize', closeMenu);
+
+  /* ── Filters, search, sort. */
+  function setStage(key){
+    stageFilter = key || null;
+    var u = new URL(location.href);
+    if (stageFilter) u.searchParams.set('stage', stageFilter); else u.searchParams.delete('stage');
+    history.replaceState(null, '', u);
+    render();
+  }
+  E('cmpPipe').addEventListener('click', function(e){
+    var b = e.target.closest('[data-stage]'); if (!b) return;
+    setStage(stageFilter === b.dataset.stage ? null : b.dataset.stage);
+  });
+  E('cmpChips').addEventListener('click', function(e){
+    var b = e.target.closest('[data-stage]'); if (!b) return;
+    setStage(b.dataset.stage);
+  });
+  var search = E('cmpSearch'), clear = E('cmpSearchClear');
+  search.addEventListener('input', function(){ query = search.value.trim(); clear.hidden = !query; render(); });
+  clear.addEventListener('click', function(){ search.value = ''; query = ''; clear.hidden = true; render(); search.focus(); });
+  document.querySelector('thead').addEventListener('click', function(e){
+    var th = e.target.closest('th[data-sort]'); if (!th) return;
+    var k = th.dataset.sort;
+    if (sort.key === k) { if (sort.dir > 0) sort.dir = -1; else { sort.key = null; sort.dir = 1; } }
+    else { sort.key = k; sort.dir = 1; }
+    render();
+  });
+  E('cmpEmpty').addEventListener('click', function(e){
+    if (e.target.closest('#cmpEmptyClear')) { search.value = ''; query = ''; clear.hidden = true; setStage(null); }
+    if (e.target.closest('#cmpEmptyAdd')) openAdd();
+  });
+
+  /* ── Board: open on click, restage by drag. */
+  var board = E('cmpBoard'), dragId = null;
+  board.addEventListener('click', function(e){
+    var card = e.target.closest('.cmp-card[data-id]');
+    if (card) location.href = 'campaign.html?id=' + encodeURIComponent(card.dataset.id);
+  });
+  board.addEventListener('keydown', function(e){
+    var card = e.target.closest('.cmp-card[data-id]');
+    if (card && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); location.href = 'campaign.html?id=' + encodeURIComponent(card.dataset.id); }
+  });
+  board.addEventListener('dragstart', function(e){
+    var card = e.target.closest('.cmp-card[data-id]'); if (!card) return;
+    dragId = card.dataset.id;
+    card.classList.add('is-dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', dragId); } catch (x) {}
+  });
+  board.addEventListener('dragend', function(){
+    dragId = null;
+    board.querySelectorAll('.is-dragging').forEach(function(el){ el.classList.remove('is-dragging'); });
+    board.querySelectorAll('.is-over').forEach(function(el){ el.classList.remove('is-over'); });
+  });
+  board.addEventListener('dragover', function(e){
+    var col = e.target.closest('.cmp-col'); if (!col || !dragId) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+    board.querySelectorAll('.is-over').forEach(function(el){ if (el !== col) el.classList.remove('is-over'); });
+    col.classList.add('is-over');
+  });
+  board.addEventListener('dragleave', function(e){
+    var col = e.target.closest('.cmp-col');
+    if (col && !col.contains(e.relatedTarget)) col.classList.remove('is-over');
+  });
+  board.addEventListener('drop', function(e){
+    var col = e.target.closest('.cmp-col'); if (!col || !dragId) return;
+    e.preventDefault();
+    var c = byId(dragId), to = col.dataset.col;
+    dragId = null;
+    if (!c || c.stage === to) { col.classList.remove('is-over'); return; }
+    S.update(c.id, {stage: to});
+    render(c.id);
+    toast(c.name + ' moved to ' + S.stageOf(to).label + '.');
+  });
+  document.querySelector('.cmp-viewseg').addEventListener('click', function(e){
+    var b = e.target.closest('[data-view]'); if (b) setView(b.dataset.view);
+  });
+
+  /* ── Add. A hand-off from the influencers page arrives with
+     ?new=1&picks=id,id — the new campaign then opens straight into its
+     first preview batch, which is what the selection was for. */
+  var handoffPicks = (params.get('picks') || '').split(',').filter(Boolean);
+  function openAdd(){
+    campaignForm.open({onSave: function(fields){
+      var id = S.add(fields);
+      if (handoffPicks.length) {
+        var n = S.addBatch(id, 'Batch 1', handoffPicks);
+        location.href = 'campaign.html?id=' + encodeURIComponent(id) + '&tab=kol&batch=' + n;
+        return;
+      }
+      render(id);
+      toast(fields.name + ' created.');
+    }});
+  }
+  E('cmpAddBtn').addEventListener('click', openAdd);
+
+  /* ── Delete — confirmed, then gone from the list. */
+  var delScrim = E('cmpDelScrim'), deleting = null;
+  function askDelete(c){
+    deleting = c;
+    E('cmpDelBody').innerHTML = 'This removes <strong>' + esc(c.name) + '</strong> and its roster and preview batches from the workspace. The seeded sample data on disk is untouched.';
+    delScrim.classList.add('is-open');
+  }
+  function closeDelete(){ delScrim.classList.remove('is-open'); deleting = null; }
+  E('cmpDelClose').addEventListener('click', closeDelete);
+  E('cmpDelCancel').addEventListener('click', closeDelete);
+  delScrim.addEventListener('click', function(e){ if (e.target === delScrim) closeDelete(); });
+  E('cmpDelConfirm').addEventListener('click', function(){
+    if (!deleting) return;
+    var c = deleting; closeDelete();
+    S.remove(c.id);
+    var tr = E('cmpRows').querySelector('tr[data-id="' + c.id + '"]');
+    if (tr) tr.classList.add('is-leaving');
+    toast(c.name + ' deleted.', 'danger');
+    setTimeout(render, 230);
+  });
+
+  /* ── Boot: bones first, then the real page cascades in. */
+  setView(view);
+  function skeleton(){
+    E('cmpPipe').innerHTML = S.STAGES.map(function(){
+      return '<div class="cmp-node" style="pointer-events:none"><span class="cmp-sk" style="width:28px; height:22px"></span><span class="cmp-sk" style="width:64px; height:9px"></span></div>';
+    }).join('');
+    E('cmpBoard').innerHTML = S.STAGES.map(function(s, i){
+      var n = i === 0 ? 3 : i === 2 ? 1 : 0;
+      var cards = '';
+      for (var k = 0; k < n; k++) cards += '<div class="cmp-sk-card"><div style="display:flex; gap:8px; align-items:center"><span class="cmp-sk-ava"></span><span class="cmp-sk" style="flex:1"></span></div><span class="cmp-sk" style="width:70%; height:9px"></span><span class="cmp-sk" style="width:50%; height:9px"></span></div>';
+      return '<div class="cmp-col"><div class="cmp-col-head"><span class="cmp-sk" style="width:60px; height:9px"></span></div>' + cards + '</div>';
+    }).join('');
+    E('cmpRows').innerHTML = [0,1,2,3,4].map(function(){
+      return '<tr><td><span class="cmp-cell-name"><span class="cmp-sk-ava"></span><span class="cmp-sk" style="flex:1"></span></span></td>' +
+        '<td><span class="cmp-sk" style="width:90px; height:20px; border-radius:var(--radius-pill); display:block"></span></td>' +
+        '<td><span class="cmp-sk" style="display:block"></span></td><td><span class="cmp-sk" style="display:block"></span></td>' +
+        '<td class="cmp-hide-sm"><span class="cmp-sk" style="display:block; width:40px"></span></td><td><span class="cmp-sk" style="display:block"></span></td>' +
+        '<td><span class="cmp-sk" style="display:block"></span></td><td class="cmp-hide-sm"><span class="cmp-sk" style="display:block"></span></td>' +
+        '<td class="cmp-hide-md"><span class="cmp-sk" style="display:block"></span></td><td></td></tr>';
+    }).join('');
+    E('cmpCount').textContent = 'Loading campaigns…';
+  }
+  var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  skeleton();
+  setTimeout(function(){
+    render();
+    if (params.get('new')) setTimeout(openAdd, 350);
+    setTimeout(function(){ E('cmpContent').classList.remove('cmp-arriving'); }, 1100);
+  }, REDUCED ? 0 : 480);
+})();
+</script>
+</body>
+</html>

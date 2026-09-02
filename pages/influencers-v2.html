@@ -776,7 +776,7 @@
       <a class="c-sidebar-item" href="#"><i class="ph-fill ph-house"></i><span class="label">Home</span><span class="c-sidebar-hover-text">Home</span></a>
       <div class="c-sidebar-section">Workspace</div>
       <a class="c-sidebar-item active" href="influencers-v2.html" aria-current="page"><i class="ph-fill ph-users-three"></i><span class="label">Influencers</span><span class="c-sidebar-hover-text">Influencers</span></a>
-      <a class="c-sidebar-item" href="#"><i class="ph-fill ph-folder-open"></i><span class="label">Campaigns</span><span class="c-sidebar-hover-text">Campaigns</span></a>
+      <a class="c-sidebar-item" href="campaigns.html"><i class="ph-fill ph-folder-open"></i><span class="label">Campaigns</span><span class="c-sidebar-hover-text">Campaigns</span></a>
       <div class="c-sidebar-section">General</div>
       <a class="c-sidebar-item" href="#"><i class="ph-fill ph-buildings"></i><span class="label">Agencies</span><span class="c-sidebar-hover-text">Agencies</span></a>
       <a class="c-sidebar-item" href="#"><i class="ph-fill ph-tag"></i><span class="label">Brands</span><span class="c-sidebar-hover-text">Brands</span></a>
@@ -1055,9 +1055,32 @@
   </div>
 </div>
 
+<!-- Send to campaign — where a selection goes. Pick an existing
+     campaign and the set becomes a new preview batch on it; or start a
+     campaign, and the form on the campaigns page finishes the job. -->
+<div class="inf-scrim" id="infSendScrim" style="display:flex; align-items:center; justify-content:center;">
+  <div class="c-modal" role="dialog" aria-modal="true" aria-labelledby="infSendTitle" style="margin:var(--spacing-16); max-width:440px;">
+    <div class="c-modal-head"><h4 id="infSendTitle">Send to campaign</h4>
+      <button class="c-icon-btn" type="button" id="infSendClose" aria-label="Close"><i class="ph ph-x"></i></button></div>
+    <div class="c-modal-body">
+      <p style="margin:0 0 var(--spacing-12); font-size:var(--text-body2-size); color:var(--color-neutral-5);" id="infSendHint"></p>
+      <div class="c-field" style="width:100%; margin-bottom:var(--spacing-12);"><label for="infSendCampaign">Campaign</label>
+        <select id="infSendCampaign"></select></div>
+      <div class="c-field" style="width:100%;"><label for="infSendBatch">Batch name</label>
+        <input id="infSendBatch" placeholder="e.g. Angel picks" /></div>
+    </div>
+    <div class="c-modal-foot">
+      <button class="c-btn c-btn-ghost c-btn-md" type="button" id="infSendCancel">Cancel</button>
+      <button class="c-btn c-btn-primary c-btn-md" type="button" id="infSendConfirm"><i class="ph ph-paper-plane-tilt"></i> Create preview link</button>
+    </div>
+  </div>
+</div>
+
 <div class="c-toast-host" id="infToasts"></div>
 
 <script src="../shared/shell.js?v=0.9.46"></script>
+<script src="../shared/campaigns-data.js?v=1"></script>
+<script src="../shared/campaign-store.js?v=1"></script>
 <script src="../shared/influencers-data.js"></script>
 <script src="../shared/avatar-manifest.js?v=2"></script>
 <script>window.INFLUENCER_STORE_KEY = 'collab-influencers-v2';</script>
@@ -2698,14 +2721,51 @@
     paintHeadBox();
     paintSelBar();
   }
-  /* Generating the preview is the next build's job; this confirms the
-     set and says plainly that the link isn't real yet, rather than
-     pretending to hand over something that doesn't exist. */
-  document.getElementById('infSelGenerate').addEventListener('click', function(){
+  /* Generate Client Preview hands the selection to a campaign: the set
+     becomes a preview batch there, and the campaign's KOL Selection tab
+     is where the client's answers come back. "New campaign" carries the
+     ids across to the campaigns page, whose form finishes the job. */
+  var sendScrim = document.getElementById('infSendScrim');
+  var NEW_CAMPAIGN = '__new__';
+  function openSend(){
     var n = selected.size;
     if (!n) return;
-    toast('Client preview for ' + n + (n === 1 ? ' profile' : ' profiles') +
-      ' — sharable link coming in the next build.');
+    var sel = document.getElementById('infSendCampaign');
+    var list = window.campaignStore ? campaignStore.merged() : [];
+    sel.innerHTML = list.map(function(c){
+      return '<option value="' + esc(c.id) + '">' + esc(c.name) + (c.brand ? ' · ' + esc(c.brand) : '') + '</option>';
+    }).join('') + '<option value="' + NEW_CAMPAIGN + '">+ New campaign…</option>';
+    document.getElementById('infSendHint').textContent =
+      n + (n === 1 ? ' profile' : ' profiles') + ' will be sent as a new preview batch for the client to pick from.';
+    var first = list[0];
+    document.getElementById('infSendBatch').value = first ? 'Batch ' + ((first.batches || []).length + 1) : 'Batch 1';
+    sendScrim.classList.add('is-open');
+  }
+  function closeSend(){ sendScrim.classList.remove('is-open'); }
+  document.getElementById('infSelGenerate').addEventListener('click', openSend);
+  document.getElementById('infSendClose').addEventListener('click', closeSend);
+  document.getElementById('infSendCancel').addEventListener('click', closeSend);
+  sendScrim.addEventListener('click', function(e){ if (e.target === sendScrim) closeSend(); });
+  document.getElementById('infSendCampaign').addEventListener('change', function(){
+    var v = this.value;
+    var c = v === NEW_CAMPAIGN ? null : campaignStore.get(v);
+    document.getElementById('infSendBatch').value = c ? 'Batch ' + ((c.batches || []).length + 1) : 'Batch 1';
+    document.getElementById('infSendConfirm').innerHTML = v === NEW_CAMPAIGN
+      ? '<i class="ph ph-arrow-right"></i> Continue to new campaign'
+      : '<i class="ph ph-paper-plane-tilt"></i> Create preview link';
+  });
+  document.getElementById('infSendConfirm').addEventListener('click', function(){
+    var ids = Array.from(selected);
+    if (!ids.length) return;
+    var v = document.getElementById('infSendCampaign').value;
+    closeSend();
+    if (v === NEW_CAMPAIGN) {
+      location.href = 'campaigns.html?new=1&picks=' + encodeURIComponent(ids.join(','));
+      return;
+    }
+    var name = document.getElementById('infSendBatch').value.trim() || null;
+    var n = campaignStore.addBatch(v, name, ids);
+    location.href = 'campaign.html?id=' + encodeURIComponent(v) + '&tab=kol&batch=' + n;
   });
   document.getElementById('infSelClear').addEventListener('click', function(){
     selected.clear();

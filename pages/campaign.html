@@ -1,0 +1,1157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Collab:Influence · Campaign</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="../collabrium-dls/SVG/earth.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700;800;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+<link rel="stylesheet" href="../collabrium-dls/tokens.css?v=0.9.41c" />
+<link rel="stylesheet" href="../collabrium-dls/components.css?v=0.9.41c" />
+<link rel="stylesheet" href="../shared/shell.css?v=0.9.44" />
+<style>
+  /* Page-local. Composes tokens only — no new colors, radii, or spacing. */
+  .c-shell .c-shell-content{padding-top:0;}
+  .cd-top{padding-top:var(--spacing-32);}
+  .c-back-button{text-decoration:none; margin-left:calc(var(--spacing-12) * -1);
+    color:var(--color-neutral-9);}
+
+  /* ── Header: colour bar, title, stage; actions on the right. The
+     bar is the campaign's own colour from the form — the one place it
+     shows, so it stays a quiet 6px stripe rather than a wash. */
+  .cd-head{display:flex; align-items:flex-start; justify-content:space-between;
+    gap:var(--spacing-16); margin-top:var(--spacing-12);}
+  .cd-title{display:flex; align-items:center; gap:var(--spacing-12); min-width:0; flex-wrap:wrap;}
+  .cd-bar{width:6px; height:36px; border-radius:3px; flex:none;}
+  .cd-title h1{margin:0; font-size:var(--text-h1-size); line-height:var(--text-h1-lh);
+    font-weight:var(--text-h1-weight); color:var(--color-neutral-9); min-width:0;
+    overflow-wrap:anywhere;}
+  .cd-io{margin:var(--spacing-8) 0 0 calc(6px + var(--spacing-12));
+    font-size:var(--text-body2-size); color:var(--color-neutral-5);}
+  .cd-actions{display:flex; gap:var(--spacing-8); flex:none; flex-wrap:wrap; justify-content:flex-end;}
+  .cd-actions .c-btn{text-decoration:none;}
+  .cd-rule{border:none; border-top:1px solid var(--color-neutral-3); margin:var(--spacing-16) 0 0;}
+
+  /* ── Stage track — the pipeline the list page draws, folded into a
+     single row here: where this campaign is, what is behind it, what
+     is ahead. Every node is a control; clicking one moves the stage. */
+  .cd-track{display:flex; align-items:center; margin-top:var(--spacing-16);
+    padding:var(--spacing-4) 0;}
+  .cd-step{display:flex; align-items:center; gap:var(--spacing-8); flex:none;
+    border:0; background:transparent; font:inherit; cursor:pointer; padding:6px 10px;
+    border-radius:var(--radius-pill); color:var(--color-neutral-5);
+    font-size:var(--text-caption-size); font-weight:700; white-space:nowrap;
+    transition:background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);}
+  .cd-step:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}
+  .cd-step:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+  .cd-step .ind{width:22px; height:22px; border-radius:var(--radius-pill); flex:none;
+    display:inline-flex; align-items:center; justify-content:center; font-size:11px;
+    background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); color:var(--color-neutral-5);
+    transition:background var(--duration-base) var(--ease-standard), border-color var(--duration-base) var(--ease-standard);}
+  .cd-step .ind i{font-size:var(--icon-micro);}
+  .cd-step.is-done .ind{background:var(--color-neutral-9); border-color:var(--color-neutral-9); color:var(--color-neutral-1);}
+  .cd-step.is-done{color:var(--color-neutral-9);}
+  .cd-step.is-now .ind{background:var(--color-obsidian); border-color:var(--color-obsidian); color:var(--color-neutral-1);
+    box-shadow:0 0 0 4px var(--color-neutral-2);}
+  .cd-step.is-now{color:var(--color-neutral-9); background:var(--color-neutral-1);
+    border:1px solid var(--color-neutral-3); box-shadow:var(--shadow-1);}
+  .cd-connector{flex:1; height:2px; min-width:12px; background:var(--color-neutral-3); margin:0 2px;
+    position:relative; overflow:hidden; border-radius:1px;}
+  .cd-connector.is-done::after{content:''; position:absolute; inset:0; background:var(--color-neutral-9);}
+  @media (max-width:1100px){ .cd-step .lbl{display:none;} .cd-step.is-now .lbl{display:inline;} }
+
+  /* ── Run-date timeline — the flight against today. */
+  .cd-timeline{margin-top:var(--spacing-4);}
+  .cd-timeline .row{display:flex; align-items:baseline; justify-content:space-between; gap:var(--spacing-12);
+    font-size:var(--text-caption-size); color:var(--color-neutral-5); margin-bottom:6px;}
+  .cd-timeline .row b{color:var(--color-neutral-9); font-weight:700;}
+  .cd-tl-track{position:relative; height:8px; border-radius:var(--radius-pill); background:var(--color-neutral-3);}
+  .cd-tl-fill{position:absolute; left:0; top:0; bottom:0; border-radius:var(--radius-pill); background:var(--color-green);
+    transition:width .6s var(--ease-settle);}
+  .cd-tl-fill.is-over{background:var(--color-neutral-5);}
+  .cd-tl-today{position:absolute; top:-4px; width:2px; height:16px; background:var(--color-obsidian); border-radius:1px;
+    transform:translateX(-1px);}
+  .cd-tl-today::after{content:'Today'; position:absolute; top:18px; left:50%; transform:translateX(-50%);
+    font-size:10px; font-weight:700; color:var(--color-neutral-9); white-space:nowrap;}
+  .cd-timeline .ends{display:flex; justify-content:space-between; font-size:10px; color:var(--color-neutral-4);
+    margin-top:var(--spacing-16); font-variant-numeric:tabular-nums;}
+
+  /* ── Answer bar — how a batch is going, at a glance. */
+  .cd-answers{display:flex; align-items:center; gap:var(--spacing-12); margin-top:var(--spacing-8);}
+  .cd-answers .c-progress-track{flex:1;}
+  .cd-answers .lg{display:flex; gap:var(--spacing-12); flex:none;}
+  .cd-answers .lg span{display:inline-flex; align-items:center; gap:4px; font-size:11px; color:var(--color-neutral-5); font-variant-numeric:tabular-nums;}
+  .cd-answers .lg b{color:var(--color-neutral-9); font-weight:700;}
+  .cd-stack{display:flex; align-items:center; padding-left:6px;}
+  .cd-stack .c-card-profile-avatar{width:28px; height:28px; margin-left:-8px; border:2px solid var(--color-neutral-1);
+    box-shadow:var(--shadow-1); font-size:10px;}
+  .cd-stack .more{display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px;
+    margin-left:-8px; border-radius:var(--radius-pill); border:2px solid var(--color-neutral-1);
+    background:var(--color-obsidian); color:var(--color-neutral-1); font-size:10px; font-weight:700;}
+  .cd-sect h3{display:inline-flex; align-items:center; gap:var(--spacing-8);}
+
+  /* ── Meta grid + deliverables ring. */
+  .cd-meta{display:flex; align-items:flex-start; gap:var(--spacing-32);
+    padding:var(--spacing-20) 0 var(--spacing-24);}
+  .cd-facts{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr));
+    gap:var(--spacing-20) var(--spacing-24); flex:1; max-width:760px;}
+  .cd-fact .k{display:block; font-size:var(--text-caption-size); font-weight:700;
+    text-transform:uppercase; letter-spacing:var(--tracking-eyebrow);
+    color:var(--color-neutral-5); margin-bottom:4px;}
+  .cd-fact .v{display:block; font-size:var(--text-body1-size); font-weight:700;
+    color:var(--color-neutral-9); overflow-wrap:anywhere;}
+  .cd-fact .v.u{text-decoration:underline; text-underline-offset:3px;}
+  .cd-fact .v .cmp-plats{display:inline-flex; gap:8px; font-size:var(--icon-sm);}
+  .cd-fact .v .muted{color:var(--color-neutral-4); font-weight:400;}
+  .cd-ring{flex:none; display:flex; flex-direction:column; align-items:flex-end; gap:var(--spacing-8);}
+  .cd-ring .k{font-size:var(--text-caption-size); font-weight:700; text-transform:uppercase;
+    letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
+  .cd-ring-wrap{position:relative; width:80px; height:80px;}
+  .cd-ring-wrap svg{width:80px; height:80px; transform:rotate(-90deg);}
+  .cd-ring-wrap .track{stroke:var(--color-neutral-3);}
+  .cd-ring-wrap .fill{stroke:var(--color-green); stroke-linecap:round;
+    transition:stroke-dashoffset .6s var(--ease-settle);}
+  .cd-ring-txt{position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; line-height:1.1;}
+  .cd-ring-txt .n{font-size:var(--text-body1-size); font-weight:800; color:var(--color-neutral-9);}
+  .cd-ring-txt .l{font-size:10px; color:var(--color-neutral-5);}
+
+  /* ── Tabs — the DLS component, panels crossfade. */
+  .cd-tabs{margin-bottom:var(--spacing-20);}
+  .c-tab .count{margin-left:var(--spacing-4); font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-5);}
+  .cd-panel{display:none; animation:cd-fade var(--duration-fast) var(--ease-standard) both;}
+  .cd-panel.is-on{display:block;}
+  @keyframes cd-fade{from{opacity:0;} to{opacity:1;}}
+
+  /* ── Overview — one card, four rows, each a labelled fact grid. */
+  .cd-ov{background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
+    border-radius:var(--radius-lg); box-shadow:var(--shadow-1); overflow:hidden;}
+  .cd-ov-row{display:grid; grid-template-columns:220px 1fr; gap:var(--spacing-24);
+    padding:var(--spacing-24); border-bottom:1px solid var(--color-neutral-3);}
+  .cd-ov-row:last-child{border-bottom:0;}
+  .cd-ov-lbl{display:flex; align-items:center; gap:var(--spacing-12);
+    font-size:var(--text-body1-size); font-weight:700; color:var(--color-neutral-9);}
+  .cd-chip{width:36px; height:36px; border-radius:var(--radius-sm); display:flex;
+    align-items:center; justify-content:center; font-size:var(--icon-sm); flex:none;}
+  .cd-chip.earth{background:var(--color-earth-bg); color:var(--color-green);}
+  .cd-chip.water{background:var(--color-water-bg); color:var(--color-navy);}
+  .cd-chip.purple{background:rgba(159,86,255,.12); color:var(--color-purple);}
+  .cd-chip.fire{background:var(--color-fire-bg); color:var(--color-orange);}
+  .cd-ov-cells{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:var(--spacing-16) 0;}
+  .cd-ov-cell{padding:0 var(--spacing-20); border-left:1px solid var(--color-neutral-3); min-width:0;}
+  .cd-ov-cell:nth-child(3n+1){border-left:0; padding-left:0;}
+  .cd-ov-cell .k{display:block; font-size:var(--text-caption-size); font-weight:700;
+    text-transform:uppercase; letter-spacing:var(--tracking-eyebrow);
+    color:var(--color-neutral-5); margin-bottom:4px;}
+  .cd-ov-cell .v{display:block; font-size:var(--text-h4-size); font-weight:800;
+    color:var(--color-neutral-9); font-variant-numeric:tabular-nums;}
+  .cd-ov-cell .v.dash{color:var(--color-neutral-4); font-weight:400;}
+  .cd-ov-cell .s{display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5); margin-top:2px;}
+  .cd-ov-cell .s .cmp-dot{display:inline-block; margin-right:4px; vertical-align:middle;}
+  .cd-ov-cell .c-badge{margin-top:4px;}
+  .cd-person{display:inline-flex; align-items:center; gap:var(--spacing-8);
+    font-size:var(--text-body1-size); font-weight:700; color:var(--color-neutral-9);}
+  .cd-ini{width:28px; height:28px; border-radius:var(--radius-sm); background:var(--color-neutral-2);
+    border:1px solid var(--color-neutral-3); display:inline-flex; align-items:center;
+    justify-content:center; font-size:11px; font-weight:700; color:var(--color-neutral-5); flex:none;}
+  @media (max-width:820px){
+    .cd-ov-row{grid-template-columns:1fr;}
+    .cd-ov-cells{grid-template-columns:repeat(2, minmax(0, 1fr));}
+    .cd-ov-cell:nth-child(3n+1){border-left:1px solid var(--color-neutral-3); padding-left:var(--spacing-20);}
+    .cd-ov-cell:nth-child(2n+1){border-left:0; padding-left:0;}
+    .cd-facts{grid-template-columns:repeat(2, minmax(0, 1fr));}
+  }
+
+  /* ── Shared strip (KOL response counts) — same joined recipe as the list. */
+  .cmp-strip{display:grid; grid-template-columns:repeat(6, 1fr);
+    background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
+    border-radius:var(--radius-lg); overflow:hidden; margin-bottom:var(--spacing-24);}
+  .cmp-cell{display:flex; flex-direction:column; gap:2px; text-align:left;
+    padding:var(--spacing-16) var(--spacing-20); border:0; background:transparent;
+    font:inherit; border-right:1px solid var(--color-neutral-3);}
+  .cmp-cell:last-child{border-right:0;}
+  .cmp-cell .val{font-size:var(--text-h2-size); line-height:var(--text-h2-lh);
+    font-weight:var(--text-h2-weight); color:var(--color-neutral-9); font-variant-numeric:tabular-nums;}
+  .cmp-cell .lbl{display:inline-flex; align-items:center; gap:6px;
+    font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+  .cmp-dot{width:6px; height:6px; border-radius:var(--radius-pill); flex:none;}
+  @media (max-width:900px){ .cmp-strip{grid-template-columns:repeat(3, 1fr);}
+    .cmp-cell:nth-child(3){border-right:0;}
+    .cmp-cell:nth-child(-n+3){border-bottom:1px solid var(--color-neutral-3);} }
+
+  /* ── Section heads inside a panel. */
+  .cd-sect{display:flex; align-items:baseline; justify-content:space-between;
+    gap:var(--spacing-16); margin:var(--spacing-8) 0 var(--spacing-12);}
+  .cd-sect h3{margin:0; font-size:var(--text-h4-size); line-height:var(--text-h4-lh);
+    font-weight:var(--text-h4-weight); color:var(--color-neutral-9);}
+  .cd-sect h3 .sub{margin-left:var(--spacing-8); font-size:var(--text-caption-size);
+    font-weight:400; color:var(--color-neutral-5);}
+  .cd-sect .c-btn{text-decoration:none; flex:none;}
+  .cd-gap{height:var(--spacing-24);}
+
+  /* ── Tables inside panels. */
+  .c-table-standalone-wrap{overflow:visible;}
+  .cd-table{table-layout:fixed; width:100%;}
+  .cd-table th, .cd-table td{padding:var(--spacing-12) var(--spacing-16); vertical-align:middle;}
+  .cd-table th:first-child, .cd-table td:first-child{padding-left:var(--spacing-20);}
+  .cd-table thead th{font-size:var(--text-caption-size); font-weight:700; text-transform:uppercase;
+    letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5); white-space:nowrap;
+    background:var(--color-neutral-2);}
+  .cd-table thead th:first-child{border-top-left-radius:var(--radius-lg);}
+  .cd-table thead th:last-child{border-top-right-radius:var(--radius-lg);}
+  .cd-table tbody tr:last-child td:first-child{border-bottom-left-radius:var(--radius-lg);}
+  .cd-table tbody tr:last-child td:last-child{border-bottom-right-radius:var(--radius-lg);}
+  .cd-table td.txt{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .cd-table .num{text-align:right; font-variant-numeric:tabular-nums;}
+  .cd-who{display:flex; align-items:center; gap:var(--spacing-12); min-width:0;}
+  .cd-who .c-card-profile-avatar{width:34px; height:34px; flex:none; font-size:var(--text-label3-size);}
+  .cd-who .t{min-width:0;}
+  .cd-who .n{display:block; font-weight:700; color:var(--color-neutral-9);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cd-who .s{display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5);
+    margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cd-trash{width:32px; height:32px; color:var(--color-neutral-5); background:transparent;}
+  .cd-trash:hover{color:var(--color-red); background:rgba(253,51,67,.08);}
+  .cd-note{padding:var(--spacing-24); text-align:center; font-size:var(--text-body2-size);
+    color:var(--color-neutral-5); background:var(--color-neutral-1);
+    border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg);}
+  .cd-note button{font:inherit;}
+
+  /* ── Preview batches — one collapsible card per link sent. */
+  .cd-batch{background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
+    border-radius:var(--radius-lg); box-shadow:var(--shadow-1); margin-bottom:var(--spacing-16); overflow:hidden;}
+  .cd-batch-head{display:flex; align-items:center; justify-content:space-between; gap:var(--spacing-16);
+    padding:var(--spacing-12) var(--spacing-16) var(--spacing-12) var(--spacing-20);
+    background:var(--color-neutral-2); cursor:pointer;}
+  .cd-batch-head .eyebrow{display:block; font-size:var(--text-caption-size); font-weight:700;
+    text-transform:uppercase; letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-9);}
+  .cd-batch-head .sub{display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5); margin-top:2px;}
+  .cd-batch-head .acts{display:flex; gap:var(--spacing-4); flex:none;}
+  .cd-batch-body{padding:var(--spacing-16) var(--spacing-20) var(--spacing-20);}
+  .cd-batch-body[hidden]{display:none;}
+  .cd-chips{display:flex; flex-wrap:wrap; gap:var(--spacing-8); margin-bottom:var(--spacing-12);}
+  .c-chip-filter{height:28px; font-size:var(--text-caption-size);}
+  .cd-picks{table-layout:fixed; width:100%; border-collapse:collapse;}
+  .cd-picks th{font-size:var(--text-caption-size); font-weight:700; text-transform:uppercase;
+    letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5); text-align:left;
+    padding:var(--spacing-8) var(--spacing-8); border-bottom:1px solid var(--color-neutral-3); white-space:nowrap;}
+  .cd-picks td{padding:var(--spacing-12) var(--spacing-8); border-bottom:1px solid var(--color-neutral-3);
+    vertical-align:top; font-size:var(--text-body2-size); color:var(--color-neutral-9);}
+  .cd-picks tr:last-child td{border-bottom:0;}
+  .cd-picks .c-card-profile-avatar{width:28px; height:28px; font-size:11px;}
+  .cd-plat{display:flex; flex-direction:column; gap:4px;}
+  .cd-plat span{display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-size:var(--text-caption-size);}
+  .cd-plat i{font-size:var(--icon-sm); color:var(--color-neutral-9);}
+  .cd-plat .h{color:var(--color-neutral-9);}
+  .cd-plat .f{color:var(--color-neutral-5);}
+  .cd-picks textarea{width:100%; min-height:56px; border:1px solid var(--color-neutral-3);
+    border-radius:var(--radius-sm); padding:var(--spacing-8); font:inherit;
+    font-size:var(--text-caption-size); color:var(--color-neutral-9); resize:vertical; background:var(--color-neutral-1);}
+  .cd-picks textarea:focus{outline:none; border-color:var(--color-obsidian);}
+  .cd-picks textarea::placeholder{color:var(--color-neutral-4);}
+  .cd-pax{margin-top:var(--spacing-20); padding-top:var(--spacing-16); border-top:1px solid var(--color-neutral-3);}
+  .cd-pax h5{margin:0 0 var(--spacing-8); font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-9);}
+  .cd-pax-plat{margin-bottom:var(--spacing-12);}
+  .cd-pax-plat .pl{font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-9);}
+  .cd-pax-plat .pl .c{font-weight:400; color:var(--color-neutral-5); margin-left:4px;}
+  .cd-pax-row{display:flex; flex-wrap:wrap; gap:var(--spacing-12); margin-top:6px;}
+  .cd-pax-box{display:flex; flex-direction:column; gap:4px; width:120px;}
+  .cd-pax-box .t{display:inline-flex; align-items:center; gap:6px; font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+  .cd-pax-box .t b{color:var(--color-neutral-9); font-weight:700;}
+  .cd-pax-box input, .cd-notes input{height:36px; border:1px solid var(--color-neutral-3);
+    border-radius:var(--radius-sm); padding:0 var(--spacing-12); font:inherit;
+    font-size:var(--text-body2-size); color:var(--color-neutral-9); width:100%; background:var(--color-neutral-1);}
+  .cd-pax-box input:focus, .cd-notes input:focus{outline:none; border-color:var(--color-obsidian);}
+  .cd-pax .hint{font-size:var(--text-caption-size); color:var(--color-neutral-5); margin:var(--spacing-8) 0 0;}
+  .cd-notes{margin-top:var(--spacing-16);}
+  .cd-notes label{display:block; font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-9); margin-bottom:4px;}
+
+  /* ── Stage / status badge that is also a control. */
+  .cmp-stage{display:inline-flex; align-items:center; gap:6px; height:24px;
+    padding:0 8px 0 10px; border-radius:var(--radius-pill);
+    background:var(--color-neutral-2); border:1px solid var(--color-neutral-3);
+    font:inherit; font-size:var(--text-label3-size); font-weight:700;
+    color:var(--color-neutral-9); cursor:pointer; white-space:nowrap; max-width:100%;}
+  .cmp-stage:hover, .cmp-stage.is-open{border-color:var(--color-neutral-5); background:var(--color-neutral-1);}
+  .cmp-stage .ph{font-size:var(--icon-micro); color:var(--color-neutral-5);}
+  .cmp-stage.tone-success{background:rgba(0,194,110,.12); border-color:rgba(0,194,110,.32); color:#00854c;}
+  .cmp-stage.tone-warning{background:rgba(255,164,37,.14); border-color:rgba(255,164,37,.38); color:#9a5c00;}
+  .cmp-stage.tone-error{background:rgba(253,51,67,.10); border-color:rgba(253,51,67,.30); color:var(--color-red);}
+  .c-badge-info{background:rgba(20,115,230,.10); color:var(--color-navy); border-color:rgba(20,115,230,.28);}
+
+  /* ── Floating menu (stage + pick status). */
+  .cmp-menu{position:fixed; z-index:60; min-width:180px; padding:4px;
+    background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
+    border-radius:var(--radius-md); box-shadow:var(--shadow-3);
+    opacity:0; visibility:hidden; transform:translateY(-4px); pointer-events:none;
+    transition:opacity var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-standard), visibility 0s linear var(--duration-fast);}
+  .cmp-menu.is-open{opacity:1; visibility:visible; transform:none; pointer-events:auto; transition-delay:0s;}
+  .cmp-menu-item{display:flex; align-items:center; gap:var(--spacing-8); width:100%;
+    border:0; background:transparent; cursor:pointer; font:inherit;
+    font-size:var(--text-body2-size); color:var(--color-neutral-9);
+    padding:8px 10px; border-radius:var(--radius-sm); text-align:left; white-space:nowrap;}
+  .cmp-menu-item:hover{background:var(--color-neutral-2);}
+  .cmp-menu-item .chk{margin-left:auto; color:var(--color-neutral-9);}
+
+  /* ── Roster picker sheet — search the whole roster, tick people. */
+  .cd-picker{width:min(640px, calc(100vw - var(--spacing-32)));}
+  .cd-picker .c-field{width:100%;}
+  .cd-picker-list{border:1px solid var(--color-neutral-3); border-radius:var(--radius-md);
+    max-height:min(46vh, 420px); overflow-y:auto;}
+  .cd-pick-row{display:flex; align-items:center; gap:var(--spacing-12); padding:10px var(--spacing-12);
+    border-bottom:1px solid var(--color-neutral-2); cursor:pointer;}
+  .cd-pick-row:last-child{border-bottom:0;}
+  .cd-pick-row:hover{background:var(--color-neutral-2);}
+  .cd-pick-row.is-disabled{opacity:.5; cursor:default;}
+  .cd-pick-row .c-checkbox-box{margin-top:0; font-size:12px;}
+  .cd-pick-row .c-card-profile-avatar{width:30px; height:30px; font-size:11px;}
+  .cd-pick-row .tier{margin-left:auto; flex:none;}
+  .cd-picker-more{padding:var(--spacing-8) var(--spacing-12); font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+  .cd-picker-foot{display:flex; align-items:center; gap:var(--spacing-8);}
+  .cd-picker-foot .cnt{flex:1; font-size:var(--text-body2-size); color:var(--color-neutral-5);}
+
+  /* ── Drafts + documents placeholders. */
+  .cd-draft{background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
+    border-radius:var(--radius-lg); margin-bottom:var(--spacing-8); overflow:hidden;}
+  .cd-draft-head{display:flex; align-items:center; gap:var(--spacing-12);
+    padding:var(--spacing-12) var(--spacing-16); cursor:pointer;}
+  .cd-draft-head .n{font-weight:700; color:var(--color-neutral-9);}
+  .cd-draft-head .s{font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+  .cd-draft-head .r{margin-left:auto; display:flex; align-items:center; gap:var(--spacing-8);
+    font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+  .cd-draft-body{padding:0 var(--spacing-16) var(--spacing-16); font-size:var(--text-body2-size); color:var(--color-neutral-5);}
+  .cd-draft-body[hidden]{display:none;}
+  .c-switch-track{cursor:pointer;}
+
+  .cmp-scrim{position:fixed; inset:0; z-index:400; background:var(--shadow-overlay);
+    display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none;
+    transition:opacity var(--duration-base) var(--ease-standard);}
+  .cmp-scrim.is-open{opacity:1; pointer-events:auto;}
+  .c-toast-host{z-index:500;}
+  .c-card-profile-avatar{position:relative; overflow:hidden;}
+  .c-card-profile-avatar img{position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; border-radius:var(--radius-pill); opacity:0;
+    transition:opacity var(--duration-base) var(--ease-standard);}
+  .c-card-profile-avatar img.is-loaded{opacity:1;}
+
+  @keyframes cd-arrive{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:none;}}
+  .cd-arriving .cd-head, .cd-arriving .cd-io{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:40ms;}
+  .cd-arriving .cd-track{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:100ms;}
+  .cd-arriving .cd-meta{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:160ms;}
+  .cd-arriving .cd-tabs{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:240ms;}
+  .cd-arriving .cd-panels{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:320ms;}
+  @media (prefers-reduced-motion:reduce){ .cd-arriving *{animation:none !important;} }
+  @media (max-width:640px){ .cd-head{flex-direction:column;} .cd-ring{align-items:flex-start;} .cd-meta{flex-direction:column;} }
+</style>
+</head>
+<body>
+
+<div class="c-shell">
+  <div class="c-sidebar-shell" id="shellSidebarShell">
+    <nav class="c-sidebar" id="shellSidebarNav">
+      <div class="c-sidebar-header">
+        <button class="c-dept-trigger js-dept-trigger" type="button" aria-haspopup="listbox"
+                aria-expanded="false" aria-label="Switch department, Influence" aria-controls="deptDropdown">
+          <span class="c-sidebar-logo-live-wrap js-dept-logo-live" style="display:none"><iframe src="../collabrium-dls/logo.html" title="Collabrium" scrolling="no"></iframe></span>
+          <img class="c-dept-logo-static js-dept-logo-static" src="../collabrium-dls/logo-lockups/collabInfluence.svg" alt="Influence" />
+          <i class="ph ph-caret-down js-dept-chevron c-dept-chevron"></i>
+        </button>
+        <span class="c-badge c-badge-neutral c-sidebar-beta">Beta</span>
+        <img class="c-sidebar-logo-collapsed js-dept-logo-collapsed" src="../collabrium-dls/SVG/earth.svg" alt="Collab:Influence" />
+      </div>
+      <a class="c-sidebar-item" href="#"><i class="ph-fill ph-house"></i><span class="label">Home</span><span class="c-sidebar-hover-text">Home</span></a>
+      <div class="c-sidebar-section">Workspace</div>
+      <a class="c-sidebar-item" href="influencers-v2.html"><i class="ph-fill ph-users-three"></i><span class="label">Influencers</span><span class="c-sidebar-hover-text">Influencers</span></a>
+      <a class="c-sidebar-item active" href="campaigns.html" aria-current="page"><i class="ph-fill ph-folder-open"></i><span class="label">Campaigns</span><span class="c-sidebar-hover-text">Campaigns</span></a>
+      <div class="c-sidebar-section">General</div>
+      <a class="c-sidebar-item" href="#"><i class="ph-fill ph-buildings"></i><span class="label">Agencies</span><span class="c-sidebar-hover-text">Agencies</span></a>
+      <a class="c-sidebar-item" href="#"><i class="ph-fill ph-tag"></i><span class="label">Brands</span><span class="c-sidebar-hover-text">Brands</span></a>
+      <div class="c-sidebar-footer">
+        <button class="c-sidebar-account" type="button" id="accountMenuTrigger"
+                aria-haspopup="menu" aria-expanded="false" aria-controls="accountMenu">
+          <span class="c-search-input-avatar">DT</span>
+          <span class="c-search-input-text">
+            <span class="c-search-input-title">Digital Team</span>
+            <span class="c-search-input-subtitle">Admin</span>
+          </span>
+        </button>
+      </div>
+    </nav>
+    <button class="c-sidebar-toggle" type="button" aria-label="Collapse sidebar" id="sidebarToggle">
+      <svg viewBox="0 0 20 20" fill="none">
+        <rect x="2.5" y="3.5" width="15" height="13" rx="2" stroke="currentColor" stroke-width="1.4"/>
+        <line x1="9" y1="3.5" x2="9" y2="16.5" stroke="currentColor" stroke-width="1.4"/>
+        <path id="sidebarArrow" d="M13.5 7 11 10l2.5 3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="c-shell-main">
+    <div class="c-shell-content cd-arriving" id="cdContent">
+      <div class="cd-top">
+        <a class="c-back-button" href="campaigns.html"><i class="ph ph-arrow-left"></i> Campaigns</a>
+      </div>
+
+      <div id="cdMissing" hidden></div>
+
+      <div id="cdPage">
+        <div class="cd-head">
+          <div>
+            <div class="cd-title">
+              <span class="cd-bar" id="cdBar"></span>
+              <h1 id="cdName"></h1>
+              <span id="cdStageWrap"></span>
+            </div>
+            <p class="cd-io" id="cdIo" hidden></p>
+          </div>
+          <div class="cd-actions">
+            <button class="c-btn c-btn-secondary c-btn-md" type="button" id="cdDelete"><i class="ph ph-trash"></i> Delete</button>
+            <button class="c-btn c-btn-secondary c-btn-md" type="button" id="cdEdit"><i class="ph ph-pencil-simple"></i> Edit</button>
+            <button class="c-btn c-btn-primary c-btn-md" type="button" id="cdShare"><i class="ph ph-share-network"></i> Share preview</button>
+          </div>
+        </div>
+        <hr class="cd-rule" />
+        <div class="cd-track" id="cdTrack" role="group" aria-label="Stage"></div>
+
+        <div class="cd-meta">
+          <div style="flex:1; min-width:0;">
+            <div class="cd-facts" id="cdFacts"></div>
+            <div class="cd-timeline" id="cdTimeline" hidden></div>
+          </div>
+          <div class="cd-ring">
+            <span class="k">Deliverables</span>
+            <div class="cd-ring-wrap">
+              <svg viewBox="0 0 80 80" aria-hidden="true">
+                <circle class="track" cx="40" cy="40" r="34" fill="none" stroke-width="7"/>
+                <circle class="fill" id="cdRingFill" cx="40" cy="40" r="34" fill="none" stroke-width="7" stroke-dasharray="213.6" stroke-dashoffset="213.6"/>
+              </svg>
+              <div class="cd-ring-txt"><span class="n" id="cdRingN">0/0</span><span class="l">Completed</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-tabs cd-tabs" role="tablist" id="cdTabs">
+          <button class="c-tab active" type="button" role="tab" data-tab="overview">Overview</button>
+          <button class="c-tab" type="button" role="tab" data-tab="kol">KOL Selection<span class="count" id="cdKolCount" hidden></span></button>
+          <button class="c-tab" type="button" role="tab" data-tab="docs">Documents</button>
+          <button class="c-tab" type="button" role="tab" data-tab="drafts">Drafts</button>
+        </div>
+
+        <div class="cd-panels">
+          <div class="cd-panel is-on" id="pan-overview" role="tabpanel"></div>
+          <div class="cd-panel" id="pan-kol" role="tabpanel"></div>
+          <div class="cd-panel" id="pan-docs" role="tabpanel"></div>
+          <div class="cd-panel" id="pan-drafts" role="tabpanel"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="c-sidebar-hover-label" id="shellSidebarHoverLabel" role="tooltip"></div>
+
+<div class="c-account-menu" id="accountMenu" role="menu" aria-hidden="true">
+  <button class="c-account-menu-item" type="button" role="menuitem"><i class="ph-fill ph-gear"></i><span>Settings</span></button>
+  <button class="c-account-menu-item" type="button" role="menuitem"><i class="ph-fill ph-sign-out"></i><span>Log out</span></button>
+</div>
+
+<div class="c-dept-dropdown" id="deptDropdown" role="listbox" aria-label="Departments" hidden>
+  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Collabrium (Default)" data-dept="default" data-name="Collabrium (Default)" data-element-icon="../collabrium-dls/SVG/coin.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabrium-default-logo.svg" alt="" style="--logo-scale:0.6" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Studio" data-dept="studio" data-name="Studio" data-logo="../collabrium-dls/logo-lockups/collabStudio.svg" data-element-icon="../collabrium-dls/SVG/fire.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabStudio.svg" alt="" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Sales" data-dept="sales" data-name="Sales" data-logo="../collabrium-dls/logo-lockups/collabSales.svg" data-element-icon="../collabrium-dls/SVG/gold.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabSales.svg" alt="" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Media" data-dept="media" data-name="Media" data-logo="../collabrium-dls/logo-lockups/collabMedia.svg" data-element-icon="../collabrium-dls/SVG/water.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabMedia.svg" alt="" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+  <div class="c-dept-option is-active" role="option" aria-selected="true" aria-label="Influence" data-dept="influence" data-name="Influence" data-logo="../collabrium-dls/logo-lockups/collabInfluence.svg" data-element-icon="../collabrium-dls/SVG/earth.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabInfluence.svg" alt="" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Content" data-dept="content" data-name="Content" data-logo="../collabrium-dls/logo-lockups/collabContent.svg" data-element-icon="../collabrium-dls/SVG/wood.svg">
+    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabContent.svg" alt="" /></span>
+    <i class="ph ph-check c-dept-check"></i>
+  </div>
+</div>
+
+<div class="cmp-menu" id="cdMenu" role="menu"></div>
+
+<!-- Roster picker: Add manually, or New preview link (with a batch name). -->
+<div class="c-cbrief-scrim" id="cdPickScrim">
+  <div class="c-cbrief cd-picker" role="dialog" aria-modal="true" aria-labelledby="cdPickTitle">
+    <button class="c-cbrief-close" type="button" id="cdPickClose" aria-label="Close"><i class="ph ph-x"></i></button>
+    <span class="c-herocard-eyebrow" id="cdPickEyebrow">Roster</span>
+    <h3 style="margin:0; font-size:var(--text-h4-size); line-height:var(--text-h4-lh); font-weight:var(--text-h4-weight);" id="cdPickTitle">Add influencers</h3>
+    <p class="c-cbrief-source" style="margin:-8px 0 0;" id="cdPickHint"></p>
+    <div class="c-field" id="cdBatchNameField" hidden><label for="cdBatchName">Batch name</label>
+      <input id="cdBatchName" placeholder="e.g. Angel picks" /></div>
+    <div class="c-field"><label for="cdPickSearch">Search the roster</label>
+      <div class="input-wrap has-leading-icon"><i class="ph ph-magnifying-glass icon-leading"></i>
+        <input id="cdPickSearch" placeholder="Name, handle or niche" autocomplete="off" /></div></div>
+    <div class="cd-picker-list" id="cdPickList"></div>
+    <div class="cd-picker-foot">
+      <span class="cnt" id="cdPickCount">Nobody selected yet</span>
+      <button class="c-btn c-btn-ghost c-btn-md" type="button" id="cdPickCancel">Cancel</button>
+      <button class="c-btn c-btn-primary c-btn-md" type="button" id="cdPickConfirm" disabled>Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete confirmation -->
+<div class="cmp-scrim" id="cdDelScrim">
+  <div class="c-modal" role="alertdialog" aria-modal="true" aria-labelledby="cdDelTitle" style="margin:var(--spacing-16);">
+    <div class="c-modal-head"><h4 id="cdDelTitle">Delete campaign?</h4>
+      <button class="c-icon-btn" type="button" id="cdDelClose" aria-label="Close"><i class="ph ph-x"></i></button></div>
+    <div class="c-modal-body" id="cdDelBody"></div>
+    <div class="c-modal-foot">
+      <button class="c-btn c-btn-ghost c-btn-md" type="button" id="cdDelCancel">Cancel</button>
+      <button class="c-btn c-btn-primary c-btn-md" type="button" id="cdDelConfirm" style="background:var(--color-red); border-color:var(--color-red);"><i class="ph ph-trash"></i> Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="c-toast-host" id="cdToasts"></div>
+
+<script src="../shared/shell.js?v=0.9.46"></script>
+<script src="../shared/influencers-data.js"></script>
+<script src="../shared/avatar-manifest.js?v=2"></script>
+<script>window.INFLUENCER_STORE_KEY = 'collab-influencers-v2';</script>
+<script src="../shared/influencer-store.js?v=2"></script>
+<script src="../shared/campaigns-data.js?v=1"></script>
+<script src="../shared/campaign-store.js?v=1"></script>
+<script src="../shared/campaign-form.js?v=1"></script>
+<script>
+(function () {
+  'use strict';
+  var S = window.campaignStore;
+  var E = function (id) { return document.getElementById(id); };
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  var PLAT_ICON = {
+    tiktok: '<i class="ph-fill ph-tiktok-logo" title="TikTok"></i>',
+    instagram: '<i class="ph-fill ph-instagram-logo" title="Instagram"></i>',
+    xhs: '<i class="ph-fill ph-book-open" title="Xiaohongshu"></i>'
+  };
+  var PLAT_LABEL = {tiktok: 'TikTok', instagram: 'Instagram', xhs: 'Xiaohongshu'};
+
+  /* ── Tiers + follower formatting, the influencers page's own brackets. */
+  var TIERS = [
+    {max:1e3, name:'Seeder', cls:'inf-tier-0'}, {max:5e3, name:'Nano', cls:'inf-tier-1'},
+    {max:2e4, name:'Micro', cls:'inf-tier-2'}, {max:1e5, name:'Mid', cls:'inf-tier-3'},
+    {max:5e5, name:'Macro', cls:'inf-tier-4'}, {max:Infinity, name:'Mega', cls:'inf-tier-5'}
+  ];
+  var TIER_DOT = {Seeder:'var(--color-neutral-4)', Nano:'var(--color-salmon-pink)', Micro:'var(--color-green)', Mid:'var(--color-navy)', Macro:'var(--color-orange)', Mega:'var(--color-amber)'};
+  function tierOf(n){ if (n == null) return null; for (var i = 0; i < TIERS.length; i++) if (n < TIERS[i].max) return TIERS[i]; return null; }
+  function fmtFollowers(n){
+    if (n == null) return '';
+    if (n >= 1e6) return (n / 1e6).toFixed(n % 1e6 ? 1 : 0).replace(/\.0$/, '') + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(n % 1e3 ? 1 : 0).replace(/\.0$/, '') + 'K';
+    return String(n);
+  }
+
+  /* ── Roster lookup — the same merged dataset the influencers page shows. */
+  var INF = window.influencerStore ? influencerStore.merged(INFLUENCERS) : INFLUENCERS.slice();
+  INF.sort(function(a, b){ return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1; });
+  var byInf = {}; INF.forEach(function(r){ byInf[r.id] = r; });
+
+  /* ── Avatars — harvested local photo first, unavatar as the runtime
+     fallback, cached per profile under the same key the roster uses. */
+  var AVA_KEY = 'collab-avatar-cache-v3';
+  function avaCache(){ try { return JSON.parse(localStorage.getItem(AVA_KEY)) || {}; } catch (e) { return {}; } }
+  function avaSet(id, url){ try { var c = avaCache(); c[id] = url; localStorage.setItem(AVA_KEY, JSON.stringify(c)); } catch (e) {} }
+  function localAvatars(rec){
+    var m = (window.AVATAR_FILES || {})[rec.id] || {}; var out = [];
+    if (m.tt) out.push('../assets/avatars/' + rec.id + '-tt.jpg');
+    if (m.ig) out.push('../assets/avatars/' + rec.id + '-ig.jpg');
+    return out;
+  }
+  function attachAvatar(img, rec){
+    var locals = localAvatars(rec), cached = avaCache()[rec.id], list;
+    if (cached === 'none') { if (!locals.length) return; list = locals; cached = null; }
+    else if (cached) list = [cached];
+    else {
+      list = locals.slice();
+      (rec.platforms || []).forEach(function(p){ if (p.platform === 'tiktok' && p.handle) list.push('https://unavatar.io/tiktok/' + encodeURIComponent(p.handle) + '?fallback=false'); });
+      (rec.platforms || []).forEach(function(p){ if (p.platform === 'instagram' && p.handle) list.push('https://unavatar.io/instagram/' + encodeURIComponent(p.handle) + '?fallback=false'); });
+    }
+    if (!list.length) { avaSet(rec.id, 'none'); return; }
+    var i = 0;
+    img.onerror = function(){ i += 1; if (i < list.length) { img.src = list[i]; return; } if (!cached) avaSet(rec.id, 'none'); };
+    img.onload = function(){ if (!cached) avaSet(rec.id, list[i]); img.classList.add('is-loaded'); };
+    img.src = list[0];
+  }
+  function avatarHtml(rec){
+    return '<span class="c-card-profile-avatar" data-avatar-for="' + rec.id + '">' + esc(S.initials(rec.name)) + '<img alt="" /></span>';
+  }
+  function hydrateAvatars(root){
+    root.querySelectorAll('[data-avatar-for]').forEach(function(el){
+      var rec = byInf[el.dataset.avatarFor]; var img = el.querySelector('img');
+      if (rec && img && !img.src) attachAvatar(img, rec);
+    });
+  }
+  function handlesLine(rec){
+    return (rec.platforms || []).filter(function(p){ return p.handle; }).map(function(p){
+      var t = tierOf(p.followers);
+      return '@' + p.handle + (t ? ' · ' + t.name : '');
+    }).join('  ·  ') || (rec.niches || []).join(', ');
+  }
+
+  /* ── Page state. */
+  var params = new URLSearchParams(location.search);
+  var id = params.get('id');
+  var c = id ? S.get(id) : null;
+  var tab = params.get('tab') || 'overview';
+  var openBatches = {};
+  var batchFilter = {};
+  if (params.get('batch')) openBatches[Number(params.get('batch'))] = true;
+
+  function reload(){ c = S.get(id); }
+
+  function missing(){
+    E('cdPage').hidden = true;
+    E('cdMissing').hidden = false;
+    E('cdMissing').innerHTML = '<div class="c-empty is-section"><i class="ph-fill ph-folder-open"></i>' +
+      '<h4>Campaign not found</h4><p>It may have been deleted, or the link is from a different workspace.</p>' +
+      '<div class="c-empty-actions"><a class="c-btn c-btn-primary c-btn-md" href="campaigns.html" style="text-decoration:none"><i class="ph ph-arrow-left"></i> Back to campaigns</a></div></div>';
+  }
+
+  /* ── Header + facts. */
+  function stageBadge(){
+    var s = S.stageOf(c.stage);
+    return '<button type="button" class="cmp-stage" id="cdStageBtn" aria-haspopup="menu" title="Change stage">' +
+      '<span class="cmp-dot" style="background:' + s.dot + '"></span><span class="t">' + s.label + '</span><i class="ph ph-caret-down"></i></button>';
+  }
+  function renderHeader(){
+    document.title = 'Collab:Influence · ' + c.name;
+    E('cdBar').style.background = S.colorOf(c.color);
+    E('cdName').textContent = c.name;
+    E('cdStageWrap').innerHTML = stageBadge();
+    E('cdIo').hidden = !c.io; E('cdIo').textContent = c.io || '';
+    var plats = (c.platforms || []).map(function(p){ return PLAT_ICON[p] || ''; }).join('');
+    E('cdFacts').innerHTML =
+      fact('Brand', c.brand ? '<span class="v u">' + esc(c.brand) + '</span>' : dash()) +
+      fact('Start to end date', '<span class="v">' + esc(S.fmtRange(c.start, c.end)) + '</span>') +
+      fact('Agency', c.agency ? '<span class="v">' + esc(c.agency) + '</span>' : dash()) +
+      fact('Platform', plats ? '<span class="v"><span class="cmp-plats">' + plats + '</span></span>' : dash()) +
+      fact('Campaign type', (c.types || []).length ? '<span class="v">' + esc(c.types.join(', ')) + '</span>' : dash()) +
+      fact('Pax', c.pax != null ? '<span class="v">' + S.fmtNum(c.pax) + '</span>' : dash());
+    renderTrack(); renderTimeline();
+    var d = c.deliverables || {done: 0, total: 0};
+    var circ = 213.6, frac = d.total ? d.done / d.total : 0;
+    E('cdRingFill').style.strokeDashoffset = String(circ * (1 - frac));
+    E('cdRingN').textContent = d.done + '/' + d.total;
+    var n = (c.roster || []).length;
+    E('cdKolCount').hidden = !n; E('cdKolCount').textContent = n > 99 ? '99+' : n;
+  }
+  function renderTrack(){
+    var idx = S.STAGES.map(function(s){ return s.key; }).indexOf(c.stage);
+    E('cdTrack').innerHTML = S.STAGES.map(function(s, i){
+      var cls = i < idx ? 'is-done' : i === idx ? 'is-now' : '';
+      var ind = i < idx ? '<i class="ph ph-check"></i>' : (i + 1);
+      return (i ? '<span class="cd-connector' + (i <= idx ? ' is-done' : '') + '"></span>' : '') +
+        '<button type="button" class="cd-step ' + cls + '" data-go-stage="' + s.key + '" aria-current="' + (i === idx ? 'step' : 'false') + '" title="' + (i === idx ? 'Current stage' : 'Move to ' + s.label) + '">' +
+        '<span class="ind">' + ind + '</span><span class="lbl">' + s.short + '</span></button>';
+    }).join('');
+  }
+  function daysBetween(a, b){ return Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 864e5); }
+  function renderTimeline(){
+    var el = E('cdTimeline');
+    if (!c.start || !c.end || c.end < c.start) { el.hidden = true; return; }
+    var today = S.today();
+    var total = Math.max(1, daysBetween(c.start, c.end));
+    var gone = Math.min(total, Math.max(0, daysBetween(c.start, today)));
+    var pct = Math.round(gone / total * 100);
+    var state, head;
+    if (today < c.start) { var d = daysBetween(today, c.start); state = 'ahead'; head = '<b>Starts in ' + d + (d === 1 ? ' day' : ' days') + '</b> · not live yet'; }
+    else if (today > c.end) { state = 'over'; head = '<b>Run ended</b> · ' + daysBetween(c.end, today) + ' days ago'; }
+    else { var left = daysBetween(today, c.end); state = 'live'; head = '<b>' + (left === 0 ? 'Ends today' : left + (left === 1 ? ' day left' : ' days left')) + '</b> · ' + pct + '% through the run'; }
+    var todayPos = state === 'ahead' ? null : state === 'over' ? 100 : pct;
+    el.hidden = false;
+    el.innerHTML = '<div class="row"><span>' + head + '</span><span>' + total + ' days</span></div>' +
+      '<div class="cd-tl-track"><div class="cd-tl-fill' + (state === 'over' ? ' is-over' : '') + '" style="width:' + (state === 'ahead' ? 0 : state === 'over' ? 100 : pct) + '%"></div>' +
+      (todayPos != null ? '<div class="cd-tl-today" style="left:' + todayPos + '%"></div>' : '') + '</div>' +
+      '<div class="ends"><span>' + esc(S.fmtDate(c.start, true)) + '</span><span>' + esc(S.fmtDate(c.end, true)) + '</span></div>';
+  }
+  function fact(k, v){ return '<div class="cd-fact"><span class="k">' + k + '</span>' + v + '</div>'; }
+  function dash(){ return '<span class="v"><span class="muted">—</span></span>'; }
+
+  /* ── Overview. */
+  function cell(k, v, sub, opts){
+    opts = opts || {};
+    return '<div class="cd-ov-cell"><span class="k">' + k + '</span>' +
+      '<span class="v' + (v == null ? ' dash' : '') + '">' + (v == null ? '—' : v) + '</span>' +
+      (sub ? '<span class="s">' + sub + '</span>' : '') + '</div>';
+  }
+  function person(name){
+    if (!name) return '<span class="v dash">—</span>';
+    return '<span class="cd-person"><span class="cd-ini">' + esc(S.initials(name)) + '</span>' + esc(name) + '</span>';
+  }
+  function pct(v){ return v == null ? null : v + '%'; }
+  function rm(v){ return v == null ? null : S.fmtRM(v); }
+  function renderOverview(){
+    var m = S.money(c);
+    var roster = c.roster || [];
+    var selected = roster.length;
+    var booked = roster.filter(function(r){ return r.batch != null && r.source === 'client'; }).length;
+    E('pan-overview').innerHTML = '<div class="cd-ov">' +
+      '<div class="cd-ov-row"><div class="cd-ov-lbl"><span class="cd-chip earth"><i class="ph ph-currency-dollar"></i></span>Financials</div><div class="cd-ov-cells">' +
+        cell('Quote', rm(m.quote), 'Total expected') + cell('Cost', rm(m.cost), 'Total expenses') +
+        cell('Margin', rm(m.margin), m.marginPct != null ? '<span class="cmp-dot" style="background:' + (m.margin >= 0 ? 'var(--color-green)' : 'var(--color-red)') + '"></span>' + m.marginPct + '% of quote' : '') +
+      '</div></div>' +
+      '<div class="cd-ov-row"><div class="cd-ov-lbl"><span class="cd-chip water"><i class="ph ph-users"></i></span>Roster</div><div class="cd-ov-cells">' +
+        '<div class="cd-ov-cell"><span class="k">Selected</span><span class="v">' + selected + '</span><span class="c-badge c-badge-neutral">cleared by client</span></div>' +
+        '<div class="cd-ov-cell"><span class="k">Booked</span><span class="v">' + booked + '</span><span class="c-badge c-badge-neutral">have deliverables</span></div>' +
+      '</div></div>' +
+      '<div class="cd-ov-row"><div class="cd-ov-lbl"><span class="cd-chip purple"><i class="ph ph-user"></i></span>Ownership</div><div class="cd-ov-cells">' +
+        '<div class="cd-ov-cell"><span class="k">PIC</span>' + person(c.pic) + '</div>' +
+        '<div class="cd-ov-cell"><span class="k">Overseer</span>' + person(c.overseer) + '</div>' +
+        '<div class="cd-ov-cell"><span class="k">Salesperson</span>' + person(c.salesperson) + '</div>' +
+      '</div></div>' +
+      '<div class="cd-ov-row"><div class="cd-ov-lbl"><span class="cd-chip fire"><i class="ph ph-list-numbers"></i></span>Revenue split</div><div class="cd-ov-cells">' +
+        cell('PIC %', pct(m.picPct)) + cell('Overseer %', pct(m.overseerPct)) + cell('PIC revenue (RM)', rm(m.picRev)) +
+        cell('Overseer revenue (RM)', rm(m.overseerRev)) + cell('PIC gross (RM)', rm(m.picGross)) + cell('Overseer gross (RM)', rm(m.overseerGross)) +
+      '</div></div>' +
+    '</div>';
+  }
+
+  /* ── KOL Selection. */
+  function statusBadge(status, n, inf){
+    var p = S.PICK_STATUS.filter(function(x){ return x.key === status; })[0] || S.PICK_STATUS[0];
+    var tone = {selected:'tone-success', kiv:'tone-warning', rejected:'tone-error'}[p.key] || '';
+    return '<button type="button" class="cmp-stage ' + tone + '" data-pick-status="' + p.key + '" data-batch="' + n + '" data-inf="' + inf + '" aria-haspopup="menu" title="Set the client\'s answer">' +
+      '<span class="cmp-dot" style="background:' + p.dot + '"></span><span class="t">' + p.label + '</span><i class="ph ph-caret-down"></i></button>';
+  }
+  function renderKol(){
+    var counts = S.pickCounts(c);
+    var roster = c.roster || [];
+    var batches = c.batches || [];
+    var html = '';
+    html += '<div class="cmp-strip">' +
+      '<div class="cmp-cell"><span class="val">' + counts.requested + '</span><span class="lbl">Requested</span></div>' +
+      S.PICK_STATUS.filter(function(p){ return p.key !== 'none'; }).map(function(p){
+        return '<div class="cmp-cell"><span class="val">' + counts[p.key] + '</span><span class="lbl"><span class="cmp-dot" style="background:' + p.dot + '"></span>' + p.label + '</span></div>';
+      }).join('') +
+      '<div class="cmp-cell"><span class="val">' + counts.none + '</span><span class="lbl"><span class="cmp-dot" style="background:var(--color-neutral-4)"></span>No response</span></div>' +
+    '</div>';
+
+    var stack = roster.slice(0, 5).map(function(r){ var rec = byInf[r.inf]; return rec ? avatarHtml(rec) : ''; }).join('') +
+      (roster.length > 5 ? '<span class="more">+' + (roster.length - 5) + '</span>' : '');
+    html += '<div class="cd-sect"><h3>' + (roster.length ? '<span class="cd-stack">' + stack + '</span>' : '') + 'Selected influencers<span class="sub">' + roster.length + ' on this campaign · feeds Documents and Drafts</span></h3>' +
+      '<button class="c-btn c-btn-ghost c-btn-sm" type="button" id="cdAddManual"><i class="ph ph-plus"></i> Add manually</button></div>';
+    if (!roster.length) {
+      html += '<div class="cd-note">Nobody is on this campaign yet. Send a preview link for the client to pick from, or add someone by hand.</div>';
+    } else {
+      html += '<div class="c-table-standalone-wrap"><table class="c-table c-table-standalone cd-table"><colgroup><col style="width:56px" /><col /><col style="width:22%" /><col style="width:12%" /><col style="width:64px" /></colgroup>' +
+        '<thead><tr><th>No.</th><th>Influencer</th><th>Status</th><th>Batch</th><th><span class="sr-only">Action</span></th></tr></thead><tbody>' +
+        roster.map(function(r, i){
+          var rec = byInf[r.inf] || {id: r.inf, name: 'Unknown profile', platforms: []};
+          return '<tr><td class="num" style="text-align:left">' + (i + 1) + '</td>' +
+            '<td><span class="cd-who">' + avatarHtml(rec) + '<span class="t"><span class="n">' + esc(rec.name) + '</span><span class="s">' + esc(handlesLine(rec)) + '</span></span></span></td>' +
+            '<td>' + (r.source === 'client' ? '<span class="c-badge c-badge-success">Selected by client</span>' : '<span class="c-badge c-badge-info">Added by the team</span>') + '</td>' +
+            '<td>' + (r.batch != null ? r.batch : '<span style="color:var(--color-neutral-4)">—</span>') + '</td>' +
+            '<td><button class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-trash" type="button" data-roster-remove="' + r.inf + '" aria-label="Remove from campaign"><i class="ph ph-trash"></i></button></td></tr>';
+        }).join('') + '</tbody></table></div>';
+    }
+
+    html += '<div class="cd-gap"></div><div class="cd-sect"><h3>Campaign picks</h3>' +
+      '<button class="c-btn c-btn-ghost c-btn-sm" type="button" id="cdNewBatch"><i class="ph ph-plus"></i> New preview link</button></div>';
+    if (!batches.length) {
+      html += '<div class="c-table-standalone-wrap"><div class="c-empty is-section"><i class="ph-fill ph-users"></i><h4>No selection sent yet</h4>' +
+        '<p>Send a preview link for the client to pick from — it shows here as batch 1, with whatever they answer.</p>' +
+        '<div class="c-empty-actions"><button class="c-btn c-btn-primary c-btn-md" type="button" id="cdNewBatch2"><i class="ph ph-plus"></i> New preview link</button></div></div></div>';
+    } else {
+      if (!Object.keys(openBatches).length) openBatches[batches[batches.length - 1].n] = true;
+      html += batches.slice().reverse().map(batchHtml).join('');
+    }
+    var pan = E('pan-kol');
+    pan.innerHTML = html;
+    hydrateAvatars(pan);
+  }
+  function batchHtml(b){
+    var open = !!openBatches[b.n];
+    var f = batchFilter[b.n] || 'all';
+    var counts = {all: b.picks.length};
+    S.PICK_STATUS.forEach(function(p){ counts[p.key] = b.picks.filter(function(x){ return (x.status || 'none') === p.key; }).length; });
+    var picks = f === 'all' ? b.picks : b.picks.filter(function(x){ return (x.status || 'none') === f; });
+    var chips = [{key:'all', label:'All'}].concat(S.PICK_STATUS.map(function(p){ return {key:p.key, label:p.label}; }));
+    var tones = {selected:'tone-success', kiv:'tone-gold', rejected:'tone-error', unavailable:'tone-neutral'};
+    var answered = b.picks.length - counts.none;
+    var bar = b.picks.length ? '<div class="cd-answers"><div class="c-progress-track size-compact stacked" role="img" aria-label="' + answered + ' of ' + b.picks.length + ' answered">' +
+      S.PICK_STATUS.filter(function(p){ return p.key !== 'none' && counts[p.key]; }).map(function(p){
+        return '<div class="c-progress-stack-segment ' + (tones[p.key] || '') + '" style="width:' + (counts[p.key] / b.picks.length * 100) + '%; background:' + p.dot + '"></div>';
+      }).join('') + '<div class="c-progress-stack-remainder"></div></div>' +
+      '<div class="lg"><span><b>' + answered + '</b>/' + b.picks.length + ' answered</span>' +
+      (counts.selected ? '<span><span class="cmp-dot" style="background:var(--color-green)"></span><b>' + counts.selected + '</b> selected</span>' : '') +
+      (counts.kiv ? '<span><span class="cmp-dot" style="background:var(--color-amber)"></span><b>' + counts.kiv + '</b> KIV</span>' : '') +
+      '</div></div>' : '';
+    var body = bar + '<div class="cd-chips" style="margin-top:var(--spacing-12)">' + chips.map(function(ch){
+        return '<button type="button" class="c-chip c-chip-filter' + (f === ch.key ? ' is-active' : '') + '" data-batch-filter="' + ch.key + '" data-batch="' + b.n + '">' + ch.label + ' <span class="count">' + counts[ch.key] + '</span></button>';
+      }).join('') + '</div>' +
+      '<div style="overflow-x:auto"><table class="cd-picks"><colgroup><col style="width:40px" /><col style="width:18%" /><col style="width:20%" /><col style="width:14%" /><col style="width:9%" /><col style="width:15%" /><col style="width:12%" /><col style="width:12%" /></colgroup>' +
+      '<thead><tr><th>No</th><th>Influencer</th><th>Platform</th><th>Persona</th><th>Ethnicity</th><th>KULT remarks</th><th>Selection status</th><th>Client remarks</th></tr></thead><tbody>' +
+      (picks.length ? picks.map(function(p, i){
+        var rec = byInf[p.inf] || {id: p.inf, name: 'Unknown profile', platforms: [], niches: []};
+        var plat = (rec.platforms || []).filter(function(x){ return x.handle; }).map(function(x){
+          var t = tierOf(x.followers);
+          return '<span>' + (PLAT_ICON[x.platform] || '') + '<span class="h">@' + esc(x.handle) + '</span><span class="f">' + fmtFollowers(x.followers) + (t ? ' (' + t.name + ')' : '') + '</span></span>';
+        }).join('') || '<span class="f">—</span>';
+        return '<tr><td>' + (i + 1) + '</td>' +
+          '<td><span class="cd-who">' + avatarHtml(rec) + '<span class="t"><span class="n">' + esc(rec.name) + '</span></span></span></td>' +
+          '<td><span class="cd-plat">' + plat + '</span></td>' +
+          '<td>' + esc((rec.niches || []).join(', ') || '—') + '</td>' +
+          '<td>' + esc(rec.ethnicity || '—') + '</td>' +
+          '<td><textarea data-kult-remark data-batch="' + b.n + '" data-inf="' + p.inf + '" placeholder="Why you suggest them">' + esc(p.kultRemark || '') + '</textarea></td>' +
+          '<td>' + statusBadge(p.status || 'none', b.n, p.inf) + '</td>' +
+          '<td><textarea data-client-remark data-batch="' + b.n + '" data-inf="' + p.inf + '" placeholder="What the client said">' + esc(p.clientRemark || '') + '</textarea></td></tr>';
+      }).join('') : '<tr><td colspan="8" style="text-align:center; color:var(--color-neutral-5)">No one in this batch has that answer yet.</td></tr>') +
+      '</tbody></table></div>' +
+      paxHtml(b) +
+      '<div class="cd-notes"><label for="cdNotes' + b.n + '">Notes</label><input id="cdNotes' + b.n + '" data-batch-notes="' + b.n + '" placeholder="e.g. 10 selected + 2 pax KIV, 2 converted from Micro" value="' + esc(b.notes || '') + '" /></div>';
+    return '<div class="cd-batch" data-batch-card="' + b.n + '">' +
+      '<div class="cd-batch-head" data-batch-toggle="' + b.n + '"><div><span class="eyebrow">Batch ' + b.n + ' · ' + esc(b.name) + '</span>' +
+        '<span class="sub">Sent ' + esc(S.fmtDate(b.sentAt, true)) + ' · ' + b.picks.length + (b.picks.length === 1 ? ' influencer' : ' influencers') + '</span></div>' +
+        '<div class="acts"><button class="c-btn c-btn-ghost c-btn-sm" type="button" data-batch-toggle="' + b.n + '">' + (open ? 'Hide <i class="ph ph-caret-up"></i>' : 'Show <i class="ph ph-caret-down"></i>') + '</button>' +
+        '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-batch-link="' + b.n + '"><i class="ph ph-arrow-square-out"></i> Open link</button></div></div>' +
+      '<div class="cd-batch-body"' + (open ? '' : ' hidden') + '>' + body + '</div></div>';
+  }
+  /* Pax-to-select boxes: one per platform × tier actually present in
+     the batch, so the client is only asked about bands they can see. */
+  function paxHtml(b){
+    var bands = {};
+    b.picks.forEach(function(p){
+      var rec = byInf[p.inf]; if (!rec) return;
+      (rec.platforms || []).forEach(function(x){
+        if (!x.handle) return;
+        var t = tierOf(x.followers); if (!t) return;
+        bands[x.platform] = bands[x.platform] || {};
+        bands[x.platform][t.name] = (bands[x.platform][t.name] || 0) + 1;
+      });
+    });
+    var plats = Object.keys(bands);
+    if (!plats.length) return '';
+    var targets = b.paxTargets || {};
+    return '<div class="cd-pax"><h5>Pax to select, per platform and tier</h5>' + plats.map(function(pl){
+      var tiers = TIERS.map(function(t){ return t.name; }).filter(function(n){ return bands[pl][n]; });
+      var total = tiers.reduce(function(a, n){ return a + bands[pl][n]; }, 0);
+      return '<div class="cd-pax-plat"><span class="pl">' + PLAT_LABEL[pl] + '<span class="c">' + total + (total === 1 ? ' account' : ' accounts') + '</span></span><div class="cd-pax-row">' +
+        tiers.map(function(n){
+          var v = (targets[pl] || {})[n];
+          return '<div class="cd-pax-box"><span class="t"><span class="cmp-dot" style="background:' + TIER_DOT[n] + '"></span><b>' + n + '</b>(' + bands[pl][n] + ' shown)</span>' +
+            '<input inputmode="numeric" placeholder="—" data-pax-target data-batch="' + b.n + '" data-plat="' + pl + '" data-tier="' + n + '" value="' + (v == null ? '' : esc(v)) + '" /></div>';
+        }).join('') + '</div></div>';
+    }).join('') + '<p class="hint">Leave a box blank to show that band with no instruction.</p></div>';
+  }
+
+  /* ── Documents + Drafts — the shape of the later build, honest about
+     what is not wired yet. */
+  function renderDocs(){
+    var roster = c.roster || [];
+    var pan = E('pan-docs');
+    if (!roster.length) {
+      pan.innerHTML = '<div class="cd-sect"><h3>Influencer</h3></div><div class="c-table-standalone-wrap"><div class="c-empty is-section"><i class="ph-fill ph-users"></i><h4>No influencers yet</h4>' +
+        '<p>Send a preview link for the client to pick from, or add someone on the KOL Selection tab — they\'ll show up here once they\'re on the campaign.</p></div></div>';
+      return;
+    }
+    pan.innerHTML = '<div class="c-banner c-banner-info" style="margin-bottom:var(--spacing-16)"><i class="ph-fill ph-info"></i><div>Document generation is a later build. CoE and ADSIS columns fill in once contracts are wired up.</div></div>' +
+      '<div class="cd-sect"><h3>Influencer</h3></div>' +
+      '<div class="c-table-standalone-wrap"><table class="c-table c-table-standalone cd-table"><colgroup><col style="width:56px" /><col /><col style="width:18%" /><col style="width:12%" /><col style="width:9%" /><col style="width:9%" /><col style="width:9%" /></colgroup>' +
+      '<thead><tr><th>No.</th><th>Influencer</th><th>Agency</th><th>Fee (RM)</th><th>CoE</th><th>ADSIS</th><th>Batch</th></tr></thead><tbody>' +
+      roster.map(function(r, i){
+        var rec = byInf[r.inf] || {id: r.inf, name: 'Unknown profile', platforms: [], pii: {}};
+        var nric = rec.pii && rec.pii.nric;
+        return '<tr><td>' + (i + 1) + '</td>' +
+          '<td><span class="cd-who">' + avatarHtml(rec) + '<span class="t"><span class="n">' + esc(rec.name) + '</span><span class="s">' + (nric ? 'NRIC on file' : 'NRIC missing — blocks generation') + '</span></span></span></td>' +
+          '<td style="color:var(--color-neutral-4)">—</td><td style="color:var(--color-neutral-4)">—</td><td style="color:var(--color-neutral-4)">—</td><td style="color:var(--color-neutral-4)">—</td>' +
+          '<td>' + (r.batch != null ? r.batch : '<span style="color:var(--color-neutral-4)">—</span>') + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+    hydrateAvatars(pan);
+  }
+  function renderDrafts(){
+    var roster = c.roster || [];
+    var pan = E('pan-drafts');
+    if (!roster.length) {
+      pan.innerHTML = '<div class="cd-note">Nobody is on this campaign yet — <button class="c-empty-link" type="button" data-go-tab="kol">select influencers in KOL Selection first</button>.</div>';
+      return;
+    }
+    pan.innerHTML = roster.map(function(r){
+      var rec = byInf[r.inf] || {id: r.inf, name: 'Unknown profile'};
+      return '<div class="cd-draft"><div class="cd-draft-head" data-draft-toggle="' + r.inf + '">' +
+        '<span class="n">' + esc(rec.name) + '</span><span class="s">0 deliverables</span>' +
+        '<span class="r">Preview: <span class="c-switch-track on" role="switch" aria-checked="true" aria-label="Show in client preview"><span class="c-switch-thumb"></span></span><i class="ph ph-caret-down"></i></span></div>' +
+        '<div class="cd-draft-body" hidden>Deliverables, captions and client approval land here in the next build. Nothing has been drafted for ' + esc(rec.name) + ' yet.</div></div>';
+    }).join('');
+  }
+
+  /* ── Tabs. */
+  function setTab(key, push){
+    tab = key;
+    document.querySelectorAll('#cdTabs .c-tab').forEach(function(t){
+      var on = t.dataset.tab === key;
+      t.classList.toggle('active', on); t.setAttribute('aria-selected', String(on));
+    });
+    document.querySelectorAll('.cd-panel').forEach(function(p){ p.classList.toggle('is-on', p.id === 'pan-' + key); });
+    var u = new URL(location.href);
+    if (key === 'overview') u.searchParams.delete('tab'); else u.searchParams.set('tab', key);
+    history.replaceState(null, '', u);
+  }
+  E('cdTabs').addEventListener('click', function(e){
+    var t = e.target.closest('[data-tab]'); if (t) setTab(t.dataset.tab);
+  });
+
+  function renderAll(){
+    reload();
+    if (!c) return missing();
+    renderHeader(); renderOverview(); renderKol(); renderDocs(); renderDrafts();
+  }
+
+  /* ── Toasts. */
+  function toast(msg, tone){
+    var host = E('cdToasts');
+    var el = document.createElement('div');
+    el.className = 'c-toast is-message-only is-entering';
+    el.innerHTML = '<i class="ph-fill ' + (tone === 'danger' ? 'ph-trash tone tone-danger' : tone === 'info' ? 'ph-link tone tone-neutral' : 'ph-check-circle tone tone-success') +
+      '"></i><div class="body"><div class="message">' + esc(msg) + '</div></div>';
+    host.appendChild(el);
+    requestAnimationFrame(function(){ el.classList.remove('is-entering'); });
+    setTimeout(function(){ el.classList.add('is-entering'); setTimeout(function(){ el.remove(); }, 240); }, 2800);
+  }
+
+  /* ── Floating menu (stage + pick status). */
+  var menu = E('cdMenu'), menuAnchor = null;
+  function openMenu(anchor, html){
+    menu.innerHTML = html; menu.classList.add('is-open');
+    if (menuAnchor) menuAnchor.classList.remove('is-open');
+    menuAnchor = anchor; anchor.classList.add('is-open');
+    var r = anchor.getBoundingClientRect(), w = menu.offsetWidth, h = menu.offsetHeight;
+    var left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8));
+    var top = r.bottom + 4; if (top + h > window.innerHeight - 8) top = r.top - h - 4;
+    menu.style.left = left + 'px'; menu.style.top = top + 'px';
+  }
+  function closeMenu(){ menu.classList.remove('is-open'); if (menuAnchor) menuAnchor.classList.remove('is-open'); menuAnchor = null; }
+  E('cdTrack').addEventListener('click', function(e){
+    var b = e.target.closest('[data-go-stage]'); if (!b) return;
+    var to = b.dataset.goStage;
+    if (to === c.stage) return;
+    S.update(c.id, {stage: to});
+    renderAll();
+    toast('Moved to ' + S.stageOf(to).label + '.');
+  });
+  document.addEventListener('click', function(e){
+    var sb = e.target.closest('#cdStageBtn');
+    if (sb) {
+      e.stopPropagation();
+      if (menuAnchor === sb) return closeMenu();
+      return openMenu(sb, S.STAGES.map(function(s){
+        var on = s.key === c.stage;
+        return '<button type="button" class="cmp-menu-item" data-set-stage="' + s.key + '"><span class="cmp-dot" style="background:' + s.dot + '"></span>' + s.label + (on ? '<i class="ph ph-check chk"></i>' : '') + '</button>';
+      }).join(''));
+    }
+    var ps = e.target.closest('[data-pick-status]');
+    if (ps) {
+      e.stopPropagation();
+      if (menuAnchor === ps) return closeMenu();
+      return openMenu(ps, S.PICK_STATUS.map(function(p){
+        var on = p.key === ps.dataset.pickStatus;
+        return '<button type="button" class="cmp-menu-item" data-set-pick="' + p.key + '" data-batch="' + ps.dataset.batch + '" data-inf="' + ps.dataset.inf + '"><span class="cmp-dot" style="background:' + p.dot + '"></span>' + p.label + (on ? '<i class="ph ph-check chk"></i>' : '') + '</button>';
+      }).join(''));
+    }
+    if (menu.classList.contains('is-open') && !e.target.closest('#cdMenu')) closeMenu();
+  });
+  menu.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    e.stopPropagation();
+    if (b.dataset.setStage) {
+      closeMenu();
+      if (c.stage === b.dataset.setStage) return;
+      S.update(c.id, {stage: b.dataset.setStage});
+      renderAll();
+      toast('Moved to ' + S.stageOf(b.dataset.setStage).label + '.');
+    } else if (b.dataset.setPick) {
+      closeMenu();
+      var n = Number(b.dataset.batch), inf = b.dataset.inf, st = b.dataset.setPick;
+      S.updatePick(c.id, n, inf, {status: st});
+      renderAll();
+      var rec = byInf[inf];
+      if (st === 'selected') toast((rec ? rec.name : 'Profile') + ' is now on the campaign.');
+    }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeMenu(); });
+  window.addEventListener('scroll', closeMenu, true);
+
+  /* ── KOL panel interactions. */
+  E('pan-kol').addEventListener('click', function(e){
+    if (e.target.closest('#cdAddManual')) return openPicker('roster');
+    if (e.target.closest('#cdNewBatch') || e.target.closest('#cdNewBatch2')) return openPicker('batch');
+    var rm = e.target.closest('[data-roster-remove]');
+    if (rm) {
+      var rec = byInf[rm.dataset.rosterRemove];
+      S.removeFromRoster(c.id, rm.dataset.rosterRemove);
+      renderAll();
+      toast((rec ? rec.name : 'Profile') + ' removed from the campaign.', 'danger');
+      return;
+    }
+    var link = e.target.closest('[data-batch-link]');
+    if (link) {
+      e.stopPropagation();
+      var url = location.origin + '/preview/' + c.id + '/b' + link.dataset.batchLink;
+      try { navigator.clipboard.writeText(url); } catch (x) {}
+      toast('Preview link copied. The client-facing page is a later build.', 'info');
+      return;
+    }
+    var chip = e.target.closest('[data-batch-filter]');
+    if (chip) {
+      batchFilter[Number(chip.dataset.batch)] = chip.dataset.batchFilter;
+      renderKol(); return;
+    }
+    var tg = e.target.closest('[data-batch-toggle]');
+    if (tg && !e.target.closest('[data-batch-link]')) {
+      var n = Number(tg.dataset.batchToggle);
+      openBatches[n] = !openBatches[n];
+      renderKol();
+    }
+  });
+  /* Remarks, pax targets and notes save on change, not per keystroke,
+     and never re-render — the field you are typing in stays put. */
+  E('pan-kol').addEventListener('change', function(e){
+    var t = e.target;
+    if (t.matches('[data-kult-remark]')) S.updatePick(c.id, Number(t.dataset.batch), t.dataset.inf, {kultRemark: t.value});
+    else if (t.matches('[data-client-remark]')) S.updatePick(c.id, Number(t.dataset.batch), t.dataset.inf, {clientRemark: t.value});
+    else if (t.matches('[data-pax-target]')) {
+      var b = (S.get(c.id).batches || []).filter(function(x){ return x.n === Number(t.dataset.batch); })[0];
+      var targets = Object.assign({}, b.paxTargets || {});
+      targets[t.dataset.plat] = Object.assign({}, targets[t.dataset.plat] || {});
+      targets[t.dataset.plat][t.dataset.tier] = t.value.trim();
+      S.updateBatch(c.id, b.n, {paxTargets: targets});
+    }
+    else if (t.matches('[data-batch-notes]')) S.updateBatch(c.id, Number(t.dataset.batchNotes), {notes: t.value});
+    reload();
+  });
+  E('pan-drafts').addEventListener('click', function(e){
+    var go = e.target.closest('[data-go-tab]'); if (go) return setTab(go.dataset.goTab);
+    var sw = e.target.closest('.c-switch-track');
+    if (sw) { e.stopPropagation(); sw.classList.toggle('on'); sw.setAttribute('aria-checked', sw.classList.contains('on')); return; }
+    var h = e.target.closest('[data-draft-toggle]');
+    if (h) { var body = h.nextElementSibling; body.hidden = !body.hidden; h.querySelector('.ph-caret-down, .ph-caret-up').className = 'ph ' + (body.hidden ? 'ph-caret-down' : 'ph-caret-up'); }
+  });
+
+  /* ── Roster picker. */
+  var pickScrim = E('cdPickScrim'), pickMode = 'roster', chosen = new Set();
+  function openPicker(mode){
+    pickMode = mode; chosen.clear();
+    E('cdPickEyebrow').textContent = mode === 'batch' ? 'New preview link' : 'Add manually';
+    E('cdPickTitle').textContent = mode === 'batch' ? 'Pick who the client sees' : 'Add influencers to the campaign';
+    E('cdPickHint').textContent = mode === 'batch'
+      ? 'They arrive as a new batch with no answer yet; set each answer here as the client replies.'
+      : 'Added by hand — they skip the client\'s pick and land on the roster straight away.';
+    E('cdBatchNameField').hidden = mode !== 'batch';
+    E('cdBatchName').value = mode === 'batch' ? 'Batch ' + ((c.batches || []).length + 1) : '';
+    E('cdPickSearch').value = '';
+    renderPickList();
+    pickScrim.classList.add('is-open');
+    setTimeout(function(){ E('cdPickSearch').focus(); }, 260);
+  }
+  function closePicker(){ pickScrim.classList.remove('is-open'); }
+  function renderPickList(){
+    var q = E('cdPickSearch').value.trim().toLowerCase();
+    var onRoster = {}; (c.roster || []).forEach(function(r){ onRoster[r.inf] = true; });
+    var hits = INF.filter(function(r){
+      if (!q) return true;
+      var hay = [r.name].concat(r.niches || [], (r.platforms || []).map(function(p){ return p.handle; })).join(' ').toLowerCase();
+      return hay.indexOf(q) > -1;
+    });
+    var LIMIT = 60;
+    var list = E('cdPickList');
+    list.innerHTML = hits.slice(0, LIMIT).map(function(r){
+      var taken = pickMode === 'roster' && onRoster[r.id];
+      var on = chosen.has(r.id);
+      var top = (r.platforms || []).filter(function(p){ return p.followers != null; }).sort(function(a, b){ return b.followers - a.followers; })[0];
+      var t = top ? tierOf(top.followers) : null;
+      return '<div class="cd-pick-row' + (taken ? ' is-disabled' : '') + '" data-pick="' + r.id + '"' + (taken ? ' title="Already on the campaign"' : '') + '>' +
+        '<span class="c-checkbox-box' + (on || taken ? ' on' : '') + '">' + (on || taken ? '<i class="ph ph-check"></i>' : '') + '</span>' +
+        avatarHtml(r) + '<span class="t" style="min-width:0"><span class="n" style="display:block; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">' + esc(r.name) + '</span>' +
+        '<span class="s" style="display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis">' + esc(handlesLine(r)) + '</span></span>' +
+        (t ? '<span class="tier c-badge c-badge-neutral">' + t.name + '</span>' : '') + '</div>';
+    }).join('') + (hits.length > LIMIT ? '<div class="cd-picker-more">Showing ' + LIMIT + ' of ' + hits.length + ' — keep typing to narrow it down.</div>' : '') +
+    (!hits.length ? '<div class="cd-picker-more">No profiles match “' + esc(q) + '”.</div>' : '');
+    hydrateAvatars(list);
+    paintPickCount();
+  }
+  function paintPickCount(){
+    var n = chosen.size;
+    E('cdPickCount').textContent = n ? n + (n === 1 ? ' profile selected' : ' profiles selected') : 'Nobody selected yet';
+    E('cdPickConfirm').disabled = !n;
+    E('cdPickConfirm').textContent = pickMode === 'batch' ? 'Create preview link' : 'Add to campaign';
+  }
+  E('cdPickSearch').addEventListener('input', renderPickList);
+  E('cdPickList').addEventListener('click', function(e){
+    var row = e.target.closest('[data-pick]'); if (!row || row.classList.contains('is-disabled')) return;
+    var idp = row.dataset.pick;
+    if (chosen.has(idp)) chosen.delete(idp); else chosen.add(idp);
+    var box = row.querySelector('.c-checkbox-box'); var on = chosen.has(idp);
+    box.classList.toggle('on', on); box.innerHTML = on ? '<i class="ph ph-check"></i>' : '';
+    paintPickCount();
+  });
+  E('cdPickClose').addEventListener('click', closePicker);
+  E('cdPickCancel').addEventListener('click', closePicker);
+  pickScrim.addEventListener('click', function(e){ if (e.target === pickScrim) closePicker(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && pickScrim.classList.contains('is-open')) closePicker(); });
+  E('cdPickConfirm').addEventListener('click', function(){
+    var ids = Array.from(chosen); if (!ids.length) return;
+    closePicker();
+    if (pickMode === 'batch') {
+      var n = S.addBatch(c.id, E('cdBatchName').value.trim() || null, ids);
+      openBatches = {}; openBatches[n] = true;
+      renderAll();
+      toast('Batch ' + n + ' created with ' + ids.length + (ids.length === 1 ? ' profile' : ' profiles') + '. Open link copies the preview URL.');
+    } else {
+      S.addToRoster(c.id, ids, 'team', null);
+      renderAll();
+      toast(ids.length + (ids.length === 1 ? ' profile' : ' profiles') + ' added to the campaign.');
+    }
+  });
+
+  /* ── Header actions. */
+  E('cdEdit').addEventListener('click', function(){
+    campaignForm.open({rec: c, onSave: function(fields, cid){
+      S.update(cid, fields); renderAll(); toast('Changes saved.');
+    }});
+  });
+  E('cdShare').addEventListener('click', function(){ setTab('kol'); openPicker('batch'); });
+  var delScrim = E('cdDelScrim');
+  E('cdDelete').addEventListener('click', function(){
+    E('cdDelBody').innerHTML = 'This removes <strong>' + esc(c.name) + '</strong> and its roster and preview batches from the workspace. The seeded sample data on disk is untouched.';
+    delScrim.classList.add('is-open');
+  });
+  function closeDelete(){ delScrim.classList.remove('is-open'); }
+  E('cdDelClose').addEventListener('click', closeDelete);
+  E('cdDelCancel').addEventListener('click', closeDelete);
+  delScrim.addEventListener('click', function(e){ if (e.target === delScrim) closeDelete(); });
+  E('cdDelConfirm').addEventListener('click', function(){
+    S.remove(c.id);
+    location.href = 'campaigns.html';
+  });
+
+  renderAll();
+  if (c) setTab(['overview', 'kol', 'docs', 'drafts'].indexOf(tab) > -1 ? tab : 'overview');
+  setTimeout(function(){ E('cdContent').classList.remove('cd-arriving'); }, 900);
+})();
+</script>
+</body>
+</html>
