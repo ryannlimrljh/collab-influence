@@ -37,10 +37,15 @@
     border-radius:var(--radius-md); box-shadow:var(--shadow-1); font:inherit; cursor:pointer;
     min-width:0; transition:box-shadow var(--duration-fast) var(--ease-standard),
       border-color var(--duration-fast) var(--ease-standard),
+      background var(--duration-base) var(--ease-standard),
       transform var(--duration-fast) var(--ease-standard);}
+  .cmp-node .val, .cmp-node .lbl{transition:color var(--duration-base) var(--ease-standard);}
   .cmp-node:hover{box-shadow:var(--shadow-2); transform:translateY(-1px);}
   .cmp-node:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
-  .cmp-node.is-on{border-color:var(--color-obsidian); box-shadow:var(--shadow-2), inset 0 -2px 0 var(--color-obsidian);}
+  .cmp-node.is-on{background:var(--color-obsidian); border-color:var(--color-obsidian); box-shadow:var(--shadow-2);}
+  .cmp-node.is-on .val, .cmp-node.is-on .val.is-zero{color:var(--color-neutral-1);}
+  .cmp-node.is-on .lbl{color:rgba(255,255,255,.78);}
+  .cmp-node.is-on:hover{background:var(--color-neutral-8); border-color:var(--color-neutral-8);}
   .cmp-node .val{font-size:var(--text-h2-size); line-height:var(--text-h2-lh);
     font-weight:var(--text-h2-weight); color:var(--color-neutral-9); font-variant-numeric:tabular-nums;}
   .cmp-node .val.is-zero{color:var(--color-neutral-4);}
@@ -67,9 +72,18 @@
   /* ── Board — one column per stage, campaigns as cards. Dragging a
      card to another column is the stage change; the same change the
      badge menu makes in the table, just by hand. */
-  .cmp-board{display:grid; grid-template-columns:repeat(6, minmax(288px, 1fr));
+  /* The board scrolls sideways, so it owns the full width of the shell:
+     negative margins pull it out to the page edges, the left padding
+     puts the first column back on the content margin, and a last,
+     gutter-wide grid track does the same job on the right — padding on
+     the trailing edge of a scroller is unreliable across browsers, a
+     real track is not. Columns therefore slide under the page edge
+     instead of being cropped at the content column. */
+  .cmp-board{display:grid; grid-template-columns:repeat(6, minmax(288px, 1fr)) var(--page-gutter);
     gap:var(--spacing-16); align-items:stretch; overflow-x:auto; padding-bottom:var(--spacing-12);
-    scrollbar-width:thin;}
+    margin:0 calc(var(--page-gutter) * -1); padding-left:var(--page-gutter);
+    scrollbar-width:thin; scroll-padding-left:var(--page-gutter);}
+  .cmp-board::after{content:''; display:block;}
   .cmp-col{background:var(--color-neutral-2); border-radius:var(--radius-lg);
     padding:var(--spacing-12); min-height:420px; display:flex; flex-direction:column; gap:var(--spacing-12);
     border:2px dashed transparent; transition:border-color var(--duration-fast) var(--ease-standard),
@@ -518,38 +532,54 @@
      the items leave and arrive individually — the roster page's own
      cascade: the outgoing layout lifts and thins out, the incoming one
      drops (cards) or slides in along its reading axis (rows). */
-  function setView(v){
-    var prev = view;
-    view = v;
-    try { sessionStorage.setItem(VIEW_KEY, v); } catch (e) {}
-    if (prev === v || REDUCED || document.hidden || !document.body.animate) { applyView(); return; }
-    var outRoot = E(prev === 'board' ? 'cmpBoardView' : 'cmpListView');
-    var inRoot = E(v === 'board' ? 'cmpBoardView' : 'cmpListView');
-    visibleItems(outRoot).forEach(function(el, i){
+  function staggerOut(root){
+    visibleItems(root).forEach(function(el, i){
       el.animate([{opacity: 1, transform: 'none'}, {opacity: 0, transform: 'translateY(-8px) scale(.97)'}],
         {duration: 200, delay: Math.min(i * 9, 110), easing: 'cubic-bezier(.4,0,1,1)', fill: 'both'});
     });
+  }
+  function staggerIn(root, board){
+    var from = board ? {opacity: 0, transform: 'translateY(14px) scale(.94)'} : {opacity: 0, transform: 'translateX(-18px)'};
+    var running = [root.animate([{opacity: 0}, {opacity: 1}], {duration: 200, easing: 'ease-out'})];
+    visibleItems(root).forEach(function(el, i){
+      running.push(el.animate([from, {opacity: 1, transform: 'none'}],
+        {duration: board ? 420 : 340, delay: Math.min(i * (board ? 26 : 16), 320),
+         easing: 'cubic-bezier(.22,.9,.3,1)', fill: 'backwards'}));
+    });
+    /* A stalled animation clock (occluded window) would otherwise hold
+       items at opacity 0 for good; sweep up anything unfinished. */
+    setTimeout(function(){ running.forEach(function(a){ if (a.playState !== 'finished') a.cancel(); }); }, 1200);
+  }
+  /* Out, swap, in — sequenced, since the same element cannot hold both
+     layouts at once. `swapFn` does the DOM change in the middle. */
+  function cascade(outRoot, inRoot, swapFn){
+    if (REDUCED || document.hidden || !document.body.animate) { swapFn(); return; }
+    staggerOut(outRoot);
     var out = outRoot.animate([{opacity: 1}, {opacity: 0}], {duration: 210, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards'});
     var swapped = false;
     function swap(){
       if (swapped) return; swapped = true;
       out.cancel();
-      applyView();
+      swapFn();
       outRoot.getAnimations({subtree: true}).forEach(function(a){ a.cancel(); });
-      var board = v === 'board';
-      var from = board ? {opacity: 0, transform: 'translateY(14px) scale(.94)'} : {opacity: 0, transform: 'translateX(-18px)'};
-      var running = [inRoot.animate([{opacity: 0}, {opacity: 1}], {duration: 200, easing: 'ease-out'})];
-      visibleItems(inRoot).forEach(function(el, i){
-        running.push(el.animate([from, {opacity: 1, transform: 'none'}],
-          {duration: board ? 420 : 340, delay: Math.min(i * (board ? 26 : 16), 320),
-           easing: 'cubic-bezier(.22,.9,.3,1)', fill: 'backwards'}));
-      });
-      /* A stalled animation clock (occluded window) would otherwise hold
-         items at opacity 0 for good; sweep up anything unfinished. */
-      setTimeout(function(){ running.forEach(function(a){ if (a.playState !== 'finished') a.cancel(); }); }, 1200);
+      staggerIn(inRoot, inRoot === E('cmpBoardView'));
     }
     out.onfinish = swap;
     setTimeout(swap, 300);
+  }
+  function setView(v){
+    var prev = view;
+    view = v;
+    try { sessionStorage.setItem(VIEW_KEY, v); } catch (e) {}
+    if (prev === v) { applyView(); return; }
+    cascade(E(prev === 'board' ? 'cmpBoardView' : 'cmpListView'), E(v === 'board' ? 'cmpBoardView' : 'cmpListView'), applyView);
+  }
+  /* A stage filter re-lays the same view out, so it gets the same
+     cascade as a view switch; search stays instant, keystroke by
+     keystroke, the way the roster page's filters do. */
+  function renderAnimated(){
+    var root = E(view === 'board' ? 'cmpBoardView' : 'cmpListView');
+    cascade(root, root, function(){ render(); });
   }
   /* Name marquee — measured on hover, only when the text overflows. */
   function startMarquee(item){
@@ -832,7 +862,7 @@
     var u = new URL(location.href);
     if (stageFilter) u.searchParams.set('stage', stageFilter); else u.searchParams.delete('stage');
     history.replaceState(null, '', u);
-    render();
+    renderAnimated();
   }
   E('cmpPipe').addEventListener('click', function(e){
     var b = e.target.closest('[data-stage]'); if (!b) return;
