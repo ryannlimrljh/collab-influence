@@ -93,7 +93,11 @@
     padding:var(--spacing-12); min-height:420px; display:flex; flex-direction:column; gap:var(--spacing-12);
     border:2px dashed transparent; transition:border-color var(--duration-fast) var(--ease-standard),
       background var(--duration-fast) var(--ease-standard), opacity var(--duration-base) var(--ease-standard);}
-  .cmp-col.is-over{border-color:var(--color-obsidian); background:var(--color-neutral-3);}
+  /* Drop target: a quiet invitation, not an alarm — a mid-grey dashed
+     edge and a fill one shade lighter than the column at rest, so the
+     card being dragged stays the darkest thing on the board. */
+  .cmp-col.is-over{border-color:var(--color-neutral-4); background:var(--color-neutral-1);}
+  .cmp-col.is-over .cmp-col-empty{color:var(--color-neutral-5);}
   .cmp-col.is-dim{opacity:.4;}
   .cmp-col-head{display:flex; align-items:center; gap:8px; padding:var(--spacing-8) var(--spacing-8) var(--spacing-4);
     font-size:var(--text-caption-size); font-weight:700; text-transform:uppercase;
