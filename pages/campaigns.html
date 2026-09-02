@@ -1025,11 +1025,15 @@
   }
   skeleton();
   setTimeout(function(){
+    if (document.hidden) E('cmpContent').classList.remove('cmp-arriving');
     render();
     if (stageFilter) setTimeout(revealStageColumn, 200);
     if (params.get('new')) setTimeout(openAdd, 350);
     setTimeout(function(){ E('cmpContent').classList.remove('cmp-arriving'); }, 1100);
-  }, REDUCED ? 0 : 480);
+  /* The data is inline, so this beat is staged rather than real — the
+     roster page's own 1000ms, long enough for the bones to register as
+     a considered loading state instead of a flicker. */
+  }, REDUCED ? 0 : 1000);
 })();
 </script>
 </body>

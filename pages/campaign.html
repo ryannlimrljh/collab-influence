@@ -338,6 +338,18 @@
     transition:opacity var(--duration-base) var(--ease-standard);}
   .c-card-profile-avatar img.is-loaded{opacity:1;}
 
+  /* ── Skeleton first paint — bones in the shape of the header, track,
+     facts and the Overview card, swapped for the real page a beat
+     later so it lands in place instead of popping. */
+  .cd-sk{display:inline-block; height:12px; border-radius:var(--radius-sm); background:var(--color-neutral-2); vertical-align:middle;}
+  .cd-sk.pill{height:24px; border-radius:var(--radius-pill);}
+  .cd-sk.ring{width:80px; height:80px; border-radius:var(--radius-pill); background:var(--color-neutral-3);}
+  .cd-sk-node{display:inline-flex; align-items:center; gap:8px; padding:6px 10px;}
+  .cd-sk-node .ind{width:22px; height:22px; border-radius:var(--radius-pill); background:var(--color-neutral-3);}
+  @media (prefers-reduced-motion:no-preference){
+    .cd-sk, .cd-sk-node .ind{animation:cd-sk-pulse 1.4s var(--ease-standard) infinite;}
+    @keyframes cd-sk-pulse{0%,100%{opacity:1;} 50%{opacity:.45;}}
+  }
   @keyframes cd-arrive{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:none;}}
   .cd-arriving .cd-head, .cd-arriving .cd-io{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:40ms;}
   .cd-arriving .cd-track{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:100ms;}
@@ -391,7 +403,7 @@
   </div>
 
   <div class="c-shell-main">
-    <div class="c-shell-content cd-arriving" id="cdContent">
+    <div class="c-shell-content" id="cdContent">
       <div class="cd-top">
         <a class="c-back-button" href="campaigns.html"><i class="ph ph-arrow-left"></i> Campaigns</a>
       </div>
@@ -1145,9 +1157,42 @@
     location.href = 'campaigns.html';
   });
 
-  renderAll();
-  if (c) setTab(['overview', 'kol', 'docs', 'drafts'].indexOf(tab) > -1 ? tab : 'overview');
-  setTimeout(function(){ E('cdContent').classList.remove('cd-arriving'); }, 900);
+  /* ── Boot: bones first, the campaign a beat later with the arrival
+     cascade. The data is inline, so the beat is staged rather than real
+     — the same 1000ms the roster and list pages hold. */
+  function skeleton(){
+    if (!c) return;
+    E('cdName').innerHTML = '<span class="cd-sk" style="width:min(360px, 60vw); height:28px"></span>';
+    E('cdStageWrap').innerHTML = '<span class="cd-sk pill" style="width:120px"></span>';
+    E('cdIo').hidden = false; E('cdIo').innerHTML = '<span class="cd-sk" style="width:110px; height:10px"></span>';
+    E('cdTrack').innerHTML = S.STAGES.map(function(s, i){
+      return (i ? '<span class="cd-connector"></span>' : '') + '<span class="cd-sk-node"><span class="ind"></span><span class="cd-sk" style="width:56px; height:10px"></span></span>';
+    }).join('');
+    E('cdFacts').innerHTML = [0,1,2,3,4,5].map(function(){
+      return '<div class="cd-fact"><span class="cd-sk" style="width:72px; height:9px; margin-bottom:8px"></span><br><span class="cd-sk" style="width:60%; height:14px"></span></div>';
+    }).join('');
+    E('cdTimeline').hidden = true;
+    E('cdRingN').textContent = '';
+    E('pan-overview').innerHTML = '<div class="cd-ov">' + ['Financials', 'Roster', 'Ownership', 'Revenue split'].map(function(){
+      return '<div class="cd-ov-row"><div class="cd-ov-lbl"><span class="cd-chip" style="background:var(--color-neutral-2)"></span><span class="cd-sk" style="width:96px"></span></div>' +
+        '<div class="cd-ov-cells">' + [0,1,2].map(function(){
+          return '<div class="cd-ov-cell"><span class="cd-sk" style="width:64px; height:9px; margin-bottom:8px"></span><br><span class="cd-sk" style="width:110px; height:18px"></span></div>';
+        }).join('') + '</div></div>';
+    }).join('') + '</div>';
+  }
+  var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!c) { missing(); }
+  else {
+    skeleton();
+    setTab(['overview', 'kol', 'docs', 'drafts'].indexOf(tab) > -1 ? tab : 'overview');
+    setTimeout(function(){
+      /* A hidden document never advances CSS animations, so the cascade
+         would hold everything at its first, invisible frame. Skip it. */
+      if (!document.hidden) E('cdContent').classList.add('cd-arriving');
+      renderAll();
+      setTimeout(function(){ E('cdContent').classList.remove('cd-arriving'); }, 900);
+    }, REDUCED ? 0 : 1000);
+  }
 })();
 </script>
 </body>
