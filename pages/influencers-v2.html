@@ -714,16 +714,25 @@
   /* ── Skeleton first paint — shaped exactly like the card (same banner
      ratio, same avatar overlap, same paddings) so the real roster lands
      in place with zero jump; bones pulse until the swap. */
+  /* Geometry copied from .inf-card exactly — same padding, same width
+     cap, same centring. A skeleton that is even a few px off its real
+     card makes the whole grid jump when the data lands, which is the
+     one thing a skeleton exists to prevent. */
   .inf-sk-card{display:flex; flex-direction:column; align-items:center;
     height:100%; min-height:314px; overflow:hidden;
-    padding:var(--spacing-32) 0 var(--spacing-20);}
+    width:100%; max-width:276px; margin-inline:auto;
+    padding:var(--spacing-24) 0 var(--spacing-32);}
   .inf-sk-ava{width:88px; height:88px; border-radius:var(--radius-pill);
     background:var(--color-neutral-3); margin:0 0 var(--spacing-16); z-index:1;}
   .inf-sk-bar{height:12px; border-radius:var(--radius-sm);
     background:var(--color-neutral-2);}
+  /* Two stat columns, each a follower figure over its platform label —
+     the same shape .inf-stats renders. */
   .inf-sk-stats{display:flex; gap:var(--spacing-32); margin-top:auto;
-    padding-top:var(--spacing-24);}
-  .inf-sk-stats .inf-sk-bar{width:36px; height:20px;}
+    padding-top:var(--spacing-20);}
+  .inf-sk-stat{display:flex; flex-direction:column; align-items:center; gap:4px;}
+  .inf-sk-stat .num{width:44px; height:16px;}
+  .inf-sk-stat .cap{width:32px; height:9px;}
   .inf-sk-head{width:120px;}
   .inf-sk-row{display:flex; align-items:center; gap:var(--spacing-12);
     padding:var(--spacing-12) var(--spacing-16);
@@ -1696,11 +1705,19 @@
      the data lands, so the page opens composed instead of popping. */
   function renderSkeleton(){
     function skCard(){
+      /* name, meta and niche lines, then two stat columns — one bone per
+         line the real card actually draws. */
+      function stat(){
+        return '<span class="inf-sk-stat">' +
+          '<span class="inf-sk-bar num"></span>' +
+          '<span class="inf-sk-bar cap"></span></span>';
+      }
       return '<div class="c-card inf-sk-card">' +
         '<span class="inf-sk-ava"></span>' +
-        '<span class="inf-sk-bar" style="width:56%"></span>' +
-        '<span class="inf-sk-bar" style="width:38%; height:8px; margin-top:8px;"></span>' +
-        '<div class="inf-sk-stats"><span class="inf-sk-bar"></span><span class="inf-sk-bar"></span><span class="inf-sk-bar"></span></div>' +
+        '<span class="inf-sk-bar" style="width:52%; height:14px;"></span>' +
+        '<span class="inf-sk-bar" style="width:66%; height:9px; margin-top:9px;"></span>' +
+        '<span class="inf-sk-bar" style="width:48%; height:9px; margin-top:7px;"></span>' +
+        '<div class="inf-sk-stats">' + stat() + stat() + '</div>' +
         '</div>';
     }
     function skRow(){
