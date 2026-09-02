@@ -18,8 +18,8 @@
      list's strip, the badge and the detail header agree on the hue. */
   var STAGES = [
     {key: 'sourcing',  label: 'Sourcing',            short: 'Sourcing',  dot: 'var(--color-navy)'},
-    {key: 'drafting',  label: 'Content preparation', short: 'Drafting',  dot: 'var(--color-turquoise)'},
-    {key: 'posting',   label: 'Posting go-live',     short: 'Posting',   dot: 'var(--color-green)'},
+    {key: 'drafting',  label: 'Drafting',            short: 'Drafting',  dot: 'var(--color-turquoise)'},
+    {key: 'posting',   label: 'Posting',             short: 'Posting',   dot: 'var(--color-green)'},
     {key: 'reporting', label: 'Reporting',           short: 'Reporting', dot: 'var(--color-amber)'},
     {key: 'payment',   label: 'Payment',             short: 'Payment',   dot: 'var(--color-purple)'},
     {key: 'completed', label: 'Completed',           short: 'Completed', dot: 'var(--color-neutral-4)'}
