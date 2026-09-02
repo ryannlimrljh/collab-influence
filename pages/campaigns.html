@@ -43,9 +43,14 @@
   .cmp-node:hover{box-shadow:var(--shadow-2); transform:translateY(-1px);}
   .cmp-node:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
   .cmp-node.is-on{background:var(--color-obsidian); border-color:var(--color-obsidian); box-shadow:var(--shadow-2);}
+  /* On the dark fill every part flips to the inverse of its resting
+     value: white count, white label, and the stage dot picks up a
+     translucent white ring so it stays legible against obsidian. */
   .cmp-node.is-on .val, .cmp-node.is-on .val.is-zero{color:var(--color-neutral-1);}
-  .cmp-node.is-on .lbl{color:rgba(255,255,255,.78);}
+  .cmp-node.is-on .lbl{color:var(--color-neutral-1);}
+  .cmp-node.is-on .cmp-dot{box-shadow:0 0 0 2px rgba(255,255,255,.28);}
   .cmp-node.is-on:hover{background:var(--color-neutral-8); border-color:var(--color-neutral-8);}
+  .cmp-node.is-on:focus-visible{outline-offset:3px;}
   .cmp-node .val{font-size:var(--text-h2-size); line-height:var(--text-h2-lh);
     font-weight:var(--text-h2-weight); color:var(--color-neutral-9); font-variant-numeric:tabular-nums;}
   .cmp-node .val.is-zero{color:var(--color-neutral-4);}
@@ -53,7 +58,8 @@
     overflow:hidden; text-overflow:ellipsis;
     font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-5);}
   .cmp-node.is-on .lbl{color:var(--color-neutral-9);}
-  .cmp-dot{width:6px; height:6px; border-radius:var(--radius-pill); flex:none;}
+  .cmp-dot{width:6px; height:6px; border-radius:var(--radius-pill); flex:none;
+    transition:box-shadow var(--duration-base) var(--ease-standard);}
   @media (max-width:900px){ .cmp-pipe{grid-template-columns:repeat(3, minmax(0, 1fr));} .cmp-pipe::before{display:none;} }
 
   /* ── View toggle — board / list, same control the roster page uses. */
