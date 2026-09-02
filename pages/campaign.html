@@ -26,11 +26,10 @@
   .cd-head{display:flex; align-items:flex-start; justify-content:space-between;
     gap:var(--spacing-16); margin-top:var(--spacing-12);}
   .cd-title{display:flex; align-items:center; gap:var(--spacing-12); min-width:0; flex-wrap:wrap;}
-  .cd-bar{width:6px; height:36px; border-radius:3px; flex:none;}
   .cd-title h1{margin:0; font-size:var(--text-h1-size); line-height:var(--text-h1-lh);
     font-weight:var(--text-h1-weight); color:var(--color-neutral-9); min-width:0;
     overflow-wrap:anywhere;}
-  .cd-io{margin:var(--spacing-8) 0 0 calc(6px + var(--spacing-12));
+  .cd-io{margin:var(--spacing-8) 0 0;
     font-size:var(--text-body2-size); color:var(--color-neutral-5);}
   .cd-actions{display:flex; gap:var(--spacing-8); flex:none; flex-wrap:wrap; justify-content:flex-end;}
   .cd-actions .c-btn{text-decoration:none;}
@@ -403,7 +402,6 @@
         <div class="cd-head">
           <div>
             <div class="cd-title">
-              <span class="cd-bar" id="cdBar"></span>
               <h1 id="cdName"></h1>
               <span id="cdStageWrap"></span>
             </div>
@@ -533,7 +531,7 @@
 <script src="../shared/influencer-store.js?v=2"></script>
 <script src="../shared/campaigns-data.js?v=1"></script>
 <script src="../shared/campaign-store.js?v=1"></script>
-<script src="../shared/campaign-form.js?v=1"></script>
+<script src="../shared/campaign-form.js?v=2"></script>
 <script>
 (function () {
   'use strict';
@@ -640,7 +638,6 @@
   }
   function renderHeader(){
     document.title = 'Collab:Influence · ' + c.name;
-    E('cdBar').style.background = S.colorOf(c.color);
     E('cdName').textContent = c.name;
     E('cdStageWrap').innerHTML = stageBadge();
     E('cdIo').hidden = !c.io; E('cdIo').textContent = c.io || '';

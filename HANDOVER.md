@@ -45,6 +45,8 @@ does not appear, add a cache-buster: `?v=2`, `?v=3`, and so on.
 | `pages/influencers-v2.html` | **The current roster design.** |
 | `pages/campaigns.html` | **Campaigns list** — pipeline track, board view (drag a card between columns to change its stage) and table view, Add campaign sheet. |
 | `pages/campaign.html?id=…` | **Campaign detail** — stage track, run-date timeline, Overview and KOL Selection tabs; Documents and Drafts are designed placeholders for the next build. |
+
+Campaign records carry a `color` field from the live app's form. Nothing renders it any more (the card stripe and title bar were removed as noise); it is kept in the data so it can come back if the team gives it a meaning.
 | `pages/influencers.html` | The earlier roster version, kept for comparison. Not maintained. |
 
 Open **http://localhost:8796/pages/campaigns.html** for the campaigns surface.

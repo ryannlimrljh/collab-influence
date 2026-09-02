@@ -103,11 +103,10 @@
     font-size:var(--text-caption-size); color:var(--color-neutral-4);}
   .cmp-card{position:relative; display:block; background:var(--color-neutral-1);
     border:1px solid var(--color-neutral-3); border-radius:var(--radius-md);
-    box-shadow:var(--shadow-1); padding:var(--spacing-20) var(--spacing-20) var(--spacing-16) var(--spacing-24);
+    box-shadow:var(--shadow-1); padding:var(--spacing-20) var(--spacing-20) var(--spacing-16);
     cursor:pointer; overflow:hidden; text-align:left; font:inherit; width:100%;
     transition:box-shadow var(--duration-fast) var(--ease-standard),
       transform var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard);}
-  .cmp-card::before{content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--bar, var(--color-obsidian));}
   .cmp-card:hover{box-shadow:var(--shadow-2); transform:translateY(-2px);}
   .cmp-card:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
   .cmp-card.is-dragging{opacity:.35; transform:scale(.98);}
@@ -162,7 +161,7 @@
      page lands in place instead of popping. */
   .cmp-sk{height:12px; border-radius:var(--radius-sm); background:var(--color-neutral-2);}
   .cmp-sk-card{background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
-    border-radius:var(--radius-md); padding:var(--spacing-16) var(--spacing-16) var(--spacing-16) var(--spacing-20); display:flex; flex-direction:column; gap:14px;}
+    border-radius:var(--radius-md); padding:var(--spacing-16); display:flex; flex-direction:column; gap:14px;}
   .cmp-sk-ava{width:32px; height:32px; border-radius:var(--radius-sm); background:var(--color-neutral-3);}
   @media (prefers-reduced-motion:no-preference){
     .cmp-sk, .cmp-sk-ava{animation:cmp-sk-pulse 1.4s var(--ease-standard) infinite;}
@@ -486,7 +485,7 @@
 <script src="../shared/shell.js?v=0.9.46"></script>
 <script src="../shared/campaigns-data.js?v=1"></script>
 <script src="../shared/campaign-store.js?v=1"></script>
-<script src="../shared/campaign-form.js?v=1"></script>
+<script src="../shared/campaign-form.js?v=2"></script>
 <script>
 (function () {
   'use strict';
@@ -699,7 +698,7 @@
   }
   function cardHtml(c){
     var q = cue(c);
-    return '<div class="cmp-card" draggable="true" tabindex="0" role="button" data-id="' + c.id + '" style="--bar:' + S.colorOf(c.color) + '">' +
+    return '<div class="cmp-card" draggable="true" tabindex="0" role="button" data-id="' + c.id + '">' +
       '<div class="cmp-card-top"><span class="cmp-logo" data-logo-for="' + c.id + '"><span class="ini">' + esc(S.initials(c.brand || c.name)) + '</span><img alt="" hidden /></span>' +
         '<span class="cmp-txt"><span class="cmp-name" title="' + esc(c.name) + '"><span>' + esc(c.name) + '</span></span>' +
         '<span class="cmp-sub">' + esc([c.brand, c.agency].filter(Boolean).join(' · ') || 'No brand yet') + '</span></span></div>' +

@@ -27,10 +27,6 @@
 .cf-checks{display:flex; flex-wrap:wrap; gap:var(--spacing-8) var(--spacing-16); min-height:40px; align-items:center;}\
 .cf-check{display:inline-flex; align-items:center; gap:var(--spacing-8); cursor:pointer; font-size:var(--text-body2-size); color:var(--color-neutral-9); user-select:none;}\
 .cf-check .c-checkbox-box{margin-top:0; font-size:12px;}\
-.cf-swatches{display:flex; gap:var(--spacing-8); align-items:center; min-height:40px;}\
-.cf-swatch{width:26px; height:26px; border-radius:var(--radius-pill); border:2px solid transparent; cursor:pointer; padding:0; box-shadow:inset 0 0 0 1px rgba(0,0,0,.06); transition:transform var(--duration-fast) var(--ease-standard);}\
-.cf-swatch:hover{transform:scale(1.08);}\
-.cf-swatch.is-on{border-color:var(--color-obsidian); box-shadow:0 0 0 2px var(--color-neutral-1) inset;}\
 .cf-foot{display:flex; justify-content:flex-end; gap:var(--spacing-8);}\
 @media (max-width:640px){ .cf-grid{grid-template-columns:1fr;} }';
 
@@ -59,8 +55,6 @@
         <input id="cf-start" type="date" /></div>\
       <div class="c-field" id="cfFieldEnd"><label for="cf-end">End date</label>\
         <input id="cf-end" type="date" /><span class="c-helper" hidden id="cfEndHelp">The end date is before the start.</span></div>\
-      <div class="c-field span2"><label>Colour</label>\
-        <div class="cf-swatches" id="cfSwatches" role="radiogroup" aria-label="Campaign colour"></div></div>\
 \
       <p class="cf-eyebrow">Campaign tracker</p>\
       <div class="c-field"><label for="cf-io">Campaign IO</label>\
@@ -129,12 +123,6 @@
       return l.querySelector('.c-checkbox-box').classList.contains('on') ? l.dataset.v : null;
     }).filter(Boolean);
   }
-  function swatches() {
-    F('cfSwatches').innerHTML = S.COLORS.map(function (c) {
-      return '<button type="button" class="cf-swatch' + (c.key === color ? ' is-on' : '') + '" data-c="' + c.key +
-        '" role="radio" aria-checked="' + (c.key === color) + '" aria-label="' + c.key + '" style="background:' + c.css + '"></button>';
-    }).join('');
-  }
   function syncOverseer() {
     var has = !!F('cf-overseer').value;
     var ov = F('cf-ovpct');
@@ -170,7 +158,6 @@
     if (r.overseerPct != null) ov.dataset.touched = '1';
     F('cf-remarks').value = r.remarks || '';
     color = r.color || 'obsidian';
-    swatches();
     syncOverseer();
     F('cfFieldName').classList.remove('c-field-error'); F('cfNameHelp').hidden = true;
     F('cfFieldEnd').classList.remove('c-field-error'); F('cfEndHelp').hidden = true;
@@ -235,8 +222,6 @@
       box.innerHTML = on ? '<i class="ph ph-check"></i>' : '';
       return;
     }
-    var sw = e.target.closest('.cf-swatch');
-    if (sw) { color = sw.dataset.c; swatches(); }
   });
   F('cf-overseer').addEventListener('change', syncOverseer);
   F('cf-picpct').addEventListener('input', function () {
