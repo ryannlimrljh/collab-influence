@@ -17,7 +17,7 @@
   /* Stage order is the pipeline order. `dot` is a DLS token so the
      list's strip, the badge and the detail header agree on the hue. */
   var STAGES = [
-    {key: 'sourcing',  label: 'KOL sourcing',        short: 'Sourcing',  dot: 'var(--color-navy)'},
+    {key: 'sourcing',  label: 'Sourcing',            short: 'Sourcing',  dot: 'var(--color-navy)'},
     {key: 'drafting',  label: 'Content preparation', short: 'Drafting',  dot: 'var(--color-turquoise)'},
     {key: 'posting',   label: 'Posting go-live',     short: 'Posting',   dot: 'var(--color-green)'},
     {key: 'reporting', label: 'Reporting',           short: 'Reporting', dot: 'var(--color-amber)'},
