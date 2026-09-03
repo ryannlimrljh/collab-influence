@@ -35,7 +35,7 @@
   <div class="c-cbrief cf-sheet" role="dialog" aria-modal="true" aria-labelledby="cfTitle">\
     <button class="c-cbrief-close" type="button" id="cfClose" aria-label="Close form"><i class="ph ph-x"></i></button>\
     <span class="c-herocard-eyebrow" id="cfEyebrow">New campaign</span>\
-    <h3 style="margin:0; font-size:var(--text-h4-size); line-height:var(--text-h4-lh); font-weight:var(--text-h4-weight);" id="cfTitle">Add campaign</h3>\
+    <h3 style="margin:0; font-size:var(--text-h4-size); line-height:var(--text-h4-lh); font-weight:var(--text-h4-weight);" id="cfTitle">Add new campaign</h3>\
     <p class="c-cbrief-source" style="margin:-8px 0 0;">Plan deliverables across your influencer roster.</p>\
     <div class="cf-grid">\
       <p class="cf-eyebrow">Campaign details</p>\
@@ -248,7 +248,7 @@
       editing = o.rec ? o.rec.id : null;
       onSave = o.onSave || null;
       F('cfEyebrow').textContent = editing ? 'Edit campaign' : 'New influencer campaign';
-      F('cfTitle').textContent = editing ? o.rec.name : 'Add campaign';
+      F('cfTitle').textContent = editing ? o.rec.name : 'Add new campaign';
       F('cfSave').textContent = editing ? 'Save changes' : 'Create campaign';
       fill(o.rec || o.draft || null);
       scrim.classList.add('is-open');

@@ -817,7 +817,7 @@
               <i class="ph ph-download-simple"></i> Export
             </button>
             <button class="c-btn c-btn-primary c-btn-md" type="button" id="infAddBtn">
-              <i class="ph ph-plus"></i> Add influencer
+              <i class="ph ph-plus"></i> Add new influencer
             </button>
           </div>
         </div>
@@ -990,7 +990,7 @@
   <div class="c-cbrief inf-form" role="dialog" aria-modal="true" aria-labelledby="infFormTitle">
     <button class="c-cbrief-close" type="button" id="infFormClose" aria-label="Close form"><i class="ph ph-x"></i></button>
     <span class="c-herocard-eyebrow" id="infFormEyebrow">New profile</span>
-    <h3 style="margin:0; font-size:var(--text-h4-size); line-height:var(--text-h4-lh); font-weight:var(--text-h4-weight);" id="infFormTitle">Add influencer</h3>
+    <h3 style="margin:0; font-size:var(--text-h4-size); line-height:var(--text-h4-lh); font-weight:var(--text-h4-weight);" id="infFormTitle">Add new influencer</h3>
     <div class="inf-form-grid">
       <div class="c-field span2" id="infFieldName"><label for="f-name">Name<span class="required-mark">*</span></label>
         <input id="f-name" placeholder="Full name" /><span class="c-helper" hidden id="infNameHelp">A name is required.</span></div>
@@ -2457,7 +2457,7 @@
     editingId = id || null;
     var r = id ? byId[id] : null;
     F('infFormEyebrow').textContent = r ? 'Edit profile' : 'New profile';
-    F('infFormTitle').textContent = r ? r.name : 'Add influencer';
+    F('infFormTitle').textContent = r ? r.name : 'Add new influencer';
     F('infFormSave').textContent = r ? 'Save changes' : 'Save influencer';
     F('f-name').value = r ? r.name : '';
     F('f-niche').value = r ? (r.niches || []).join(', ') : '';

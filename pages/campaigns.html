@@ -374,7 +374,7 @@
           </div>
           <div class="c-pageheader-actions">
             <button class="c-btn c-btn-primary c-btn-md" type="button" id="cmpAddBtn">
-              <i class="ph ph-plus"></i> Add campaign
+              <i class="ph ph-plus"></i> Add new campaign
             </button>
           </div>
         </div>
@@ -489,7 +489,7 @@
 <script src="../shared/shell.js?v=0.9.46"></script>
 <script src="../shared/campaigns-data.js?v=1"></script>
 <script src="../shared/campaign-store.js?v=3"></script>
-<script src="../shared/campaign-form.js?v=2"></script>
+<script src="../shared/campaign-form.js?v=3"></script>
 <script>
 (function () {
   'use strict';
@@ -791,7 +791,7 @@
         '<h4>' + (what ? 'No campaigns here' : 'No campaigns yet') + '</h4>' +
         '<p>' + (what ? 'Nothing matches ' + what + '. Clear the filter, or start a new campaign.' : 'Start your first influencer campaign and it will appear here.') + '</p>' +
         '<div class="c-empty-actions">' + (what ? '<button class="c-btn c-btn-secondary c-btn-md" type="button" id="cmpEmptyClear">Clear filters</button>' : '') +
-        '<button class="c-btn c-btn-primary c-btn-md" type="button" id="cmpEmptyAdd"><i class="ph ph-plus"></i> Add campaign</button></div></div>';
+        '<button class="c-btn c-btn-primary c-btn-md" type="button" id="cmpEmptyAdd"><i class="ph ph-plus"></i> Add new campaign</button></div></div>';
     }
     E('cmpCount').textContent = hits.length + (hits.length === 1 ? ' campaign' : ' campaigns') +
       (hits.length !== all.length ? ' of ' + all.length : '') +
