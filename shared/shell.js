@@ -286,6 +286,15 @@
     panel.addEventListener('click', function (e) {
       var opt = e.target.closest('.c-dept-option');
       if (!opt) return;
+      /* A department that owns its own deployed surface navigates there
+         rather than restyling this shell — the mirror of the mothership's
+         switcher opening Collab:Media. data-href is what marks one; every
+         other option keeps the swap-the-lockup behaviour. Same tab, like
+         the rest of this rail: this is going home, not a side trip. */
+      if (opt.dataset.href) {
+        window.location.href = opt.dataset.href;
+        return;
+      }
       apply(opt);
       close();
     });
