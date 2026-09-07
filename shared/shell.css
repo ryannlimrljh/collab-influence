@@ -83,3 +83,10 @@ a.c-sidebar-item{text-decoration:none;}
   .c-sidebar.is-collapsed .c-sidebar-item,
   .c-sidebar.is-collapsed .c-sidebar-footer{display:none;}
 }
+
+/* Pods without a deployed surface are visible but inert — dimmed, no
+   hover invitation, and the title says why. The attribute selector
+   outranks the component's own hover by specificity, so this needs no
+   particular load order. */
+.c-dept-option[aria-disabled="true"]{opacity:.45; cursor:default;}
+.c-dept-option[aria-disabled="true"]:hover{background:transparent;}

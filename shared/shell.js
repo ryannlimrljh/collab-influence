@@ -286,6 +286,8 @@
     panel.addEventListener('click', function (e) {
       var opt = e.target.closest('.c-dept-option');
       if (!opt) return;
+      /* A pod with no deployed surface is shown but not selectable. */
+      if (opt.getAttribute('aria-disabled') === 'true') return;
       /* A department that owns its own deployed surface navigates there
          rather than restyling this shell — the mirror of the mothership's
          switcher opening Collab:Media. data-href is what marks one; every
