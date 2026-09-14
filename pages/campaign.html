@@ -75,7 +75,7 @@
   .cd-ring2 .c small{font-size:10px; color:var(--color-neutral-5); font-weight:600;}
   .cd-dots{display:flex; flex-wrap:wrap; gap:3px; margin-top:2px;}
   .cd-dots i{width:8px; height:8px; border-radius:2px; background:var(--color-neutral-3); display:block;}
-  .cd-dots i.f{background:var(--color-green);} .cd-dots i.p{background:var(--color-amber);} .cd-dots i.a{background:var(--color-navy);}
+  .cd-dots i.f{background:var(--color-green);} .cd-dots i.p{background:var(--color-amber);} .cd-dots i.a{background:var(--color-navy);} .cd-dots i.x{background:var(--color-red);}
   .cd-dots.lg i{width:10px; height:10px; border-radius:3px;}
   /* Financials and Revenue split share one layout: figures on the left,
      an 84px ring on the right, so the two cards read as a pair. */
@@ -242,13 +242,22 @@
   /* ── The board. The requirement is the layout: one card per asked band,
      fills inside it, open slots as a row of their own. Batches are
      provenance, a chip on the fill. */
-  .cd-sum{display:flex; flex-direction:column; gap:var(--spacing-10, 10px); margin-bottom:var(--spacing-20);}
+  /* Summary strip — the same language as Overview: a big count, a dot
+     grid you can count, the legend, and the actions on the right. */
+  .cd-sum{display:flex; align-items:center; gap:var(--spacing-16); flex-wrap:wrap; margin-bottom:var(--spacing-16);
+    padding:var(--spacing-12) var(--spacing-16); background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg);}
+  .cd-sum .big{display:flex; flex-direction:column; flex:none; min-width:72px;}
+  .cd-sum .big b{font-size:var(--text-h2-size); line-height:1.05; font-weight:800; color:var(--color-neutral-9); font-variant-numeric:tabular-nums;}
+  .cd-sum .big span{font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+  .cd-sum .mid{flex:1; min-width:200px; display:flex; flex-direction:column; gap:6px;}
+  .cd-sum .acts{display:flex; gap:var(--spacing-8); flex-wrap:wrap; margin-left:auto;}
   .cd-sum-line{display:flex; align-items:center; gap:var(--spacing-16); flex-wrap:wrap;}
   .cd-sum-line .say{flex:1; min-width:0; font-size:var(--text-body2-size); color:var(--color-neutral-5);}
   .cd-sum-line .say b{color:var(--color-neutral-9); font-weight:800; font-size:var(--text-h4-size);}
   .cd-sum-line .say .sep{margin:0 6px; color:var(--color-neutral-4);}
   .cd-sum-line .say .k{display:inline-flex; align-items:center; gap:5px;}
   .cd-sum .c-progress-track{height:8px;}
+  .cd-group-cnt .cd-dots{margin:0 0 0 6px;}
   .cd-groups{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--spacing-16);}
   @media (max-width:900px){ .cd-groups{grid-template-columns:1fr;} }
   .cd-group{background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg);
@@ -267,16 +276,21 @@
   .cd-group.is-over .cd-group-cnt, .cd-group.is-over .cd-group-cnt b{color:var(--color-amber);}
   .cd-group-cnt em{font-style:normal; color:var(--color-neutral-9);}
   .cd-fills{display:flex; flex-direction:column; flex:1;}
-  .cd-fill{display:flex; align-items:center; gap:var(--spacing-12); padding:10px var(--spacing-16);
+  .cd-fill{display:flex; align-items:center; flex-wrap:wrap; gap:8px var(--spacing-12); padding:10px var(--spacing-16);
     border-bottom:1px solid var(--color-neutral-2); min-width:0;
     transition:background var(--duration-base) var(--ease-standard);}
   .cd-fill:last-child{border-bottom:0;}
   .cd-fill .c-card-profile-avatar{width:32px; height:32px; flex:none; font-size:11px;}
-  .cd-fill .t{min-width:0; flex:1;}
+  .cd-fill .t{min-width:0; flex:1 1 140px;}
+  .cd-fill .s .prov{display:inline-flex; align-items:center; gap:3px; color:var(--color-neutral-5);}
+  .cd-fill .s .prov i{font-size:11px;}
   .cd-fill .n{display:block; font-weight:700; color:var(--color-neutral-9); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .cd-fill .s{display:flex; align-items:center; gap:6px; font-size:var(--text-caption-size); color:var(--color-neutral-5); white-space:nowrap; overflow:hidden;}
   .cd-fill .s .sub{color:var(--color-amber); font-weight:700;}
-  .cd-fill .acts{display:flex; align-items:center; gap:var(--spacing-4); flex:none;}
+  .cd-fill .acts{display:flex; align-items:center; gap:var(--spacing-4); flex:none; margin-left:auto;}
+  /* An approved fill carries Confirm and Unavailable; they take their own
+     line so the name never has to give way to them. */
+  .cd-fill.is-approved .acts{flex-basis:100%; justify-content:flex-end;}
   .cd-fill.is-unavailable{opacity:.55;}
   .cd-fill.is-unavailable .n{text-decoration:line-through;}
   .cd-fill.is-flash{background:color-mix(in srgb, var(--color-amber) 14%, transparent);}
@@ -395,6 +409,14 @@
     text-transform:uppercase; letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-9);}
   .cd-batch-head .sub{display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5); margin-top:2px;}
   .cd-batch-head .acts{display:flex; gap:var(--spacing-4); flex:none;}
+  .cd-batch-head .lead{display:flex; align-items:center; gap:var(--spacing-12); min-width:0;}
+  .cd-batch-head .cd-ring2{flex:none;}
+  .cd-picks .rmk{width:100%; height:32px; padding:0 8px; border:1px solid transparent; border-radius:var(--radius-sm); background:transparent;
+    font:inherit; font-size:var(--text-caption-size); color:var(--color-neutral-9); transition:border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);}
+  .cd-picks .rmk::placeholder{color:var(--color-neutral-4);}
+  .cd-picks tr:hover .rmk{border-color:var(--color-neutral-3); background:var(--color-neutral-1);}
+  .cd-picks .rmk:focus{outline:none; border-color:var(--color-obsidian); background:var(--color-neutral-1); box-shadow:var(--shadow-focus);}
+  .cd-picks .cd-who .s{display:block; font-size:11px; color:var(--color-neutral-5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .cd-batch-body{padding:var(--spacing-16) var(--spacing-20) var(--spacing-20);}
   .cd-batch-body[hidden]{display:none;}
   .cd-chips{display:flex; flex-wrap:wrap; gap:var(--spacing-8); margin-bottom:var(--spacing-12);}
@@ -1145,7 +1167,8 @@
         (ch ? '@' + esc(ch.handle) + ' · ' + fmtFollowers(ch.followers) : esc(PLAT_LABEL[r.platform] || r.platform)) +
         (r.substitutedFor ? '<span class="sub">' + esc(tierName(r.tier)) + ' ↑ ' + esc(tierName(r.substitutedFor)) + '</span>' : '') +
         (over ? '<span class="c-badge c-badge-warning">+1 over</span>' : '') +
-      '</span></span>' + badge + provChip(r) + '<span class="acts">' + acts + '</span></div>';
+        '<span class="prov">· ' + (r.batch == null ? '<i class="ph ph-hand"></i>by hand' : '<i class="ph ph-paper-plane-tilt"></i>batch ' + r.batch + (batchOf(r.batch) && batchOf(r.batch).sentAt ? ' · ' + esc(S.fmtDate(batchOf(r.batch).sentAt)) : '')) + '</span>' +
+      '</span></span>' + badge + '<span class="acts">' + acts + '</span></div>';
   }
   function groupHtml(g, k){
     var cnt, cls = '';
@@ -1163,8 +1186,10 @@
     var foot = g.open ? '<div class="cd-group-foot">' +
       '<button class="c-btn c-btn-secondary c-btn-sm" type="button" data-send-band="' + g.platform + '/' + g.tier + '"><i class="ph ph-plus"></i> Create Selection List</button>' +
       '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-add-band="' + g.platform + '/' + g.tier + '"><i class="ph ph-plus"></i> Add by hand</button></div>' : '';
+    var conf = g.fills.filter(function(r){ return r.state === 'confirmed'; }).length, pend = g.fills.filter(function(r){ return r.state === 'approved'; }).length;
+    var dots = g.want ? dotGrid([{n: Math.min(conf, g.want), cls: 'f', label: 'filled'}, {n: Math.min(pend, Math.max(0, g.want - conf)), cls: 'p', label: 'pending'}, {n: g.open, label: 'open'}], 12) : '';
     return '<div class="cd-group' + cls + '" data-group="' + g.platform + '/' + g.tier + '"><div class="cd-group-head">' + bandLabel(g.platform, g.tier) +
-      '<span class="cd-group-cnt">' + cnt + '</span></div><div class="cd-fills">' + rows + '</div>' + foot + '</div>';
+      '<span class="cd-group-cnt">' + cnt + dots + '</span></div><div class="cd-fills">' + rows + '</div>' + foot + '</div>';
   }
   function summaryHtml(groups){
     var want = 0, confirmed = 0, approved = 0;
@@ -1172,15 +1197,14 @@
       want += g.want;
       g.fills.forEach(function(r){ if (r.state === 'confirmed') confirmed += 1; else if (r.state === 'approved') approved += 1; });
     });
-    var open = Math.max(0, want - confirmed - approved), total = Math.max(want, confirmed + approved);
-    function seg(n, color){ return n ? '<div class="c-progress-stack-segment" style="width:' + (n / total * 100) + '%; background:' + color + '"></div>' : ''; }
-    return '<div class="cd-sum"><div class="cd-sum-line"><span class="say"><b>' + want + (want === 1 ? ' slot' : ' slots') + '</b>' +
-      '<span class="sep">·</span><span class="k"><span class="cmp-dot" style="background:var(--color-green)"></span>' + confirmed + ' filled</span>' +
-      '<span class="sep">·</span><span class="k"><span class="cmp-dot" style="background:var(--color-amber)"></span>' + approved + ' pending</span>' +
-      '<span class="sep">·</span><span class="k"><span class="cmp-dot" style="background:var(--color-neutral-4)"></span>' + open + ' open</span></span>' +
-      '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-edit-ask><i class="ph ph-pencil-simple"></i> Edit ask</button></div>' +
-      (total ? '<div class="c-progress-track size-compact stacked" role="img" aria-label="' + confirmed + ' filled, ' + approved + ' pending, ' + open + ' open">' +
-        seg(confirmed, 'var(--color-green)') + seg(approved, 'var(--color-amber)') + '<div class="c-progress-stack-remainder"></div></div>' : '') + '</div>';
+    var open = Math.max(0, want - confirmed - approved);
+    return '<div class="cd-sum"><div class="big"><b>' + want + '</b><span>' + (want === 1 ? 'slot' : 'slots') + ' asked</span></div>' +
+      '<div class="mid">' + dotGrid([{n: confirmed, cls: 'f', label: 'filled'}, {n: approved, cls: 'p', label: 'pending'}, {n: open, label: 'open'}], 60, 'lg') +
+        '<div class="cd-legend"><span><span class="cmp-dot" style="background:var(--color-green)"></span>' + confirmed + ' filled</span>' +
+        '<span><span class="cmp-dot" style="background:var(--color-amber)"></span>' + approved + ' pending</span>' +
+        '<span><span class="cmp-dot" style="background:var(--color-neutral-4)"></span>' + open + ' open</span></div></div>' +
+      '<div class="acts">' + (approved ? '<button class="c-btn c-btn-secondary c-btn-sm" type="button" data-confirm-all><i class="ph ph-check"></i> Confirm all (' + approved + ')</button>' : '') +
+        '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-edit-ask><i class="ph ph-pencil-simple"></i> Edit ask</button></div></div>';
   }
   function renderKol(){
     var batches = c.batches || [];
@@ -1232,19 +1256,18 @@
     var picks = f === 'all' ? b.picks : b.picks.filter(function(x){ return M.pickStatus(x) === f; });
     var chips = [{key:'all', label:'All'}].concat(S.PICK_STATUS.map(function(p){ return {key:p.key, label:p.label}; }));
     var answered = b.picks.length - counts.none;
-    var bar = b.picks.length ? '<div class="cd-answers"><div class="c-progress-track size-compact stacked" role="img" aria-label="' + answered + ' of ' + b.picks.length + ' answered">' +
-      S.PICK_STATUS.filter(function(p){ return p.key !== 'none' && counts[p.key]; }).map(function(p){
-        return '<div class="c-progress-stack-segment" style="width:' + (counts[p.key] / b.picks.length * 100) + '%; background:' + p.dot + '"></div>';
-      }).join('') + '<div class="c-progress-stack-remainder"></div></div>' +
+    var bar = b.picks.length ? '<div class="cd-answers">' +
+      dotGrid([{n: counts.selected, cls: 'f', label: 'selected'}, {n: counts.kiv, cls: 'p', label: 'KIV'}, {n: counts.rejected + counts.unavailable, cls: 'x', label: 'rejected or unavailable'}, {n: counts.none, label: 'no answer'}], 40, 'lg') +
       '<div class="lg"><span><b>' + answered + '</b>/' + b.picks.length + ' answered</span>' +
       (counts.selected ? '<span><span class="cmp-dot" style="background:var(--color-green)"></span><b>' + counts.selected + '</b> selected</span>' : '') +
       (counts.kiv ? '<span><span class="cmp-dot" style="background:var(--color-amber)"></span><b>' + counts.kiv + '</b> KIV</span>' : '') +
+      (counts.rejected ? '<span><span class="cmp-dot" style="background:var(--color-red)"></span><b>' + counts.rejected + '</b> rejected</span>' : '') +
       '</div></div>' : '';
     var body = askSentHtml(b) + bar + '<div class="cd-chips" style="margin-top:var(--spacing-12)">' + chips.map(function(ch){
         return '<button type="button" class="c-chip c-chip-filter' + (f === ch.key ? ' is-active' : '') + '" data-batch-filter="' + ch.key + '" data-batch="' + b.n + '">' + ch.label + ' <span class="count">' + counts[ch.key] + '</span></button>';
       }).join('') + '</div>' +
-      '<div style="overflow-x:auto"><table class="cd-picks"><colgroup><col style="width:40px" /><col style="width:18%" /><col style="width:18%" /><col style="width:12%" /><col style="width:8%" /><col style="width:15%" /><col style="width:17%" /><col style="width:12%" /></colgroup>' +
-      '<thead><tr><th>No</th><th>Influencer</th><th>Platform</th><th>Persona</th><th>Ethnicity</th><th>KULT remarks</th><th>Answer per channel</th><th>Client remarks</th></tr></thead><tbody>' +
+      '<div style="overflow-x:auto"><table class="cd-picks"><colgroup><col style="width:36px" /><col style="width:26%" /><col style="width:22%" /><col style="width:26%" /><col style="width:26%" /></colgroup>' +
+      '<thead><tr><th>No</th><th>Influencer</th><th>Answer per channel</th><th>KULT remarks</th><th>Client remarks</th></tr></thead><tbody>' +
       (picks.length ? picks.map(function(p, i){
         var rec = byInf[p.inf] || {id: p.inf, name: 'Unknown profile', platforms: [], niches: []};
         var plat = (rec.platforms || []).filter(function(x){ return x.handle; }).map(function(x){
@@ -1252,22 +1275,20 @@
           return '<span>' + (PLAT_ICON[x.platform] || '') + '<span class="h">@' + esc(x.handle) + '</span><span class="f">' + fmtFollowers(x.followers) + (t ? ' (' + t.name + ')' : '') + '</span></span>';
         }).join('') || '<span class="f">—</span>';
         var chans = Object.keys(p.channels || {});
+        var line = (rec.platforms || []).filter(function(x){ return x.handle; }).map(function(x){ var t = tierOf(x.followers); return '@' + x.handle + ' ' + fmtFollowers(x.followers) + (t ? ' · ' + t.name : ''); }).join('  ·  ');
         return '<tr><td>' + (i + 1) + '</td>' +
-          '<td><span class="cd-who">' + avatarHtml(rec) + '<span class="t"><span class="n">' + esc(rec.name) + '</span></span></span></td>' +
-          '<td><span class="cd-plat">' + plat + '</span></td>' +
-          '<td>' + esc((rec.niches || []).join(', ') || '—') + '</td>' +
-          '<td>' + esc(rec.ethnicity || '—') + '</td>' +
-          '<td><textarea data-kult-remark data-batch="' + b.n + '" data-inf="' + p.inf + '" placeholder="Why you suggest them">' + esc(p.kultRemark || '') + '</textarea></td>' +
+          '<td><span class="cd-who">' + avatarHtml(rec) + '<span class="t"><span class="n">' + esc(rec.name) + '</span><span class="s" title="' + esc(line) + '">' + esc(line || (rec.niches || []).join(', ')) + '</span></span></span></td>' +
           '<td><span class="cd-chstat">' + (chans.length ? chans.map(function(pl){ return statusBadge(p.channels[pl], b.n, p.inf, pl); }).join('') : '<span class="f">—</span>') + '</span></td>' +
-          '<td><textarea data-client-remark data-batch="' + b.n + '" data-inf="' + p.inf + '" placeholder="What the client said">' + esc(p.clientRemark || '') + '</textarea></td></tr>';
-      }).join('') : '<tr><td colspan="8" style="text-align:center; color:var(--color-neutral-5)">No one in this batch has that answer yet.</td></tr>') +
+          '<td><input class="rmk" data-kult-remark data-batch="' + b.n + '" data-inf="' + p.inf + '" placeholder="Why you suggest them" value="' + esc(p.kultRemark || '') + '" title="' + esc(p.kultRemark || '') + '" /></td>' +
+          '<td><input class="rmk" data-client-remark data-batch="' + b.n + '" data-inf="' + p.inf + '" placeholder="What the client said" value="' + esc(p.clientRemark || '') + '" title="' + esc(p.clientRemark || '') + '" /></td></tr>';
+      }).join('') : '<tr><td colspan="5" style="text-align:center; color:var(--color-neutral-5)">No one in this batch has that answer yet.</td></tr>') +
       '</tbody></table></div>' +
       '<div class="cd-notes"><label for="cdNotes' + b.n + '">Notes</label><input id="cdNotes' + b.n + '" data-batch-notes="' + b.n + '" placeholder="Anything worth remembering about this batch" value="' + esc(b.notes || '') + '" /></div>';
     return '<div class="cd-batch" data-batch-card="' + b.n + '">' +
-      '<div class="cd-batch-head" data-batch-toggle="' + b.n + '"><div><span class="eyebrow">Batch ' + b.n + ' · ' + esc(b.name) + '</span>' +
+      '<div class="cd-batch-head" data-batch-toggle="' + b.n + '"><div class="lead">' + ringSvg([{n: counts.selected, color: 'var(--color-green)'}, {n: counts.kiv, color: 'var(--color-amber)'}, {n: counts.rejected + counts.unavailable, color: 'var(--color-red)'}, {n: counts.none}], 40, 5) + '<div><span class="eyebrow">Batch ' + b.n + ' · ' + esc(b.name) + '</span>' +
         '<span class="sub">Sent ' + esc(S.fmtDate(b.sentAt, true)) + ' · ' + b.picks.length + (b.picks.length === 1 ? ' creator' : ' creators') +
         (b.recipient ? ' · to ' + esc(b.recipient) : '') + (b.expiresAt ? ' · expires ' + esc(S.fmtDate(b.expiresAt, true)) : '') +
-        ' · <b>' + answered + '</b>/' + b.picks.length + ' answered</span></div>' +
+        ' · <b>' + answered + '</b>/' + b.picks.length + ' answered</span></div></div>' +
         '<div class="acts"><button class="c-btn c-btn-ghost c-btn-sm" type="button" data-batch-toggle="' + b.n + '">' + (open ? 'Hide <i class="ph ph-caret-up"></i>' : 'Show <i class="ph ph-caret-down"></i>') + '</button>' +
         '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon" type="button" data-batch-copy="' + b.n + '" aria-label="Copy the client link for batch ' + b.n + '" title="Copy client link"><i class="ph ph-link"></i></button>' +
         '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-batch-link="' + b.n + '"><i class="ph ph-arrow-square-out"></i> Client view</button></div></div>' +
@@ -1627,6 +1648,13 @@
     if (sb) { var ps = sb.dataset.sendBand.split('/'); return startSend({platform: ps[0], tier: ps[1]}); }
     var ab = e.target.closest('[data-add-band]');
     if (ab) { var pa = ab.dataset.addBand.split('/'); return openPicker('roster', {platform: pa[0], tier: pa[1]}); }
+    if (e.target.closest('[data-confirm-all]')) {
+      var pending = (c.roster || []).filter(function(r){ return r.state === 'approved'; });
+      pending.forEach(function(r){ S.setRosterState(c.id, r.inf, r.platform, 'confirmed'); });
+      renderAll();
+      toast(pending.length + (pending.length === 1 ? ' fill confirmed.' : ' fills confirmed.'));
+      return;
+    }
     var fs = e.target.closest('[data-fill-state]');
     if (fs) {
       var st = fs.dataset.fillState, who = byInf[fs.dataset.inf];
