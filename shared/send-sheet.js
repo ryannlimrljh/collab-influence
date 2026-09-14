@@ -102,32 +102,25 @@
     });
   }
 
+  /* Everything here either positions a DLS component or overrides one of its
+     documented defaults. The components themselves — c-modal, c-choice,
+     c-radio-circle, c-checkbox-box, c-field, c-table, c-banner, c-btn — are
+     used as the system ships them, not rebuilt. */
   var CSS = [
     '.ss-scrim{position:fixed; inset:0; z-index:400; background:var(--shadow-overlay);',
-    '  display:flex; align-items:center; justify-content:center;}',
+    '  display:flex; align-items:center; justify-content:center; padding:var(--spacing-16);}',
 
-    /* Chrome mirrors the campaign form's sheet exactly: a bordered head, a
-       scrolling body, a bordered foot. The two screens are the same job seen
-       from two directions and should not look like different products. */
-    '.ss-sheet{width:min(680px, calc(100vw - var(--spacing-32))); max-height:86vh;',
-    '  display:flex; flex-direction:column; background:var(--color-neutral-1);',
-    '  border-radius:var(--radius-lg); box-shadow:var(--shadow-4); overflow:hidden;}',
-    '.ss-head{position:relative; padding:var(--spacing-24) var(--spacing-24) var(--spacing-16);',
-    '  border-bottom:1px solid var(--color-neutral-3);}',
-    '.ss-head h4{margin:0; padding-right:var(--spacing-32); font-size:var(--text-h4-size); font-weight:800;}',
-    '.ss-head .sub{margin:4px 0 0; font-size:var(--text-caption-size); color:var(--color-neutral-5);}',
-    '.ss-close{position:absolute; top:var(--spacing-16); right:var(--spacing-16); width:32px; height:32px;',
-    '  border:0; background:transparent; border-radius:var(--radius-sm); color:var(--color-neutral-6);',
-    '  cursor:pointer; display:inline-flex; align-items:center; justify-content:center;}',
-    '.ss-close:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}',
-    '.ss-close:focus-visible{outline:none; box-shadow:var(--shadow-focus);}',
-    '.ss-body{padding:0 var(--spacing-24); overflow-y:auto;}',
-    '.ss-foot{display:flex; align-items:center; gap:var(--spacing-8); padding:var(--spacing-16) var(--spacing-24);',
-    '  border-top:1px solid var(--color-neutral-3); background:var(--color-neutral-1);}',
-    '.ss-foot .grow{flex:1;}',
+    /* c-modal ships max-width:400px for a confirm dialog; this one carries a
+       table, so it is widened and its body made the scrolling part. */
+    '.ss-modal{max-width:680px; max-height:86vh; display:flex; flex-direction:column;}',
+    '.ss-modal .c-modal-head{padding:var(--spacing-20) var(--spacing-20) var(--spacing-12);',
+    '  align-items:flex-start; border-bottom:1px solid var(--color-neutral-3);}',
+    '.ss-modal .c-modal-head .sub{margin:4px 0 0; font-size:var(--text-caption-size);',
+    '  font-weight:400; color:var(--color-neutral-5);}',
+    '.ss-modal .c-modal-body{padding:0 var(--spacing-20); overflow-y:auto; flex:1;}',
+    '.ss-modal .c-modal-foot{padding:var(--spacing-16) var(--spacing-20);}',
 
-    /* A rule between sections, never a box around them - the campaign form
-       settled on the same thing for its ask summary. */
+    /* A rule between sections, never a box — where the campaign form landed. */
     '.ss-sec{padding:var(--spacing-20) 0; border-top:1px solid var(--color-neutral-3);}',
     '.ss-sec:first-child{border-top:0;}',
     '.ss-sec-h{display:flex; align-items:baseline; gap:8px; margin:0 0 var(--spacing-12);',
@@ -135,66 +128,53 @@
     '  letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}',
     '.ss-sec-h .opt{text-transform:none; letter-spacing:0; font-weight:400;}',
 
-    /* Destination: the two choices side by side, left and right. */
+    /* Destination: two c-choice radios, left and right, each in its own
+       bordered tile so the pair reads as a choice rather than a list. */
     '.ss-dest{display:grid; grid-template-columns:1fr 1fr; gap:var(--spacing-12);}',
-    '.ss-dest label{display:flex; align-items:flex-start; gap:8px; box-sizing:border-box;',
-    '  padding:var(--spacing-12); min-height:44px; cursor:pointer;',
+    '.ss-dest .c-choice{padding:var(--spacing-12); box-sizing:border-box; min-height:44px;',
     '  border:1px solid var(--color-neutral-3); border-radius:var(--radius-md);',
-    '  background:var(--color-neutral-1); transition:border-color 160ms var(--ease-standard);}',
-    '.ss-dest label:hover{border-color:var(--color-neutral-5);}',
-    '.ss-dest label.is-on{border-color:var(--color-obsidian); box-shadow:inset 0 0 0 1px var(--color-obsidian);}',
-    '.ss-dest label:focus-within{box-shadow:var(--shadow-focus);}',
-    '.ss-dest input{margin-top:3px; flex:none;}',
-    '.ss-dest .t{display:block; font-size:var(--text-body2-size); font-weight:700; color:var(--color-neutral-9);}',
-    '.ss-dest .s{display:block; margin-top:2px; font-size:var(--text-footnote-size); color:var(--color-neutral-5);}',
+    '  background:var(--color-neutral-1); transition:border-color var(--duration-fast) var(--ease-standard);}',
+    '.ss-dest .c-choice:hover{border-color:var(--color-neutral-5);}',
+    '.ss-dest .c-choice.is-on{border-color:var(--color-obsidian); box-shadow:inset 0 0 0 1px var(--color-obsidian);}',
+    '.ss-dest .c-choice:focus-within{box-shadow:var(--shadow-focus);}',
     '.ss-destbody{margin-top:var(--spacing-12);}',
 
-    /* Fields two up, on the campaign form's grid. */
+    /* c-field defaults to a fixed 220px column; inside a sheet it fills. */
     '.ss-grid{display:grid; grid-template-columns:1fr 1fr; gap:var(--spacing-16) var(--spacing-12);}',
     '.ss-grid .span2{grid-column:1 / -1;}',
-    '.ss-sheet .c-field{width:100%;}',
-    '.ss-sheet .c-field label{display:block; margin-bottom:4px; font-size:var(--text-caption-size);',
-    '  font-weight:700; color:var(--color-neutral-9);}',
-    '.ss-sheet .c-field input, .ss-sheet .c-field select{width:100%; height:40px; box-sizing:border-box;',
-    '  border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm);',
-    '  padding:0 var(--spacing-12); font:inherit; font-size:var(--text-body2-size);',
-    '  color:var(--color-neutral-9); background:var(--color-neutral-1);}',
-    '.ss-sheet .c-field input:focus, .ss-sheet .c-field select:focus{outline:none;',
-    '  border-color:var(--color-obsidian); box-shadow:var(--shadow-focus);}',
+    '.ss-modal .c-field{width:100%;}',
+    '.ss-modal .c-field select{height:40px; border-radius:var(--radius-sm);',
+    '  border:1px solid var(--color-neutral-3); padding:0 var(--spacing-12);',
+    '  font-size:var(--text-body2-size); font-family:inherit; color:var(--color-neutral-9);',
+    '  background:var(--color-neutral-1);}',
+    '.ss-modal .c-field select:focus{outline:none; border:2px solid var(--color-obsidian); padding:0 11px;}',
     '.ss-opt{font-weight:400; color:var(--color-neutral-5);}',
-    '.ss-hint{margin:6px 0 0; font-size:var(--text-footnote-size); color:var(--color-neutral-6);}',
 
-    /* The pax table, same skeleton as the campaign form's ask lines: bordered
-       box, uppercase header strip, one hairline between rows. */
-    '.ss-lines{border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); overflow:hidden;}',
-    '.ss-line-h, .ss-line{display:grid; grid-template-columns:1fr 104px 104px 112px;',
-    '  gap:var(--spacing-8); align-items:center; padding:8px var(--spacing-12);}',
-    '.ss-line-h{font-size:11px; font-weight:700; text-transform:uppercase;',
-    '  letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);',
-    '  background:var(--color-neutral-2); border-bottom:1px solid var(--color-neutral-3);}',
-    '.ss-line{border-bottom:1px solid var(--color-neutral-2); font-size:var(--text-body2-size);}',
-    '.ss-line:last-child{border-bottom:0;}',
-    '.ss-line .band{display:inline-flex; align-items:center; gap:6px; font-weight:700; color:var(--color-neutral-9);}',
-    '.ss-line .band .cmp-dot{width:6px; height:6px; border-radius:99px; flex:none;}',
-    '.ss-line input{height:36px; width:100%; box-sizing:border-box; text-align:center;',
-    '  font:inherit; font-weight:800; border:1px solid var(--color-neutral-3);',
+    /* c-table in a standalone wrap, as the campaign page uses it. Only the
+       numeric cells and the in-cell input need saying. */
+    '.ss-modal .c-table th, .ss-modal .c-table td{padding:var(--spacing-8) var(--spacing-12);}',
+    '.ss-modal .c-table th{font-size:11px; font-weight:700; text-transform:uppercase;',
+    '  letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}',
+    '.ss-modal .c-table th{white-space:nowrap;}',
+    '.ss-modal .c-table th.n, .ss-modal .c-table td.n{text-align:center; width:118px;}',
+    '.ss-modal .c-table td.note{text-align:right; width:124px; white-space:nowrap; font-size:var(--text-caption-size);',
+    '  color:var(--color-neutral-5);}',
+    '.ss-modal .c-table tr.is-ok td.note{color:var(--color-green);}',
+    '.ss-modal .c-table tr.is-short td.note{color:#8A5A00;}',
+    '.ss-modal .c-table tr.is-none td.note{color:var(--color-red);}',
+    '.ss-band{display:inline-flex; align-items:center; gap:6px; font-weight:700;}',
+    '.ss-band .cmp-dot{width:6px; height:6px; border-radius:99px; flex:none;}',
+    '.ss-modal .c-table td.n input{width:100%; max-width:72px; height:36px; box-sizing:border-box;',
+    '  text-align:center; font:inherit; font-weight:800; border:1px solid var(--color-neutral-3);',
     '  border-radius:var(--radius-sm); background:var(--color-neutral-1); -moz-appearance:textfield;}',
-    '.ss-line input::-webkit-outer-spin-button, .ss-line input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}',
-    '.ss-line input:focus{outline:none; border-color:var(--color-obsidian); box-shadow:var(--shadow-focus);}',
-    '.ss-line .have{text-align:center; font-weight:800; font-variant-numeric:tabular-nums; color:var(--color-neutral-7);}',
-    '.ss-line .note{text-align:right; font-size:var(--text-caption-size); color:var(--color-neutral-5);}',
-    '.ss-line.is-ok .note{color:var(--color-green);}',
-    '.ss-line.is-short .note{color:#8A5A00;}',
-    '.ss-line.is-none .note{color:var(--color-red);}',
-    '.ss-th-n{text-align:center;}',
-
-    '.ss-warn{display:flex; gap:6px; align-items:flex-start; margin:var(--spacing-12) 0 0;',
-    '  font-size:var(--text-footnote-size); color:#8A5A00;}',
-    '.ss-check{display:flex; align-items:center; gap:8px; min-height:44px; cursor:pointer;',
-    '  font-size:var(--text-caption-size); color:var(--color-neutral-9);}',
+    '.ss-modal .c-table td.n input::-webkit-outer-spin-button,',
+    '.ss-modal .c-table td.n input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}',
+    '.ss-modal .c-table td.n input:focus{outline:none; border:2px solid var(--color-obsidian);}',
+    '.ss-warn{margin-top:var(--spacing-12);}',
     '.ss-err{margin:var(--spacing-12) 0 0; color:var(--color-red); font-size:var(--text-caption-size);}',
     '@media (max-width:600px){ .ss-dest, .ss-grid{grid-template-columns:1fr;}',
-    '  .ss-line-h, .ss-line{grid-template-columns:1fr 64px 64px 84px;} }'
+    '  .ss-modal .c-table th.n, .ss-modal .c-table td.n{width:64px;}',
+    '  .ss-modal .c-table td.note{width:84px;} }'
   ].join('\n');
 
   function injectCSS() {
@@ -256,6 +236,17 @@
       return out;
     }
 
+    /* A DLS radio: the real input is visually hidden by .c-choice, and
+       .c-radio-circle carries the state. Same for the checkbox below. */
+    function choiceHtml(value, on, label, desc) {
+      return '<label class="c-choice' + (on ? ' is-on' : '') + '">' +
+        '<input type="radio" name="ssMode" value="' + value + '"' + (on ? ' checked' : '') + ' />' +
+        '<span class="c-radio-circle' + (on ? ' on' : '') + '">' +
+          (on ? '<span class="dot"></span>' : '') + '</span>' +
+        '<span class="text"><span class="label">' + label + '</span>' +
+        '<span class="desc">' + desc + '</span></span></label>';
+    }
+
     function render() {
       seedAsk();
       var cov = bandRows(state.ask, state.infIds, opts.people);
@@ -276,7 +267,7 @@
           : 'Every slot on this campaign is already filled.';
       }
 
-      function lineHtml(r) {
+      function rowHtml(r) {
         /* A band you have asked nothing of says so, rather than claiming to
            be covered — you are simply not asking for it. */
         var cls = !r.want ? '' : (r.have === 0 ? 'is-none' : (r.gap > 0 ? 'is-short' : 'is-ok'));
@@ -284,43 +275,38 @@
                  : (r.have === 0 ? 'none to pick from'
                  : (r.gap > 0 ? 'short ' + r.gap : 'enough'));
         var tier = window.tiers.tierByKey(r.tier);
-        return '<div class="ss-line ' + cls + '">' +
-          '<span class="band"><span class="cmp-dot" style="background:' + tier.dot + '"></span>' +
-            esc(PLAT_LABEL[r.platform] || r.platform) + ' · ' + esc(tier.name) + '</span>' +
-          '<input type="number" min="0" inputmode="numeric" value="' + r.want +
+        return '<tr class="' + cls + '"><td>' +
+          '<span class="ss-band"><span class="cmp-dot" style="background:' + tier.dot + '"></span>' +
+            esc(PLAT_LABEL[r.platform] || r.platform) + ' · ' + esc(tier.name) + '</span></td>' +
+          '<td class="n"><input type="number" min="0" inputmode="numeric" value="' + r.want +
             '" data-ss="ask" data-plat="' + esc(r.platform) + '" data-tier="' + esc(r.tier) +
-            '" aria-label="Pax to pick, ' + esc(PLAT_LABEL[r.platform] + ' ' + tier.name) + '" />' +
-          '<span class="have">' + r.have + '</span>' +
-          '<span class="note">' + note + '</span></div>';
+            '" aria-label="Pax to pick, ' + esc(PLAT_LABEL[r.platform] + ' ' + tier.name) + '" /></td>' +
+          '<td class="n num">' + r.have + '</td>' +
+          '<td class="note">' + note + '</td></tr>';
       }
 
       host.innerHTML =
-        '<div class="ss-sheet" role="dialog" aria-modal="true" aria-labelledby="ssTitle">' +
+        '<div class="c-modal ss-modal" role="dialog" aria-modal="true" aria-labelledby="ssTitle">' +
 
-        '<div class="ss-head">' +
-          '<button class="ss-close" type="button" data-ss="close" aria-label="Close"><i class="ph ph-x"></i></button>' +
-          '<h4 id="ssTitle">Create selection list</h4>' +
-          '<p class="sub">' + sum.candidates + (sum.candidates === 1 ? ' profile' : ' profiles') +
+        '<div class="c-modal-head">' +
+          '<div><h4 id="ssTitle">Create selection list</h4>' +
+            '<p class="sub">' + sum.candidates + (sum.candidates === 1 ? ' profile' : ' profiles') +
             ' · ' + sum.channels + ' channel accounts' +
-            (opts.lockCampaign && c ? ' · for ' + esc(c.name) : '') + '</p>' +
+            (opts.lockCampaign && c ? ' · for ' + esc(c.name) : '') + '</p></div>' +
+          '<button class="c-icon-btn" type="button" data-ss="close" aria-label="Close">' +
+            '<i class="ph ph-x"></i></button>' +
         '</div>' +
 
-        '<div class="ss-body">' +
+        '<div class="c-modal-body">' +
 
           (opts.lockCampaign ? '' :
             '<section class="ss-sec">' +
               '<h5 class="ss-sec-h">Send to</h5>' +
               '<div class="ss-dest">' +
-                '<label class="' + (state.mode === 'existing' ? 'is-on' : '') + '">' +
-                  '<input type="radio" name="ssMode" value="existing"' +
-                    (state.mode === 'existing' ? ' checked' : '') + ' />' +
-                  '<span><span class="t">Existing campaign</span>' +
-                  '<span class="s">Adds a list to a campaign you already have.</span></span></label>' +
-                '<label class="' + (state.mode === 'lead' ? 'is-on' : '') + '">' +
-                  '<input type="radio" name="ssMode" value="lead"' +
-                    (state.mode === 'lead' ? ' checked' : '') + ' />' +
-                  '<span><span class="t">New campaign (lead)</span>' +
-                  '<span class="s">For work you have not won yet.</span></span></label>' +
+                choiceHtml('existing', state.mode === 'existing', 'Existing campaign',
+                  'Adds a list to a campaign you already have.') +
+                choiceHtml('lead', state.mode === 'lead', 'New campaign (lead)',
+                  'For work you have not won yet.') +
               '</div>' +
               '<div class="ss-destbody">' + (state.mode === 'existing'
                 ? '<div class="c-field"><label for="ssCampaign">Campaign</label>' +
@@ -330,35 +316,37 @@
                       (x.brand ? ' · ' + esc(x.brand) : '') +
                       (x.stage === 'lead' ? ' (lead)' : '') + '</option>';
                   }).join('') + '</select>' +
-                  '<p class="ss-hint">' + stillNeeds() + '</p></div>'
+                  '<span class="c-helper">' + stillNeeds() + '</span></div>'
                 : '<div class="ss-grid">' +
                   '<div class="c-field"><label for="ssLeadName">Campaign name</label>' +
                     '<input id="ssLeadName" data-ss="leadName" value="' + esc(state.leadName) +
                     '" placeholder="e.g. Raya 2027 pitch" /></div>' +
-                  '<div class="c-field"><label for="ssLeadBrand">Brand <span class="ss-opt">(optional)</span></label>' +
+                  '<div class="c-field"><label for="ssLeadBrand">Brand ' +
+                    '<span class="ss-opt">(optional)</span></label>' +
                     '<input id="ssLeadBrand" data-ss="leadBrand" value="' + esc(state.leadBrand) +
                     '" placeholder="e.g. Shopee" /></div>' +
-                  '<p class="ss-hint span2">Starts at stage Lead and stays out of the active counts ' +
-                  'until you mark it won.</p></div>') +
+                  '<span class="c-helper span2">Starts at stage Lead and stays out of the ' +
+                  'active counts until you mark it won.</span></div>') +
               '</div>' +
             '</section>') +
 
           '<section class="ss-sec">' +
             '<h5 class="ss-sec-h">Pax to select <span class="opt">per platform and tier</span></h5>' +
             (cov.length
-              ? '<div class="ss-lines">' +
-                  '<div class="ss-line-h"><span>Channel · Tier</span>' +
-                    '<span class="ss-th-n">Pax to pick</span>' +
-                    '<span class="ss-th-n">Profiles sent</span><span></span></div>' +
-                  cov.map(lineHtml).join('') +
-                '</div>' +
+              ? '<div class="c-table-standalone-wrap">' +
+                  '<table class="c-table c-table-standalone"><thead><tr>' +
+                    '<th>Channel · Tier</th><th class="n">Pax to pick</th>' +
+                    '<th class="n">Profiles sent</th><th></th></tr></thead><tbody>' +
+                    cov.map(rowHtml).join('') +
+                  '</tbody></table></div>' +
                 (sum.shortBands
-                  ? '<p class="ss-warn"><i class="ph-fill ph-warning"></i> ' + sum.shortBands +
-                    (sum.shortBands === 1 ? ' band has' : ' bands have') +
+                  ? '<div class="c-banner c-banner-warning ss-warn">' +
+                    '<i class="ph-fill ph-warning icon"></i><div class="body"><p class="message">' +
+                    sum.shortBands + (sum.shortBands === 1 ? ' band has' : ' bands have') +
                     ' fewer profiles than you are asking the client to pick. You can still send — ' +
-                    'they will see the number and not be able to reach it.</p>'
+                    'they will see the number and not be able to reach it.</p></div></div>'
                   : '')
-              : '<p class="ss-hint">Tick some profiles first and their channels and tiers appear here.</p>') +
+              : '<p class="c-helper">Tick some profiles first and their channels and tiers appear here.</p>') +
           '</section>' +
 
           '<section class="ss-sec">' +
@@ -376,15 +364,20 @@
                 '<input id="ssRecipient" data-ss="recipient" value="' + esc(state.recipient) +
                 '" placeholder="Name or email — recorded against their answers" /></div>' +
             '</div>' +
-            '<label class="ss-check"><input type="checkbox" data-ss="requireName"' +
-              (state.requireName ? ' checked' : '') + ' /> Ask for a name before responding</label>' +
+            '<label class="c-choice" style="margin-top:var(--spacing-12)">' +
+              '<input type="checkbox" data-ss="requireName"' +
+                (state.requireName ? ' checked' : '') + ' />' +
+              '<span class="c-checkbox-box' + (state.requireName ? ' on' : '') + '">' +
+                (state.requireName ? '<i class="ph-bold ph-check"></i>' : '') + '</span>' +
+              '<span class="text"><span class="label">Ask for a name before responding</span>' +
+              '<span class="desc">Records who made the choices.</span></span></label>' +
             '<p class="ss-err" data-ss="err" hidden></p>' +
           '</section>' +
 
         '</div>' +
 
-        '<div class="ss-foot"><span class="grow"></span>' +
-          '<button class="c-btn c-btn-ghost c-btn-md" type="button" data-ss="cancel">Cancel</button>' +
+        '<div class="c-modal-foot">' +
+          '<button class="c-btn c-btn-secondary c-btn-md" type="button" data-ss="cancel">Cancel</button>' +
           '<button class="c-btn c-btn-primary c-btn-md" type="button" data-ss="send">' +
             '<i class="ph ph-paper-plane-tilt"></i> Create selection list</button>' +
         '</div></div>';
