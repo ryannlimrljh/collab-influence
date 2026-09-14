@@ -77,10 +77,19 @@
   .cd-dots i{width:8px; height:8px; border-radius:2px; background:var(--color-neutral-3); display:block;}
   .cd-dots i.f{background:var(--color-green);} .cd-dots i.p{background:var(--color-amber);} .cd-dots i.a{background:var(--color-navy);}
   .cd-dots.lg i{width:10px; height:10px; border-radius:3px;}
-  .cd-fin{display:flex; align-items:center; gap:var(--spacing-16);}
+  /* Financials and Revenue split share one layout: figures on the left,
+     an 84px ring on the right, so the two cards read as a pair. */
+  .cd-fin{display:flex; align-items:center; gap:var(--spacing-16); min-width:0;}
   .cd-fin .lines{flex:1; min-width:0;}
-  .cd-splitwrap{display:flex; align-items:center; gap:var(--spacing-16);}
-  .cd-splitwrap .cd-split{flex:1; min-width:0;}
+  .cd-fin .cd-ring2{flex:none;}
+  .cd-split-table{width:100%; border-collapse:collapse; table-layout:fixed; font-size:var(--text-caption-size);}
+  .cd-split-table th{text-align:right; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.02em; padding:0 0 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cd-split-table th:first-child{text-align:left; width:58px;}
+  .cd-split-table th.pic{color:var(--color-navy);} .cd-split-table th.ovs{color:var(--color-purple);}
+  .cd-split-table td{padding:6px 0; border-top:1px solid var(--color-neutral-2); text-align:right; font-weight:800; color:var(--color-neutral-9);
+    font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cd-split-table td:first-child{text-align:left; font-weight:400; color:var(--color-neutral-5);}
+  .cd-split-table td.dash{color:var(--color-neutral-4); font-weight:400;}
   .cd-next{grid-column:span 2; position:relative; z-index:0; background:var(--color-neutral-1); color:var(--color-neutral-9);
     border:1px solid transparent; border-radius:var(--radius-lg); overflow:hidden;
     padding:var(--spacing-20); display:flex; flex-direction:column; gap:var(--spacing-12); min-width:0;}
@@ -1069,12 +1078,14 @@
       (creators.length ? '<span class="cd-stack">' + stack + '</span>' : '<span class="cd-legend">Nobody confirmed yet.</span>');
     var own = '<div class="cd-people">' + personRow('PIC', c.pic) + personRow('Overseer', c.overseer) + personRow('Salesperson', c.salesperson) + '</div>';
     var pp = m.picPct == null ? null : Number(m.picPct), op = m.overseerPct == null ? null : Number(m.overseerPct);
-    var splitCols = '<div class="cd-split"><div><div class="who"><span class="cmp-dot" style="background:var(--color-navy); display:inline-block; margin-right:5px"></span>PIC <small>' + (pp != null ? pp + '%' : '—') + '</small></div>' + line('Revenue', rm(m.picRev)) + line('Gross', rm(m.picGross)) + '</div>' +
-      '<div><div class="who"><span class="cmp-dot" style="background:var(--color-purple); display:inline-block; margin-right:5px"></span>Overseer <small>' + (op != null ? op + '%' : '—') + '</small></div>' + line('Revenue', rm(m.overseerRev)) + line('Gross', rm(m.overseerGross)) + '</div></div>';
-    var split = (pp != null || op != null)
-      ? '<div class="cd-splitwrap">' + ringSvg([{n: pp || 0, color: 'var(--color-navy)'}, {n: op || 0, color: 'var(--color-purple)'}], 72, 9,
-          '<b style="font-size:var(--text-caption-size)">' + (pp != null ? pp : 0) + '<span style="color:var(--color-neutral-4)">/</span>' + (op != null ? op : 0) + '</b>') + splitCols + '</div>'
-      : splitCols;
+    function td(v){ return '<td' + (v == null ? ' class="dash"' : '') + '>' + (v == null ? '—' : v) + '</td>'; }
+    var splitTable = '<table class="cd-split-table"><thead><tr><th></th>' +
+      '<th class="pic">PIC</th><th class="ovs">Overseer</th></tr></thead><tbody>' +
+      '<tr><td>Revenue</td>' + td(rm(m.picRev)) + td(rm(m.overseerRev)) + '</tr>' +
+      '<tr><td>Gross</td>' + td(rm(m.picGross)) + td(rm(m.overseerGross)) + '</tr></tbody></table>';
+    var split = '<div class="cd-fin"><div class="lines">' + splitTable + '</div>' +
+      ringSvg([{n: pp || 0, color: 'var(--color-navy)'}, {n: op || 0, color: 'var(--color-purple)'}], 84, 10,
+        '<b style="font-size:var(--text-body1-size)">' + (pp != null ? pp : 0) + '<span style="color:var(--color-neutral-4)">/</span>' + (op != null ? op : 0) + '</b><small>split</small>') + '</div>';
     var about = (c.description || c.remarks)
       ? card('span-6 cd-about', 'gray', 'ph-text-align-left', 'About',
           (c.description ? '<p>' + esc(c.description) + '</p>' : '') +
