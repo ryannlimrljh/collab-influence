@@ -310,6 +310,8 @@
   .cd-pick-row .c-checkbox-box{margin-top:0; font-size:12px;}
   .cd-pick-row .c-card-profile-avatar{width:30px; height:30px; font-size:11px;}
   .cd-pick-row .tier{margin-left:auto; flex:none;}
+  .cd-slot{display:inline-flex; align-items:center; gap:5px; white-space:nowrap;}
+  .cd-slot i{font-size:14px;}
   .cd-picker-more{padding:var(--spacing-8) var(--spacing-12); font-size:var(--text-caption-size); color:var(--color-neutral-5);}
   .cd-picker-foot{display:flex; align-items:center; gap:var(--spacing-8);}
   .cd-picker-foot .cnt{flex:1; font-size:var(--text-body2-size); color:var(--color-neutral-5);}
@@ -765,15 +767,28 @@
     if (!roster.length) {
       html += '<div class="cd-note">Nobody is on this campaign yet. Send a preview link for the client to pick from, or add someone by hand.</div>';
     } else {
-      html += '<div class="c-table-standalone-wrap"><table class="c-table c-table-standalone cd-table"><colgroup><col style="width:56px" /><col /><col style="width:22%" /><col style="width:12%" /><col style="width:64px" /></colgroup>' +
-        '<thead><tr><th>No.</th><th>Influencer</th><th>Status</th><th>Batch</th><th><span class="sr-only">Action</span></th></tr></thead><tbody>' +
+      /* A row is one creator on one channel, so a creator booked on two
+         channels legitimately appears twice. The Booked for column is what
+         tells those rows apart — without it they read as a duplicate. */
+      html += '<div class="c-table-standalone-wrap"><table class="c-table c-table-standalone cd-table"><colgroup><col style="width:56px" /><col /><col style="width:18%" /><col style="width:20%" /><col style="width:10%" /><col style="width:64px" /></colgroup>' +
+        '<thead><tr><th>No.</th><th>Influencer</th><th>Booked for</th><th>Status</th><th>Batch</th><th><span class="sr-only">Action</span></th></tr></thead><tbody>' +
         roster.map(function(r, i){
           var rec = byInf[r.inf] || {id: r.inf, name: 'Unknown profile', platforms: []};
+          var t = r.tier ? window.tiers.tierByKey(r.tier) : null;
+          var slot = r.platform
+            ? '<span class="cd-slot">' + (PLAT_ICON[r.platform] || '') +
+              esc(PLAT_LABEL[r.platform] || r.platform) +
+              (t ? ' <span class="c-badge c-badge-neutral">' + esc(t.name) + '</span>' : '') +
+              '</span>'
+            : '<span style="color:var(--color-neutral-4)">—</span>';
           return '<tr><td class="num" style="text-align:left">' + (i + 1) + '</td>' +
             '<td><span class="cd-who">' + avatarHtml(rec) + '<span class="t"><span class="n">' + esc(rec.name) + '</span><span class="s">' + esc(handlesLine(rec)) + '</span></span></span></td>' +
+            '<td>' + slot + '</td>' +
             '<td>' + (r.source === 'client' ? '<span class="c-badge c-badge-success">Selected by client</span>' : '<span class="c-badge c-badge-info">Added by the team</span>') + '</td>' +
             '<td>' + (r.batch != null ? r.batch : '<span style="color:var(--color-neutral-4)">—</span>') + '</td>' +
-            '<td><button class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-trash" type="button" data-roster-remove="' + r.inf + '" aria-label="Remove from campaign"><i class="ph ph-trash"></i></button></td></tr>';
+            /* The platform goes on the button too: without it, removing one
+               channel would take every channel that creator is booked for. */
+            '<td><button class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-trash" type="button" data-roster-remove="' + esc(r.inf) + '" data-roster-plat="' + esc(r.platform || '') + '" aria-label="Remove from campaign"><i class="ph ph-trash"></i></button></td></tr>';
         }).join('') + '</tbody></table></div>';
     }
 
@@ -1010,9 +1025,12 @@
     var rm = e.target.closest('[data-roster-remove]');
     if (rm) {
       var rec = byInf[rm.dataset.rosterRemove];
-      S.removeFromRoster(c.id, rm.dataset.rosterRemove);
+      var plat = rm.dataset.rosterPlat || null;
+      S.removeFromRoster(c.id, rm.dataset.rosterRemove, plat);
       renderAll();
-      toast((rec ? rec.name : 'Profile') + ' removed from the campaign.', 'danger');
+      toast((rec ? rec.name : 'Profile') +
+        (plat ? ' removed from ' + (PLAT_LABEL[plat] || plat) + ' on this campaign.'
+              : ' removed from the campaign.'), 'danger');
       return;
     }
     var link = e.target.closest('[data-batch-link]');
