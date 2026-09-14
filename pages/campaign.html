@@ -292,6 +292,45 @@
   .cd-pick-filter{display:flex; align-items:center; gap:var(--spacing-8); flex-wrap:wrap; font-size:var(--text-caption-size); color:var(--color-neutral-5);}
   .cd-pick-filter[hidden]{display:none;}
 
+  /* ── Activity — one stream, newest first. The machine's lines are
+     neutral; a person's note carries a pale earth tint so their words
+     stand apart. Days divide the stream so a long history still scans. */
+  .cd-composer{background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg);
+    padding:var(--spacing-12) var(--spacing-16); margin-bottom:var(--spacing-16);
+    transition:border-color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);}
+  .cd-composer:focus-within{border-color:var(--color-obsidian); box-shadow:var(--shadow-1);}
+  .cd-composer textarea{width:100%; min-height:44px; max-height:200px; padding:6px 0; border:0; background:transparent; resize:none;
+    font:inherit; font-size:var(--text-body2-size); line-height:1.5; color:var(--color-neutral-9); display:block;}
+  .cd-composer textarea:focus{outline:none;}
+  .cd-composer textarea::placeholder{color:var(--color-neutral-4);}
+  .cd-composer .foot{display:flex; align-items:center; justify-content:space-between; gap:var(--spacing-12); margin-top:var(--spacing-4);}
+  .cd-composer .hint{font-size:var(--text-caption-size); color:var(--color-neutral-4);}
+  .cd-composer .hint kbd{font:inherit; padding:1px 5px; border:1px solid var(--color-neutral-3); border-radius:4px; color:var(--color-neutral-5);}
+  .cd-act-day{font-size:var(--text-caption-size); font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow);
+    color:var(--color-neutral-5); margin:var(--spacing-20) 0 var(--spacing-8); display:flex; align-items:center; gap:var(--spacing-12);}
+  .cd-act-day::after{content:''; flex:1; height:1px; background:var(--color-neutral-3);}
+  .cd-act-day:first-of-type{margin-top:var(--spacing-8);}
+  .cd-act{display:flex; gap:var(--spacing-12); padding:10px var(--spacing-12); border-radius:var(--radius-md); align-items:flex-start;}
+  .cd-act + .cd-act{margin-top:2px;}
+  .cd-act .ico{width:28px; height:28px; border-radius:var(--radius-pill); flex:none; display:inline-flex; align-items:center; justify-content:center;
+    background:var(--color-neutral-2); color:var(--color-neutral-6); font-size:14px; margin-top:1px;}
+  .cd-act .body{min-width:0; flex:1;}
+  .cd-act .txt{margin:0; font-size:var(--text-body2-size); color:var(--color-neutral-9); line-height:1.5; overflow-wrap:anywhere; white-space:pre-wrap;}
+  .cd-act .meta{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:3px; font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+  .cd-act .meta b{font-weight:600; color:var(--color-neutral-6);}
+  .cd-act .meta button{border:0; background:transparent; padding:0; font:inherit; color:var(--color-neutral-9); text-decoration:underline; text-underline-offset:2px; cursor:pointer;}
+  .cd-act.is-note{background:var(--color-earth-bg); border:1px solid color-mix(in srgb, var(--color-green) 18%, transparent); padding:var(--spacing-12) var(--spacing-16);}
+  .cd-act.is-note .ico{background:color-mix(in srgb, var(--color-green) 16%, var(--color-neutral-1)); color:var(--color-green);}
+  .cd-act.is-note .txt{font-size:var(--text-body1-size);}
+  .cd-act.is-note + .cd-act, .cd-act + .cd-act.is-note{margin-top:var(--spacing-8);}
+  .cd-act.is-stage .ico{background:var(--color-obsidian); color:var(--color-neutral-1);}
+  .cd-act.is-answer .ico, .cd-act.is-batch .ico{background:var(--color-water-bg); color:var(--color-navy);}
+  .cd-act.is-roster .ico{background:color-mix(in srgb, var(--color-green) 14%, var(--color-neutral-1)); color:var(--color-green);}
+  .cd-act.is-new{animation:cd-act-in 480ms var(--ease-settle) both;}
+  @keyframes cd-act-in{from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:none;}}
+  .cd-act-empty{padding:var(--spacing-32); text-align:center; color:var(--color-neutral-5); font-size:var(--text-body2-size);}
+  @media (prefers-reduced-motion:reduce){ .cd-act.is-new{animation:none;} }
+
   /* ── Section heads inside a panel. */
   .cd-sect{display:flex; align-items:baseline; justify-content:space-between;
     gap:var(--spacing-16); margin:var(--spacing-8) 0 var(--spacing-12);}
@@ -656,7 +695,7 @@
 <script src="../shared/avatar-manifest.js?v=2"></script>
 <script>window.INFLUENCER_STORE_KEY = 'collab-influencers-v2';</script>
 <script src="../shared/influencer-store.js?v=2"></script>
-<script src="../shared/campaigns-data.js?v=3"></script>
+<script src="../shared/campaigns-data.js?v=5"></script>
 <script src="../shared/tiers.js?v=1"></script>
 <script src="../shared/campaign-model.js?v=6"></script>
 <script src="../shared/campaign-store.js?v=8"></script>
@@ -1157,10 +1196,118 @@
     if (!c) return missing();
     renderHeader(); renderOverview(); renderKol(); renderDocs(); renderDrafts(); renderActivity();
   }
-  function renderActivity(){
-    var n = (c.activity || []).length;
-    E('pan-activity').innerHTML = '<div class="cd-note">' + (n ? n + (n === 1 ? ' entry' : ' entries') + ' on the record — the stream lands in the next build.' : 'Nothing on the record yet — the stream lands in the next build.') + '</div>';
+  /* ── Activity. */
+  var actFilter = 'all', actDraft = '', actFlashAt = null;
+  var ACT_ICON = {create: 'ph-flag', stage: 'ph-arrow-right', batch: 'ph-paper-plane-tilt', answer: 'ph-chat-circle-text',
+                  roster: 'ph-user-check', edit: 'ph-pencil-simple', note: 'ph-note-pencil'};
+  var ACT_FILTERS = [
+    {key: 'all', label: 'All', types: null},
+    {key: 'note', label: 'Notes', types: ['note']},
+    {key: 'client', label: 'Client', types: ['batch', 'answer']},
+    {key: 'stage', label: 'Stage', types: ['stage', 'create']}
+  ];
+  function relTime(iso){
+    var t = new Date(iso).getTime(); if (isNaN(t)) return '';
+    var s = Math.round((Date.now() - t) / 1000);
+    if (s < 45) return 'just now';
+    if (s < 3600) return Math.max(1, Math.round(s / 60)) + ' min ago';
+    if (s < 86400 * 0.75) return Math.round(s / 3600) + ' h ago';
+    var d = new Date(iso), today = new Date(); today.setHours(0,0,0,0);
+    var days = Math.round((today - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5);
+    if (days <= 0) return 'today';
+    if (days === 1) return 'yesterday';
+    if (days < 7) return days + ' days ago';
+    return S.fmtDate(d.toISOString().slice(0, 10), d.getFullYear() !== today.getFullYear());
   }
+  function dayKey(iso){
+    var d = new Date(iso); if (isNaN(d)) return '';
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  function dayLabel(key){
+    var today = S.today();
+    if (key === today) return 'Today';
+    var y = new Date(); y.setDate(y.getDate() - 1);
+    if (key === dayKey(y.toISOString())) return 'Yesterday';
+    return S.fmtDate(key, key.slice(0, 4) !== today.slice(0, 4));
+  }
+  function absTime(iso){
+    var d = new Date(iso); if (isNaN(d)) return '';
+    return S.fmtDate(dayKey(iso), true) + ', ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+  }
+  function actHtml(a){
+    var ref = a.ref || {};
+    var link = a.type === 'batch' || a.type === 'answer' ? (ref.batch != null ? '<span>·</span><button type="button" data-act-batch="' + ref.batch + '">Open batch ' + ref.batch + '</button>' : '')
+             : a.type === 'roster' && ref.inf ? '<span>·</span><button type="button" data-act-fill="' + esc(ref.inf) + '/' + esc(ref.platform || '') + '">Show on the board</button>'
+             : a.type === 'edit' ? '<span>·</span><button type="button" data-act-ask>See the ask</button>' : '';
+    return '<div class="cd-act is-' + esc(a.type) + (a.at === actFlashAt ? ' is-new' : '') + '"><span class="ico"><i class="ph ' + (ACT_ICON[a.type] || 'ph-circle') + '"></i></span>' +
+      '<div class="body"><p class="txt">' + esc(a.text) + '</p><span class="meta"><b>' + esc(a.by || 'Digital Team') + '</b><span>·</span><time datetime="' + esc(a.at) + '" title="' + esc(absTime(a.at)) + '">' + esc(relTime(a.at)) + '</time>' + link + '</span></div></div>';
+  }
+  function renderActivity(){
+    var all = (c.activity || []).slice().reverse();
+    var counts = {};
+    ACT_FILTERS.forEach(function(f){ counts[f.key] = f.types ? all.filter(function(a){ return f.types.indexOf(a.type) > -1; }).length : all.length; });
+    var f = ACT_FILTERS.filter(function(x){ return x.key === actFilter; })[0] || ACT_FILTERS[0];
+    var list = f.types ? all.filter(function(a){ return f.types.indexOf(a.type) > -1; }) : all;
+    var html = '<div class="cd-composer"><textarea id="cdNoteText" rows="1" placeholder="Add a note — what the client said, what to remember, what changed" aria-label="Add a note">' + esc(actDraft) + '</textarea>' +
+      '<div class="foot"><span class="hint"><kbd>' + (navigator.platform.indexOf('Mac') > -1 ? '⌘' : 'Ctrl') + '</kbd> + <kbd>↵</kbd> to add</span>' +
+      '<button class="c-btn c-btn-primary c-btn-sm" type="button" id="cdNoteAdd"' + (actDraft.trim() ? '' : ' disabled') + '><i class="ph ph-note-pencil"></i> Add note</button></div></div>';
+    html += '<div class="cd-chips">' + ACT_FILTERS.map(function(x){
+      return '<button type="button" class="c-chip c-chip-filter' + (x.key === actFilter ? ' is-active' : '') + '" data-act-filter="' + x.key + '">' + x.label + ' <span class="count">' + counts[x.key] + '</span></button>';
+    }).join('') + '</div>';
+    if (!list.length) {
+      html += '<div class="cd-act-empty">' + (all.length ? 'Nothing under ' + f.label.toLowerCase() + ' yet.' : 'Nothing on the record yet. Notes you add and every change to the campaign land here.') + '</div>';
+    } else {
+      var day = null;
+      list.forEach(function(a){
+        var k = dayKey(a.at);
+        if (k !== day) { day = k; html += '<div class="cd-act-day">' + esc(dayLabel(k)) + '</div>'; }
+        html += actHtml(a);
+      });
+    }
+    E('pan-activity').innerHTML = html;
+    actFlashAt = null;
+    var ta = E('cdNoteText');
+    if (ta) autosize(ta);
+  }
+  function autosize(ta){ ta.style.height = 'auto'; ta.style.height = Math.min(200, ta.scrollHeight) + 'px'; }
+  function addNote(){
+    var text = (E('cdNoteText').value || '').trim(); if (!text) return;
+    S.addNote(c.id, text);
+    actDraft = ''; actFilter = actFilter === 'note' ? 'note' : 'all';
+    reload();
+    actFlashAt = c.activity[c.activity.length - 1].at;
+    renderActivity();
+    toast('Note added.');
+  }
+  E('pan-activity').addEventListener('click', function(e){
+    if (e.target.closest('#cdNoteAdd')) return addNote();
+    var f = e.target.closest('[data-act-filter]');
+    if (f) { actFilter = f.dataset.actFilter; actDraft = E('cdNoteText').value; return renderActivity(); }
+    var b = e.target.closest('[data-act-batch]');
+    if (b) {
+      var n = Number(b.dataset.actBatch);
+      openBatches[n] = true; renderKol(); setTab('selection');
+      var card = E('pan-selection').querySelector('[data-batch-card="' + n + '"]');
+      if (card && !document.hidden) card.scrollIntoView({block: 'start', behavior: REDUCED ? 'auto' : 'smooth'});
+      return;
+    }
+    var fl = e.target.closest('[data-act-fill]');
+    if (fl) {
+      setTab('selection');
+      var row = E('pan-selection').querySelector('[data-fill="' + fl.dataset.actFill + '"]');
+      if (row) { row.classList.add('is-flash'); setTimeout(function(){ row.classList.remove('is-flash'); }, 1800); if (!document.hidden) row.scrollIntoView({block: 'center', behavior: REDUCED ? 'auto' : 'smooth'}); }
+      return;
+    }
+    if (e.target.closest('[data-act-ask]')) return setTab('overview');
+  });
+  E('pan-activity').addEventListener('input', function(e){
+    if (e.target.id !== 'cdNoteText') return;
+    actDraft = e.target.value; autosize(e.target);
+    E('cdNoteAdd').disabled = !actDraft.trim();
+  });
+  E('pan-activity').addEventListener('keydown', function(e){
+    if (e.target.id === 'cdNoteText' && e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); addNote(); }
+  });
 
   /* ── Toasts. */
   function toast(msg, tone){

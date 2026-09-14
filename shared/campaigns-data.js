@@ -32,6 +32,17 @@ window.CAMPAIGNS = [
         ],
         paxTargets: {}, notes: ''
       }
+    ],
+    /* Newest last; the page renders newest first. */
+    activity: [
+      {at: '2026-08-20T03:12:00Z', by: 'Izuan I.', type: 'create', text: 'Created'},
+      {at: '2026-08-22T08:40:00Z', by: 'Izuan I.', type: 'edit', text: 'Set the ask'},
+      {at: '2026-09-01T02:05:00Z', by: 'Izuan I.', type: 'batch', text: 'Sent batch 1 to Wavemaker · 3 creators', ref: {batch: 1}},
+      {at: '2026-09-03T06:20:00Z', by: 'Izuan I.', type: 'answer', text: 'Client approved Abby Suehaiveey Abir on TikTok', ref: {batch: 1, inf: 'inf-195', platform: 'tiktok'}},
+      {at: '2026-09-03T09:48:00Z', by: 'Izuan I.', type: 'roster', text: 'Confirmed Abby Suehaiveey Abir on TikTok', ref: {inf: 'inf-195', platform: 'tiktok'}},
+      {at: '2026-09-05T01:30:00Z', by: 'Pui Yann', type: 'note', text: 'Wavemaker wants every first draft by 12 Sep. The IG story goes out the same day as the reel, not after.'},
+      {at: '2026-09-06T02:00:00Z', by: 'Izuan I.', type: 'stage', text: 'Moved to Drafting'},
+      {at: '2026-09-13T01:10:00Z', by: 'Izuan I.', type: 'stage', text: 'Moved to Posting'}
     ]
   },
   {
@@ -84,6 +95,13 @@ window.CAMPAIGNS = [
         ],
         paxTargets: {}, notes: ''
       }
+    ],
+    activity: [
+      {at: '2026-09-04T02:10:00Z', by: 'Neeza', type: 'create', text: 'Created as a lead'},
+      {at: '2026-09-05T06:40:00Z', by: 'Neeza', type: 'edit', text: 'Set the ask'},
+      {at: '2026-09-08T09:15:00Z', by: 'Neeza', type: 'note', text: 'Enfagrow wants parenting-led profiles first. Food-led creators only if the reach clearly justifies it — flag them as such in the KULT remarks.'},
+      {at: '2026-09-09T03:00:00Z', by: 'Neeza', type: 'stage', text: 'Marked as won, moved to Sourcing'},
+      {at: '2026-09-10T07:30:00Z', by: 'Neeza', type: 'batch', text: 'Sent batch 1 to the client · 8 creators', ref: {batch: 1}}
     ]
   },
   {

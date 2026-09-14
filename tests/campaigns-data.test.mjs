@@ -43,3 +43,20 @@ test('every batch carries an integer number', () => {
     }
   }
 });
+
+test('seeded activity is well-formed and in time order', () => {
+  const TYPES = ['create', 'stage', 'batch', 'answer', 'roster', 'edit', 'note'];
+  for (const c of win.CAMPAIGNS) {
+    const a = c.activity || [];
+    let last = '';
+    for (const e of a) {
+      assert.ok(TYPES.includes(e.type), `${c.id}: type ${e.type}`);
+      assert.match(e.at, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/, `${c.id}: at ${e.at}`);
+      assert.ok(e.text && e.by, `${c.id}: text and by`);
+      assert.ok(e.at >= last, `${c.id}: newest last`);
+      assert.ok(e.at <= new Date().toISOString(), `${c.id}: ${e.at} is in the future`);
+      last = e.at;
+      if (e.ref && e.ref.batch != null) assert.ok((c.batches || []).some(b => b.n === e.ref.batch), `${c.id}: ref batch ${e.ref.batch} exists`);
+    }
+  }
+});
