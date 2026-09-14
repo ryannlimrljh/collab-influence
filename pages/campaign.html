@@ -35,61 +35,57 @@
     font-size:var(--text-body2-size); color:var(--color-neutral-5);}
   .cd-actions{display:flex; gap:var(--spacing-8); flex:none; flex-wrap:wrap; justify-content:flex-end;}
   .cd-actions .c-btn{text-decoration:none;}
-  .cd-rule{border:none; border-top:1px solid var(--color-neutral-3); margin:var(--spacing-16) 0 0;}
 
-  /* ── Stage track — the pipeline the list page draws, folded into a
-     single row here: where this campaign is, what is behind it, what
-     is ahead. Every node is a control; clicking one moves the stage. */
-  .cd-track{display:flex; align-items:center; margin-top:var(--spacing-16);
-    padding:var(--spacing-4) 0;}
-  .cd-step{display:flex; align-items:center; gap:var(--spacing-8); flex:none;
-    border:0; background:transparent; font:inherit; cursor:pointer; padding:6px 10px;
-    border-radius:var(--radius-pill); color:var(--color-neutral-5);
-    font-size:var(--text-caption-size); font-weight:700; white-space:nowrap;
-    transition:background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);}
-  .cd-step:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}
-  .cd-step:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
-  .cd-step .ind{width:22px; height:22px; border-radius:var(--radius-pill); flex:none;
-    display:inline-flex; align-items:center; justify-content:center; font-size:11px;
-    background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); color:var(--color-neutral-5);
-    transition:background var(--duration-base) var(--ease-standard), border-color var(--duration-base) var(--ease-standard);}
-  .cd-step .ind i{font-size:var(--icon-micro);}
-  .cd-step.is-done .ind{background:var(--color-neutral-9); border-color:var(--color-neutral-9); color:var(--color-neutral-1);}
-  .cd-step.is-done{color:var(--color-neutral-9);}
-  .cd-step.is-now .ind{background:var(--color-obsidian); border-color:var(--color-obsidian); color:var(--color-neutral-1);
-    box-shadow:0 0 0 4px var(--color-neutral-2);}
-  .cd-step.is-now{color:var(--color-neutral-9); background:var(--color-neutral-1);
-    border:1px solid var(--color-neutral-3); box-shadow:var(--shadow-1);}
-  .cd-connector{flex:1; height:2px; min-width:12px; background:var(--color-neutral-3); margin:0 2px;
-    position:relative; overflow:hidden; border-radius:1px;}
-  .cd-connector.is-done::after{content:''; position:absolute; inset:0; background:var(--color-neutral-9);}
-  /* Lead is the ghost ahead of the flow, the same dashed node the list
-     draws: a place a campaign passes through, not a stage it works in. */
-  .cd-step.is-ghost .ind{border-style:dashed; border-color:var(--color-neutral-4); background:transparent;}
-  .cd-step.is-ghost.is-done .ind{background:transparent; border-color:var(--color-neutral-4); color:var(--color-neutral-5);}
-  .cd-step.is-ghost.is-now{border-style:dashed; background:transparent; box-shadow:none;}
-  .cd-step.is-ghost.is-now .ind{background:var(--color-obsidian); border-style:solid; border-color:var(--color-obsidian); color:var(--color-neutral-1);}
-  .cd-step.is-ghost .cap{font-weight:500; color:var(--color-neutral-5);}
-  .cd-step.is-ghost:hover{background:transparent;}
-  .cd-step.is-ghost.is-refused{animation:cd-shake 320ms var(--ease-standard);}
-  @keyframes cd-shake{0%,100%{transform:none;} 30%{transform:translateX(-3px);} 60%{transform:translateX(3px);}}
-  @media (max-width:1100px){ .cd-step.is-ghost.is-now .cap{display:none;} }
-
-  /* ── Next up — one sentence of state and the one thing to do about it,
-     computed from the record. Sits between the track and the facts so the
-     eye lands on it right after the stage. */
-  .cd-next{display:flex; align-items:center; gap:var(--spacing-16); margin-top:var(--spacing-16);
-    padding:var(--spacing-12) var(--spacing-16); border:1px solid var(--color-neutral-3);
-    border-radius:var(--radius-md); background:var(--color-neutral-1); box-shadow:var(--shadow-1);}
-  .cd-next .eyebrow{display:inline-flex; align-items:center; gap:6px; flex:none;
-    font-size:var(--text-caption-size); font-weight:700; text-transform:uppercase;
+  /* ── Hero — the numbers that matter as tiles, the facts as one strip,
+     and Next up as a dark card the eye lands on first. Tiles are buttons
+     that open the tab they summarise. */
+  .cd-hero{display:grid; grid-template-columns:minmax(0, 1fr) 340px; gap:var(--spacing-20);
+    padding:var(--spacing-20) 0 var(--spacing-24); align-items:stretch;}
+  .cd-hero-main{display:flex; flex-direction:column; gap:var(--spacing-16); min-width:0;}
+  .cd-kpis{display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:var(--spacing-12);}
+  .cd-kpi{display:flex; flex-direction:column; gap:6px; text-align:left; min-width:0;
+    padding:var(--spacing-12) var(--spacing-16); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg);
+    background:var(--color-neutral-1); font:inherit; color:inherit; cursor:pointer;
+    transition:transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);}
+  .cd-kpi:hover{transform:translateY(-1px); box-shadow:var(--shadow-1); border-color:var(--color-neutral-4);}
+  .cd-kpi:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+  .cd-kpi .k{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; text-transform:uppercase;
     letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
-  .cd-next .eyebrow i{font-size:var(--icon-sm); color:var(--color-neutral-9);}
-  .cd-next .say{flex:1; min-width:0; font-size:var(--text-body2-size); font-weight:600;
-    color:var(--color-neutral-9); overflow-wrap:anywhere;}
-  .cd-next.is-quiet .say{font-weight:500; color:var(--color-neutral-5);}
-  .cd-next .acts{display:flex; gap:var(--spacing-8); flex:none; flex-wrap:wrap; justify-content:flex-end;}
-  @media (max-width:640px){ .cd-next{flex-wrap:wrap;} .cd-next .say{flex-basis:100%;} .cd-next .acts{justify-content:flex-start;} }
+  .cd-kpi .k i{font-size:13px; color:var(--color-neutral-6);}
+  .cd-kpi .row{display:flex; align-items:center; gap:var(--spacing-12); min-width:0;}
+  .cd-kpi .n{font-size:var(--text-h3-size); line-height:1.1; font-weight:800; color:var(--color-neutral-9);
+    font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cd-kpi .n small{font-size:var(--text-body2-size); font-weight:600; color:var(--color-neutral-5);}
+  .cd-kpi .n.dash{color:var(--color-neutral-4); font-weight:400;}
+  .cd-kpi .s{font-size:var(--text-caption-size); color:var(--color-neutral-5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cd-kpi .bar{height:5px; border-radius:var(--radius-pill); background:var(--color-neutral-3); overflow:hidden; display:flex; margin-top:2px;}
+  .cd-kpi .bar span{display:block; height:100%; transition:width .6s var(--ease-settle);}
+  .cd-ring-wrap{position:relative; width:44px; height:44px; flex:none;}
+  .cd-ring-wrap svg{width:44px; height:44px; transform:rotate(-90deg);}
+  .cd-ring-wrap .track{stroke:var(--color-neutral-3);}
+  .cd-ring-wrap .fill{stroke:var(--color-green); stroke-linecap:round; transition:stroke-dashoffset .6s var(--ease-settle);}
+  .cd-meta-strip{display:flex; flex-wrap:wrap; gap:var(--spacing-8) var(--spacing-24); padding:0 var(--spacing-4);}
+  .cd-kv{display:inline-flex; align-items:baseline; gap:6px; font-size:var(--text-body2-size); min-width:0;}
+  .cd-kv .k{font-size:var(--text-caption-size); font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
+  .cd-kv .v{font-weight:700; color:var(--color-neutral-9); overflow-wrap:anywhere;}
+  .cd-kv .v.u{text-decoration:underline; text-underline-offset:3px;}
+  .cd-kv .v .cmp-plats{display:inline-flex; gap:6px; font-size:var(--icon-sm); vertical-align:-2px;}
+  .cd-kv .v .muted{color:var(--color-neutral-4); font-weight:400;}
+  .cd-next{background:var(--color-obsidian); color:var(--color-neutral-1); border-radius:var(--radius-lg);
+    padding:var(--spacing-20); display:flex; flex-direction:column; gap:var(--spacing-12); min-width:0; box-shadow:var(--shadow-2);}
+  .cd-next .eyebrow{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:var(--tracking-eyebrow); color:rgba(255,255,255,.6);}
+  .cd-next .eyebrow i{font-size:14px; color:var(--color-neutral-1);}
+  .cd-next .say{flex:1; font-size:var(--text-h4-size); line-height:1.35; font-weight:800; color:var(--color-neutral-1); overflow-wrap:anywhere;}
+  .cd-next.is-quiet .say{font-weight:600; color:rgba(255,255,255,.75);}
+  .cd-next .acts{display:flex; flex-wrap:wrap; gap:var(--spacing-8); margin-top:auto;}
+  .cd-next .c-btn-primary{background:var(--color-neutral-1); border-color:var(--color-neutral-1); color:var(--color-neutral-9);}
+  .cd-next .c-btn-primary:hover{background:var(--color-neutral-2); border-color:var(--color-neutral-2);}
+  .cd-next .c-btn-secondary{background:transparent; border-color:rgba(255,255,255,.35); color:var(--color-neutral-1);}
+  .cd-next .c-btn-secondary:hover{background:rgba(255,255,255,.12); border-color:rgba(255,255,255,.5);}
+  .cd-next .c-btn:focus-visible{outline:2px solid var(--color-neutral-1); outline-offset:2px;}
+  .cd-next .cd-sk{background:rgba(255,255,255,.14);}
+  @media (max-width:1000px){ .cd-hero{grid-template-columns:1fr;} .cd-next{order:-1;} .cd-kpis{grid-template-columns:repeat(2, minmax(0, 1fr));} }
 
   /* ── The ask, on Overview: one chip per slot, coloured by how it stands. */
   .cd-ask{display:flex; flex-wrap:wrap; align-items:center; gap:var(--spacing-8);}
@@ -136,32 +132,6 @@
     background:var(--color-obsidian); color:var(--color-neutral-1); font-size:10px; font-weight:700;}
   .cd-sect h3{display:inline-flex; align-items:center; gap:var(--spacing-8);}
 
-  /* ── Meta grid + deliverables ring. */
-  .cd-meta{display:flex; align-items:flex-start; gap:var(--spacing-32);
-    padding:var(--spacing-20) 0 var(--spacing-24);}
-  .cd-facts{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr));
-    gap:var(--spacing-20) var(--spacing-24); flex:1; max-width:760px;}
-  .cd-fact .k{display:block; font-size:var(--text-caption-size); font-weight:700;
-    text-transform:uppercase; letter-spacing:var(--tracking-eyebrow);
-    color:var(--color-neutral-5); margin-bottom:4px;}
-  .cd-fact .v{display:block; font-size:var(--text-body1-size); font-weight:700;
-    color:var(--color-neutral-9); overflow-wrap:anywhere;}
-  .cd-fact .v.u{text-decoration:underline; text-underline-offset:3px;}
-  .cd-fact .v .cmp-plats{display:inline-flex; gap:8px; font-size:var(--icon-sm);}
-  .cd-fact .v .muted{color:var(--color-neutral-4); font-weight:400;}
-  .cd-ring{flex:none; display:flex; flex-direction:column; align-items:flex-end; gap:var(--spacing-8);}
-  .cd-ring .k{font-size:var(--text-caption-size); font-weight:700; text-transform:uppercase;
-    letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
-  .cd-ring-wrap{position:relative; width:80px; height:80px;}
-  .cd-ring-wrap svg{width:80px; height:80px; transform:rotate(-90deg);}
-  .cd-ring-wrap .track{stroke:var(--color-neutral-3);}
-  .cd-ring-wrap .fill{stroke:var(--color-green); stroke-linecap:round;
-    transition:stroke-dashoffset .6s var(--ease-settle);}
-  .cd-ring-txt{position:absolute; inset:0; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; line-height:1.1;}
-  .cd-ring-txt .n{font-size:var(--text-body1-size); font-weight:800; color:var(--color-neutral-9);}
-  .cd-ring-txt .l{font-size:10px; color:var(--color-neutral-5);}
-
   /* ── Tabs — the DLS component, panels crossfade. */
   .cd-tabs{margin-bottom:var(--spacing-20);}
   .c-tab .count{margin-left:var(--spacing-4); font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-5);}
@@ -169,44 +139,54 @@
   .cd-panel.is-on{display:block;}
   @keyframes cd-fade{from{opacity:0;} to{opacity:1;}}
 
-  /* ── Overview — one card, four rows, each a labelled fact grid. */
-  .cd-ov{background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
-    border-radius:var(--radius-lg); box-shadow:var(--shadow-1); overflow:hidden;}
-  .cd-ov-row{display:grid; grid-template-columns:220px 1fr; gap:var(--spacing-24);
-    padding:var(--spacing-24); border-bottom:1px solid var(--color-neutral-3);}
-  .cd-ov-row:last-child{border-bottom:0;}
-  .cd-ov-lbl{display:flex; align-items:center; gap:var(--spacing-12);
-    font-size:var(--text-body1-size); font-weight:700; color:var(--color-neutral-9);}
-  .cd-chip{width:36px; height:36px; border-radius:var(--radius-sm); display:flex;
-    align-items:center; justify-content:center; font-size:var(--icon-sm); flex:none;}
+  /* ── Overview — a bento of cards, each one thing: the ask, money, the
+     roster, who owns it, how the revenue splits, and the brief. */
+  .cd-ov{display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:var(--spacing-16);}
+  .cd-card{background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg);
+    padding:var(--spacing-16) var(--spacing-20); min-width:0; display:flex; flex-direction:column; gap:var(--spacing-12);
+    transition:box-shadow var(--duration-base) var(--ease-standard);}
+  .cd-card:hover{box-shadow:var(--shadow-1);}
+  .cd-card.span-2{grid-column:span 2;} .cd-card.span-3{grid-column:span 3;} .cd-card.span-4{grid-column:span 4;} .cd-card.span-6{grid-column:span 6;}
+  .cd-card-h{display:flex; align-items:center; gap:var(--spacing-10, 10px); font-size:var(--text-body1-size); font-weight:800; color:var(--color-neutral-9);}
+  .cd-card-h .r{margin-left:auto; display:flex; gap:var(--spacing-4);}
+  .cd-chip{width:30px; height:30px; border-radius:var(--radius-sm); display:flex;
+    align-items:center; justify-content:center; font-size:15px; flex:none;}
   .cd-chip.earth{background:var(--color-earth-bg); color:var(--color-green);}
   .cd-chip.water{background:var(--color-water-bg); color:var(--color-navy);}
   .cd-chip.purple{background:rgba(159,86,255,.12); color:var(--color-purple);}
   .cd-chip.fire{background:var(--color-fire-bg); color:var(--color-orange);}
-  .cd-ov-cells{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:var(--spacing-16) 0;}
-  .cd-ov-cell{padding:0 var(--spacing-20); border-left:1px solid var(--color-neutral-3); min-width:0;}
-  .cd-ov-cell:nth-child(3n+1){border-left:0; padding-left:0;}
-  .cd-ov-cell .k{display:block; font-size:var(--text-caption-size); font-weight:700;
-    text-transform:uppercase; letter-spacing:var(--tracking-eyebrow);
-    color:var(--color-neutral-5); margin-bottom:4px;}
-  .cd-ov-cell .v{display:block; font-size:var(--text-h4-size); font-weight:800;
-    color:var(--color-neutral-9); font-variant-numeric:tabular-nums;}
-  .cd-ov-cell .v.dash{color:var(--color-neutral-4); font-weight:400;}
-  .cd-ov-cell .s{display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5); margin-top:2px;}
-  .cd-ov-cell .s .cmp-dot{display:inline-block; margin-right:4px; vertical-align:middle;}
-  .cd-ov-cell .c-badge{margin-top:4px;}
-  .cd-person{display:inline-flex; align-items:center; gap:var(--spacing-8);
-    font-size:var(--text-body1-size); font-weight:700; color:var(--color-neutral-9);}
-  .cd-ini{width:28px; height:28px; border-radius:var(--radius-sm); background:var(--color-neutral-2);
+  .cd-chip.gray{background:var(--color-neutral-2); color:var(--color-neutral-6);}
+  .cd-line{display:flex; align-items:baseline; justify-content:space-between; gap:var(--spacing-12); padding:6px 0; border-bottom:1px solid var(--color-neutral-2);}
+  .cd-line:last-child{border-bottom:0;}
+  .cd-line .k{font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+  .cd-line .v{font-weight:800; color:var(--color-neutral-9); font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .cd-line .v.dash{color:var(--color-neutral-4); font-weight:400;}
+  .cd-line .v .c-badge{margin-left:6px; vertical-align:middle;}
+  .cd-bar{height:8px; border-radius:var(--radius-pill); background:var(--color-neutral-3); overflow:hidden; display:flex;}
+  .cd-bar span{display:block; height:100%;}
+  .cd-legend{display:flex; flex-wrap:wrap; gap:var(--spacing-12); font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+  .cd-legend span{display:inline-flex; align-items:center; gap:5px;}
+  .cd-legend b{color:var(--color-neutral-9);}
+  .cd-bigs{display:grid; grid-template-columns:1fr 1fr; gap:var(--spacing-12);}
+  .cd-big .n{display:block; font-size:var(--text-h2-size); line-height:1.1; font-weight:800; color:var(--color-neutral-9); font-variant-numeric:tabular-nums;}
+  .cd-big .s{display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5); margin-top:2px;}
+  .cd-ov .cd-stack{padding-left:8px;}
+  .cd-people{display:flex; flex-direction:column; gap:var(--spacing-8);}
+  .cd-person{display:flex; align-items:center; gap:var(--spacing-10, 10px); min-width:0;}
+  .cd-person .role{font-size:var(--text-caption-size); color:var(--color-neutral-5); width:88px; flex:none;}
+  .cd-person .nm{font-weight:700; color:var(--color-neutral-9); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cd-person .nm.dash{color:var(--color-neutral-4); font-weight:400;}
+  .cd-ini{width:28px; height:28px; border-radius:var(--radius-pill); background:var(--color-neutral-2);
     border:1px solid var(--color-neutral-3); display:inline-flex; align-items:center;
-    justify-content:center; font-size:11px; font-weight:700; color:var(--color-neutral-5); flex:none;}
-  @media (max-width:820px){
-    .cd-ov-row{grid-template-columns:1fr;}
-    .cd-ov-cells{grid-template-columns:repeat(2, minmax(0, 1fr));}
-    .cd-ov-cell:nth-child(3n+1){border-left:1px solid var(--color-neutral-3); padding-left:var(--spacing-20);}
-    .cd-ov-cell:nth-child(2n+1){border-left:0; padding-left:0;}
-    .cd-facts{grid-template-columns:repeat(2, minmax(0, 1fr));}
-  }
+    justify-content:center; font-size:11px; font-weight:700; color:var(--color-neutral-6); flex:none;}
+  .cd-split{display:grid; grid-template-columns:1fr 1fr; gap:var(--spacing-12);}
+  .cd-split .who{font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-9); margin-bottom:4px;}
+  .cd-split .who small{font-weight:600; color:var(--color-neutral-5);}
+  .cd-about p{margin:0; font-size:var(--text-body2-size); line-height:1.55; color:var(--color-neutral-7);}
+  .cd-about .lbl{font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-5); margin:var(--spacing-8) 0 2px;}
+  .cd-card .cd-ask + .cd-bar{margin-top:auto;}
+  @media (max-width:900px){ .cd-card.span-2, .cd-card.span-4{grid-column:span 3;} }
+  @media (max-width:640px){ .cd-card.span-2, .cd-card.span-3, .cd-card.span-4{grid-column:span 6;} }
 
   /* ── Shared strip (KOL response counts) — same joined recipe as the list. */
   .cmp-strip{display:grid; grid-template-columns:repeat(6, 1fr);
@@ -539,9 +519,8 @@
   }
   @keyframes cd-arrive{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:none;}}
   .cd-arriving .cd-head, .cd-arriving .cd-io{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:40ms;}
-  .cd-arriving .cd-track{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:100ms;}
-  .cd-arriving .cd-next{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:130ms;}
-  .cd-arriving .cd-meta{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:180ms;}
+  .cd-arriving .cd-hero-main{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:110ms;}
+  .cd-arriving .cd-next{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:170ms;}
   .cd-arriving .cd-tabs{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:240ms;}
   .cd-arriving .cd-panels{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:320ms;}
   @media (prefers-reduced-motion:reduce){ .cd-arriving *{animation:none !important;} }
@@ -609,28 +588,17 @@
           <div class="cd-actions">
             <button class="c-btn c-btn-secondary c-btn-md" type="button" id="cdDelete"><i class="ph ph-trash"></i> Delete</button>
             <button class="c-btn c-btn-secondary c-btn-md" type="button" id="cdEdit"><i class="ph ph-pencil-simple"></i> Edit</button>
-            <button class="c-btn c-btn-primary c-btn-md" type="button" id="cdShare"><i class="ph ph-share-network"></i> Share preview</button>
+            <button class="c-btn c-btn-primary c-btn-md" type="button" id="cdShare"><i class="ph ph-plus"></i> Create Selection List</button>
           </div>
         </div>
-        <hr class="cd-rule" />
-        <div class="cd-track" id="cdTrack" role="group" aria-label="Stage"></div>
-        <div class="cd-next" id="cdNext" role="status" aria-live="polite"></div>
 
-        <div class="cd-meta">
-          <div style="flex:1; min-width:0;">
-            <div class="cd-facts" id="cdFacts"></div>
+        <div class="cd-hero">
+          <div class="cd-hero-main">
+            <div class="cd-kpis" id="cdKpis"></div>
+            <div class="cd-meta-strip" id="cdFacts"></div>
             <div class="cd-timeline" id="cdTimeline" hidden></div>
           </div>
-          <div class="cd-ring">
-            <span class="k">Deliverables</span>
-            <div class="cd-ring-wrap">
-              <svg viewBox="0 0 80 80" aria-hidden="true">
-                <circle class="track" cx="40" cy="40" r="34" fill="none" stroke-width="7"/>
-                <circle class="fill" id="cdRingFill" cx="40" cy="40" r="34" fill="none" stroke-width="7" stroke-dasharray="213.6" stroke-dashoffset="213.6"/>
-              </svg>
-              <div class="cd-ring-txt"><span class="n" id="cdRingN">0/0</span><span class="l">Completed</span></div>
-            </div>
-          </div>
+          <aside class="cd-next" id="cdNext" role="status" aria-live="polite"></aside>
         </div>
 
         <div class="c-tabs cd-tabs" role="tablist" id="cdTabs">
@@ -732,10 +700,10 @@
 <script src="../shared/influencer-store.js?v=2"></script>
 <script src="../shared/campaigns-data.js?v=6"></script>
 <script src="../shared/tiers.js?v=1"></script>
-<script src="../shared/campaign-model.js?v=6"></script>
+<script src="../shared/campaign-model.js?v=7"></script>
 <script src="../shared/campaign-store.js?v=9"></script>
 <script src="../shared/campaign-form.js?v=4"></script>
-<script src="../shared/send-sheet.js?v=8"></script>
+<script src="../shared/send-sheet.js?v=9"></script>
 <script>
 (function () {
   'use strict';
@@ -845,34 +813,61 @@
     E('cdIo').hidden = !c.io; E('cdIo').textContent = c.io || '';
     var plats = (c.platforms || []).map(function(p){ return PLAT_ICON[p] || ''; }).join('');
     E('cdFacts').innerHTML =
-      fact('Brand', c.brand ? '<span class="v u">' + esc(c.brand) + '</span>' : dash()) +
-      fact('Start to end date', '<span class="v">' + esc(S.fmtRange(c.start, c.end)) + '</span>') +
-      fact('Agency', c.agency ? '<span class="v">' + esc(c.agency) + '</span>' : dash()) +
-      fact('Platform', plats ? '<span class="v"><span class="cmp-plats">' + plats + '</span></span>' : dash()) +
-      fact('Campaign type', (c.types || []).length ? '<span class="v">' + esc(c.types.join(', ')) + '</span>' : dash()) +
-      fact('Pax', c.pax != null ? '<span class="v">' + S.fmtNum(c.pax) + '</span>' : dash());
-    renderTrack(); renderNext(); renderTimeline();
-    var d = M.deliverableCounts(c);
-    var circ = 213.6, frac = d.total ? d.done / d.total : 0;
-    E('cdRingFill').style.strokeDashoffset = String(circ * (1 - frac));
-    E('cdRingN').textContent = d.done + '/' + d.total;
+      kv('Brand', c.brand ? '<span class="v u">' + esc(c.brand) + '</span>' : dash()) +
+      kv('Agency', c.agency ? '<span class="v">' + esc(c.agency) + '</span>' : dash()) +
+      kv('Dates', '<span class="v">' + esc(S.fmtRange(c.start, c.end)) + '</span>') +
+      kv('Type', (c.types || []).length ? '<span class="v">' + esc(c.types.join(', ')) + '</span>' : dash()) +
+      kv('Platforms', plats ? '<span class="v"><span class="cmp-plats">' + plats + '</span></span>' : dash()) +
+      kv('Pax', c.pax != null ? '<span class="v">' + S.fmtNum(c.pax) + '</span>' : dash());
+    renderKpis(); renderNext(); renderTimeline();
     var n = (c.roster || []).filter(function(r){ return r.state !== 'unavailable'; }).length;
     E('cdKolCount').hidden = !n; E('cdKolCount').textContent = n > 99 ? '99+' : n;
-    E('cdShare').innerHTML = '<i class="ph ph-paper-plane-tilt"></i> Send batch ' + ((c.batches || []).length + 1);
   }
-  function renderTrack(){
-    var idx = S.STAGES.map(function(s){ return s.key; }).indexOf(c.stage);
-    E('cdTrack').innerHTML = S.STAGES.map(function(s, i){
-      var ghost = s.key === 'lead';
-      var cls = (i < idx ? 'is-done' : i === idx ? 'is-now' : '') + (ghost ? ' is-ghost' : '');
-      var ind = ghost ? '<i class="ph ph-flag"></i>' : i < idx ? '<i class="ph ph-check"></i>' : i;
-      var title = i === idx ? 'Current stage' : ghost ? 'Already won' : idx === 0 ? 'Mark as won and move to ' + s.label : 'Move to ' + s.label;
-      var lbl = s.short + (ghost && i === idx ? '<span class="cap"> · not yet won</span>' : '');
-      return (i ? '<span class="cd-connector' + (i <= idx ? ' is-done' : '') + '"></span>' : '') +
-        '<button type="button" class="cd-step ' + cls + '" data-go-stage="' + s.key + '" aria-current="' + (i === idx ? 'step' : 'false') + '" title="' + title + '">' +
-        '<span class="ind">' + ind + '</span><span class="lbl">' + lbl + '</span></button>';
-    }).join('');
+  /* ── The four numbers: slots, the client's answers, deliverables, margin.
+     Each tile opens the tab it summarises. */
+  function kpi(tab, label, icon, num, sub, viz){
+    return '<button type="button" class="cd-kpi" data-next="tab:' + tab + '"><span class="k"><i class="ph ' + icon + '"></i>' + label + '</span>' +
+      '<span class="row"><span class="n' + (num == null ? ' dash' : '') + '">' + (num == null ? '—' : num) + '</span>' + (viz && viz.ring ? viz.ring : '') + '</span>' +
+      '<span class="s">' + sub + '</span>' + (viz && viz.bar ? viz.bar : '') + '</button>';
   }
+  function miniBar(parts){
+    var total = parts.reduce(function(a, p){ return a + p.n; }, 0);
+    return '<span class="bar">' + parts.filter(function(p){ return p.n > 0 && p.color; }).map(function(p){
+      return '<span style="width:' + (p.n / total * 100) + '%; background:' + p.color + '"></span>'; }).join('') + '</span>';
+  }
+  function renderKpis(){
+    var groups = M.groupsOf(c, byInf).filter(function(g){ return g.want > 0; });
+    var want = 0, confirmed = 0, approved = 0;
+    groups.forEach(function(g){ want += g.want; g.fills.forEach(function(r){ if (r.state === 'confirmed') confirmed += 1; else if (r.state === 'approved') approved += 1; }); });
+    var slots = want
+      ? kpi('selection', 'Slots', 'ph-squares-four', '<span>' + confirmed + '<small> / ' + want + '</small></span>',
+          approved ? approved + ' pending · ' + Math.max(0, want - confirmed - approved) + ' open' : Math.max(0, want - confirmed) + ' open',
+          {bar: miniBar([{n: confirmed, color: 'var(--color-green)'}, {n: approved, color: 'var(--color-amber)'}, {n: Math.max(0, want - confirmed - approved)}])})
+      : kpi('overview', 'Slots', 'ph-squares-four', null, 'no ask yet');
+    var batches = c.batches || [], last = batches[batches.length - 1];
+    var client;
+    if (last) {
+      var picks = last.picks || [], answered = picks.filter(function(p){ return M.pickStatus(p) !== 'none'; }).length;
+      client = kpi('selection', 'Client', 'ph-chat-circle-text', '<span>' + answered + '<small> / ' + picks.length + '</small></span>',
+        'answered · batch ' + last.n + (last.sentAt ? ' · ' + S.fmtDate(last.sentAt) : ''),
+        {bar: miniBar([{n: answered, color: 'var(--color-navy)'}, {n: picks.length - answered}])});
+    } else client = kpi('selection', 'Client', 'ph-chat-circle-text', null, 'nothing sent yet');
+    var d = M.deliverableCounts(c), circ = 113.1, frac = d.total ? d.done / d.total : 0;
+    var ring = '<span class="cd-ring-wrap"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="track" cx="22" cy="22" r="18" fill="none" stroke-width="5"/>' +
+      '<circle class="fill" cx="22" cy="22" r="18" fill="none" stroke-width="5" stroke-dasharray="' + circ + '" stroke-dashoffset="' + (circ * (1 - frac)) + '"/></svg></span>';
+    var deliv = d.total
+      ? kpi('deliverables', 'Deliverables', 'ph-film-strip', '<span>' + d.done + '<small> / ' + d.total + '</small></span>', 'posted', {ring: ring})
+      : kpi('deliverables', 'Deliverables', 'ph-film-strip', null, M.confirmedCreators(c).length ? 'nothing planned yet' : 'nobody confirmed yet');
+    var m = S.money(c);
+    var margin = m.quote != null
+      ? kpi('overview', 'Margin', 'ph-currency-dollar', S.fmtRM(m.margin), (m.marginPct != null ? m.marginPct + '% of ' : '') + 'quote ' + S.fmtRM(m.quote),
+          {bar: miniBar([{n: Math.max(0, m.margin || 0), color: (m.margin || 0) >= 0 ? 'var(--color-green)' : 'var(--color-red)'}, {n: Math.max(0, m.cost || 0)}])})
+      : kpi('overview', 'Margin', 'ph-currency-dollar', null, 'no quote yet');
+    E('cdKpis').innerHTML = slots + client + deliv + margin;
+  }
+  E('cdKpis').addEventListener('click', function(e){
+    var b = e.target.closest('[data-next]'); if (b) setTab(b.dataset.next.slice(4));
+  });
   /* ── Next up. The model decides what to say and which action keys to
      offer; this maps the keys to what the page can do. */
   function renderNext(){
@@ -880,12 +875,12 @@
     var say = esc(n.sentence).replace('{date}', esc(n.date ? S.fmtDate(n.date) : 'earlier'));
     function btn(a, primary){
       if (!a) return '';
-      return '<button class="c-btn ' + (primary ? 'c-btn-primary' : 'c-btn-secondary') + ' c-btn-sm" type="button" data-next="' + a.action + '">' + esc(a.label) + '</button>';
+      return '<button class="c-btn ' + (primary ? 'c-btn-primary' : 'c-btn-secondary') + ' c-btn-md" type="button" data-next="' + a.action + '">' + esc(a.label) + '</button>';
     }
     el.classList.toggle('is-quiet', !n.primary);
     el.innerHTML = '<span class="eyebrow"><i class="ph-fill ph-arrow-bend-down-right"></i>Next up</span>' +
       '<span class="say">' + say + '</span>' +
-      (n.primary || n.secondary ? '<span class="acts">' + btn(n.secondary, false) + btn(n.primary, true) + '</span>' : '');
+      (n.primary || n.secondary ? '<span class="acts">' + btn(n.primary, true) + btn(n.secondary, false) + '</span>' : '');
   }
   E('cdNext').addEventListener('click', function(e){
     var b = e.target.closest('[data-next]'); if (!b) return;
@@ -936,7 +931,7 @@
       (todayPos != null ? '<div class="cd-tl-today" style="left:' + todayPos + '%"></div>' : '') + '</div>' +
       '<div class="ends"><span>' + esc(S.fmtDate(c.start, true)) + '</span><span>' + esc(S.fmtDate(c.end, true)) + '</span></div>';
   }
-  function fact(k, v){ return '<div class="cd-fact"><span class="k">' + k + '</span>' + v + '</div>'; }
+  function kv(k, v){ return '<span class="cd-kv"><span class="k">' + k + '</span>' + v + '</span>'; }
   function dash(){ return '<span class="v"><span class="muted">—</span></span>'; }
 
   /* ── Overview. */
@@ -968,35 +963,67 @@
         '<span class="n">' + (filled == null ? sl.want : filled + ' / ' + sl.want) + '</span></span>';
     }).join('') + edit + '</div>';
   }
+  function line(k, v, extra){
+    return '<div class="cd-line"><span class="k">' + k + '</span><span class="v' + (v == null ? ' dash' : '') + '">' + (v == null ? '—' : v) + (extra || '') + '</span></div>';
+  }
+  function personRow(role, name){
+    return '<div class="cd-person"><span class="cd-ini">' + (name ? esc(S.initials(name)) : '·') + '</span><span class="role">' + role + '</span><span class="nm' + (name ? '' : ' dash') + '">' + (name ? esc(name) : 'Unassigned') + '</span></div>';
+  }
+  function card(cls, chip, icon, title, body, right){
+    return '<div class="cd-card ' + cls + '"><div class="cd-card-h"><span class="cd-chip ' + chip + '"><i class="ph ' + icon + '"></i></span>' + title + (right ? '<span class="r">' + right + '</span>' : '') + '</div>' + body + '</div>';
+  }
+  function askSummary(){
+    var groups = M.groupsOf(c, byInf).filter(function(g){ return g.want > 0; });
+    if (!groups.length) return '';
+    var want = 0, confirmed = 0, approved = 0;
+    groups.forEach(function(g){ want += g.want; g.fills.forEach(function(r){ if (r.state === 'confirmed') confirmed += 1; else if (r.state === 'approved') approved += 1; }); });
+    var open = Math.max(0, want - confirmed - approved), total = Math.max(want, confirmed + approved);
+    return '<div class="cd-bar"><span style="width:' + (confirmed / total * 100) + '%; background:var(--color-green)"></span><span style="width:' + (approved / total * 100) + '%; background:var(--color-amber)"></span></div>' +
+      '<div class="cd-legend"><span><b>' + want + (want === 1 ? ' slot' : ' slots') + '</b></span>' +
+      '<span><span class="cmp-dot" style="background:var(--color-green)"></span>' + confirmed + ' filled</span>' +
+      '<span><span class="cmp-dot" style="background:var(--color-amber)"></span>' + approved + ' pending</span>' +
+      '<span><span class="cmp-dot" style="background:var(--color-neutral-4)"></span>' + open + ' open</span></div>';
+  }
   function renderOverview(){
     var m = S.money(c);
     var roster = c.roster || [];
-    var selected = roster.length;
+    var selected = roster.filter(function(r){ return r.state !== 'unavailable'; }).length;
     var booked = roster.filter(function(r){ return r.state === 'confirmed'; }).length;
+    var creators = M.confirmedCreators(c);
+    var stack = creators.slice(0, 6).map(function(inf){ var rec = byInf[inf]; return rec ? avatarHtml(rec) : ''; }).join('') +
+      (creators.length > 6 ? '<span class="more">+' + (creators.length - 6) + '</span>' : '');
+    var goSel = '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-go-tab="selection">Open board <i class="ph ph-arrow-right"></i></button>';
+    var fin = line('Quote', rm(m.quote)) + line('Cost', rm(m.cost)) +
+      line('Margin', rm(m.margin), m.marginPct != null ? '<span class="c-badge ' + (m.margin >= 0 ? 'c-badge-success' : 'c-badge-error') + '">' + m.marginPct + '%</span>' : '') +
+      (m.quote ? '<div class="cd-bar"><span style="width:' + Math.max(0, Math.min(100, (m.cost || 0) / m.quote * 100)) + '%; background:var(--color-neutral-5)"></span><span style="width:' + Math.max(0, Math.min(100, (m.margin || 0) / m.quote * 100)) + '%; background:var(--color-green)"></span></div>' +
+        '<div class="cd-legend"><span><span class="cmp-dot" style="background:var(--color-neutral-5)"></span>cost</span><span><span class="cmp-dot" style="background:var(--color-green)"></span>margin</span></div>' : '');
+    var ros = '<div class="cd-bigs"><div class="cd-big"><span class="n">' + selected + '</span><span class="s">on the campaign</span></div>' +
+      '<div class="cd-big"><span class="n">' + booked + '</span><span class="s">confirmed fills</span></div></div>' +
+      (creators.length ? '<span class="cd-stack">' + stack + '</span>' : '<span class="cd-legend">Nobody confirmed yet.</span>');
+    var own = '<div class="cd-people">' + personRow('PIC', c.pic) + personRow('Overseer', c.overseer) + personRow('Salesperson', c.salesperson) + '</div>';
+    var pp = m.picPct == null ? null : Number(m.picPct), op = m.overseerPct == null ? null : Number(m.overseerPct);
+    var split = (pp != null || op != null
+      ? '<div class="cd-bar"><span style="width:' + (pp || 0) + '%; background:var(--color-navy)"></span><span style="width:' + (op || 0) + '%; background:var(--color-purple)"></span></div>' : '') +
+      '<div class="cd-split"><div><div class="who">PIC <small>' + (pp != null ? pp + '%' : '—') + '</small></div>' + line('Revenue', rm(m.picRev)) + line('Gross', rm(m.picGross)) + '</div>' +
+      '<div><div class="who">Overseer <small>' + (op != null ? op + '%' : '—') + '</small></div>' + line('Revenue', rm(m.overseerRev)) + line('Gross', rm(m.overseerGross)) + '</div></div>';
+    var about = (c.description || c.remarks)
+      ? card('span-6 cd-about', 'gray', 'ph-text-align-left', 'About',
+          (c.description ? '<p>' + esc(c.description) + '</p>' : '') +
+          (c.remarks ? '<div class="lbl">Remarks</div><p>' + esc(c.remarks) + '</p>' : ''))
+      : '';
     E('pan-overview').innerHTML = '<div class="cd-ov">' +
-      '<div class="cd-ov-row"><div class="cd-ov-lbl"><span class="cd-chip water"><i class="ph ph-target"></i></span>The ask</div>' + askRow() + '</div>' +
-      '<div class="cd-ov-row"><div class="cd-ov-lbl"><span class="cd-chip earth"><i class="ph ph-currency-dollar"></i></span>Financials</div><div class="cd-ov-cells">' +
-        cell('Quote', rm(m.quote), 'Total expected') + cell('Cost', rm(m.cost), 'Total expenses') +
-        cell('Margin', rm(m.margin), m.marginPct != null ? '<span class="cmp-dot" style="background:' + (m.margin >= 0 ? 'var(--color-green)' : 'var(--color-red)') + '"></span>' + m.marginPct + '% of quote' : '') +
-      '</div></div>' +
-      '<div class="cd-ov-row"><div class="cd-ov-lbl"><span class="cd-chip water"><i class="ph ph-users"></i></span>Roster</div><div class="cd-ov-cells">' +
-        '<div class="cd-ov-cell"><span class="k">Selected</span><span class="v">' + selected + '</span><span class="c-badge c-badge-neutral">cleared by client</span></div>' +
-        '<div class="cd-ov-cell"><span class="k">Booked</span><span class="v">' + booked + '</span><span class="c-badge c-badge-neutral">confirmed channel fills</span></div>' +
-      '</div></div>' +
-      '<div class="cd-ov-row"><div class="cd-ov-lbl"><span class="cd-chip purple"><i class="ph ph-user"></i></span>Ownership</div><div class="cd-ov-cells">' +
-        '<div class="cd-ov-cell"><span class="k">PIC</span>' + person(c.pic) + '</div>' +
-        '<div class="cd-ov-cell"><span class="k">Overseer</span>' + person(c.overseer) + '</div>' +
-        '<div class="cd-ov-cell"><span class="k">Salesperson</span>' + person(c.salesperson) + '</div>' +
-      '</div></div>' +
-      '<div class="cd-ov-row"><div class="cd-ov-lbl"><span class="cd-chip fire"><i class="ph ph-list-numbers"></i></span>Revenue split</div><div class="cd-ov-cells">' +
-        cell('PIC %', pct(m.picPct)) + cell('Overseer %', pct(m.overseerPct)) + cell('PIC revenue (RM)', rm(m.picRev)) +
-        cell('Overseer revenue (RM)', rm(m.overseerRev)) + cell('PIC gross (RM)', rm(m.picGross)) + cell('Overseer gross (RM)', rm(m.overseerGross)) +
-      '</div></div>' +
-    '</div>';
+      card('span-4', 'water', 'ph-target', 'The ask', askRow() + askSummary(), goSel) +
+      card('span-2', 'earth', 'ph-currency-dollar', 'Financials', fin) +
+      card('span-2', 'water', 'ph-users', 'Roster', ros) +
+      card('span-2', 'purple', 'ph-user', 'Ownership', own) +
+      card('span-2', 'fire', 'ph-list-numbers', 'Revenue split', split) +
+      about + '</div>';
+    hydrateAvatars(E('pan-overview'));
   }
 
   E('pan-overview').addEventListener('click', function(e){
-    if (e.target.closest('[data-edit-ask]')) campaignForm.open({rec: c, step: 2, onSave: saveEdit});
+    if (e.target.closest('[data-edit-ask]')) return campaignForm.open({rec: c, step: 2, onSave: saveEdit});
+    var go = e.target.closest('[data-go-tab]'); if (go) setTab(go.dataset.goTab);
   });
 
   /* ── Selection — the slot board. */
@@ -1053,7 +1080,7 @@
     }
     if (!g.fills.length && !g.open) rows += '<div class="cd-open"><span class="t">Nobody here.</span></div>';
     var foot = g.open ? '<div class="cd-group-foot">' +
-      '<button class="c-btn c-btn-secondary c-btn-sm" type="button" data-send-band="' + g.platform + '/' + g.tier + '"><i class="ph ph-paper-plane-tilt"></i> Send batch ' + k + '</button>' +
+      '<button class="c-btn c-btn-secondary c-btn-sm" type="button" data-send-band="' + g.platform + '/' + g.tier + '"><i class="ph ph-plus"></i> Create Selection List</button>' +
       '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-add-band="' + g.platform + '/' + g.tier + '"><i class="ph ph-plus"></i> Add by hand</button></div>' : '';
     return '<div class="cd-group' + cls + '" data-group="' + g.platform + '/' + g.tier + '"><div class="cd-group-head">' + bandLabel(g.platform, g.tier) +
       '<span class="cd-group-cnt">' + cnt + '</span></div><div class="cd-fills">' + rows + '</div>' + foot + '</div>';
@@ -1090,10 +1117,10 @@
       html += '<div class="cd-gap"></div><div class="cd-sect"><h3>' + (asked.length ? 'Outside the ask' : 'On the roster') + '<span class="sub">bands nobody asked for — count them toward a slot, or leave them</span></h3></div>' +
         '<div class="cd-groups">' + extra.map(function(g){ return groupHtml(g, k); }).join('') + '</div>';
     }
-    html += '<div class="cd-gap"></div><div class="cd-sect"><h3>Sent batches<span class="sub">' + (batches.length ? batches.length + (batches.length === 1 ? ' link sent to the client' : ' links sent to the client') : 'nothing sent yet') + '</span></h3>' +
-      '<button class="c-btn c-btn-ghost c-btn-sm" type="button" id="cdNewBatch"><i class="ph ph-paper-plane-tilt"></i> Send batch ' + k + '</button></div>';
+    html += '<div class="cd-gap"></div><div class="cd-sect"><h3>Selection lists<span class="sub">' + (batches.length ? batches.length + (batches.length === 1 ? ' sent to the client' : ' sent to the client') : 'nothing sent yet') + '</span></h3>' +
+      '<button class="c-btn c-btn-ghost c-btn-sm" type="button" id="cdNewBatch"><i class="ph ph-plus"></i> Create Selection List</button></div>';
     if (!batches.length) {
-      html += '<div class="cd-note">Send a batch for the client to pick from — it shows here with whatever they answer, per channel.</div>';
+      html += '<div class="cd-note">Create a selection list for the client to pick from — it shows here with whatever they answer, per channel.</div>';
     } else {
       html += batches.slice().reverse().map(batchHtml).join('');
     }
@@ -1432,14 +1459,6 @@
     menu.style.left = left + 'px'; menu.style.top = top + 'px';
   }
   function closeMenu(){ menu.classList.remove('is-open'); if (menuAnchor) menuAnchor.classList.remove('is-open'); menuAnchor = null; }
-  E('cdTrack').addEventListener('click', function(e){
-    var b = e.target.closest('[data-go-stage]'); if (!b) return;
-    var to = b.dataset.goStage;
-    if (to === 'lead' && c.stage !== 'lead') {
-      b.classList.add('is-refused'); setTimeout(function(){ b.classList.remove('is-refused'); }, 400);
-    }
-    moveStage(to);
-  });
   document.addEventListener('click', function(e){
     var sb = e.target.closest('#cdStageBtn');
     if (sb) {
@@ -1612,7 +1631,7 @@
         var n = S.addBatch(c.id, {name: r.name, infIds: r.infIds, ask: r.ask, recipient: r.recipient, expiresAt: r.expiresAt, requireName: r.requireName});
         openBatches = {}; openBatches[n] = true;
         renderAll();
-        toast('Batch ' + n + ' sent with ' + ids.length + (ids.length === 1 ? ' creator' : ' creators') + '. Copy the client link from the batch card.');
+        toast('Selection list created — batch ' + n + ', ' + ids.length + (ids.length === 1 ? ' creator' : ' creators') + '. Copy the client link from its card.');
       }
     });
   }
@@ -1660,7 +1679,7 @@
     pickBand = band ? {platform: band.platform || null, tier: band.tier || null} : null;
     pickFilter = band ? {platform: band.platform || null, tier: band.tier || null} : {};
     var k = (c.batches || []).length + 1;
-    E('cdPickEyebrow').textContent = mode === 'send' ? 'Batch ' + k : 'Add by hand';
+    E('cdPickEyebrow').textContent = mode === 'send' ? 'Selection list ' + k : 'Add by hand';
     E('cdPickTitle').textContent = mode === 'send' ? 'Who should the client pick from?' : 'Add influencers to a slot';
     E('cdPickHint').textContent = mode === 'send'
       ? 'Tick the candidates, then set the ask and the link on the next step.'
@@ -1789,21 +1808,18 @@
     E('cdName').innerHTML = '<span class="cd-sk" style="width:min(360px, 60vw); height:28px"></span>';
     E('cdStageWrap').innerHTML = '<span class="cd-sk pill" style="width:120px"></span>';
     E('cdIo').hidden = false; E('cdIo').innerHTML = '<span class="cd-sk" style="width:110px; height:10px"></span>';
-    E('cdTrack').innerHTML = S.STAGES.map(function(s, i){
-      return (i ? '<span class="cd-connector"></span>' : '') + '<span class="cd-sk-node"><span class="ind"></span><span class="cd-sk" style="width:56px; height:10px"></span></span>';
+    E('cdKpis').innerHTML = [0,1,2,3].map(function(){
+      return '<span class="cd-kpi" style="pointer-events:none"><span class="cd-sk" style="width:56px; height:9px"></span><span class="cd-sk" style="width:64px; height:22px"></span><span class="cd-sk" style="width:80%; height:9px"></span></span>';
     }).join('');
     E('cdNext').classList.remove('is-quiet');
-    E('cdNext').innerHTML = '<span class="cd-sk" style="width:56px; height:10px"></span><span class="say"><span class="cd-sk" style="width:min(320px, 50%); height:12px"></span></span><span class="acts"><span class="cd-sk pill" style="width:120px; height:30px"></span></span>';
-    E('cdFacts').innerHTML = [0,1,2,3,4,5].map(function(){
-      return '<div class="cd-fact"><span class="cd-sk" style="width:72px; height:9px; margin-bottom:8px"></span><br><span class="cd-sk" style="width:60%; height:14px"></span></div>';
+    E('cdNext').innerHTML = '<span class="cd-sk" style="width:56px; height:10px"></span><span class="say"><span class="cd-sk" style="width:90%; height:14px; margin-bottom:8px"></span><span class="cd-sk" style="width:60%; height:14px"></span></span><span class="acts"><span class="cd-sk pill" style="width:150px; height:40px"></span></span>';
+    E('cdFacts').innerHTML = [0,1,2,3,4].map(function(){
+      return '<span class="cd-kv"><span class="cd-sk" style="width:44px; height:9px"></span><span class="cd-sk" style="width:90px; height:12px"></span></span>';
     }).join('');
     E('cdTimeline').hidden = true;
-    E('cdRingN').textContent = '';
-    E('pan-overview').innerHTML = '<div class="cd-ov">' + ['The ask', 'Financials', 'Roster', 'Ownership', 'Revenue split'].map(function(){
-      return '<div class="cd-ov-row"><div class="cd-ov-lbl"><span class="cd-chip" style="background:var(--color-neutral-2)"></span><span class="cd-sk" style="width:96px"></span></div>' +
-        '<div class="cd-ov-cells">' + [0,1,2].map(function(){
-          return '<div class="cd-ov-cell"><span class="cd-sk" style="width:64px; height:9px; margin-bottom:8px"></span><br><span class="cd-sk" style="width:110px; height:18px"></span></div>';
-        }).join('') + '</div></div>';
+    E('pan-overview').innerHTML = '<div class="cd-ov">' + ['span-4', 'span-2', 'span-2', 'span-2', 'span-2'].map(function(sp){
+      return '<div class="cd-card ' + sp + '"><div class="cd-card-h"><span class="cd-chip gray"></span><span class="cd-sk" style="width:96px"></span></div>' +
+        '<span class="cd-sk" style="width:80%; height:12px"></span><span class="cd-sk" style="width:55%; height:12px"></span><span class="cd-sk" style="width:65%; height:12px"></span></div>';
     }).join('') + '</div>';
   }
   if (!c) { missing(); }

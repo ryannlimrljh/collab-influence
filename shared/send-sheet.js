@@ -205,7 +205,7 @@
 
       host.innerHTML =
         '<div class="c-modal ss-modal" role="dialog" aria-modal="true" aria-labelledby="ssTitle">' +
-        '<div class="c-modal-head"><h4 id="ssTitle">' + (opts.lockCampaign ? 'Send ' + esc(state.name || 'a batch') + ' to the client' : 'Create selection list for:') + '</h4>' +
+        '<div class="c-modal-head"><h4 id="ssTitle">' + (opts.lockCampaign ? 'Create selection list' : 'Create selection list for:') + '</h4>' +
           '<button class="c-icon-btn" type="button" data-ss="close" aria-label="Close"><i class="ph ph-x"></i></button></div>' +
         '<div class="c-modal-body">' +
 
@@ -313,7 +313,7 @@
         '<div class="c-modal-foot">' +
           '<button class="c-btn c-btn-ghost c-btn-md" type="button" data-ss="cancel">Cancel</button>' +
           '<button class="c-btn c-btn-primary c-btn-md" type="button" data-ss="send">' +
-            '<i class="ph ph-paper-plane-tilt"></i> ' + (opts.lockCampaign ? 'Send ' + esc(state.name || 'batch') : 'Create selection list') + '</button>' +
+            '<i class="ph ph-paper-plane-tilt"></i> ' + 'Create selection list' + '</button>' +
         '</div></div>';
     }
 

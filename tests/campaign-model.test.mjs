@@ -224,7 +224,7 @@ test('nextUp on a lead walks ask → send → wait', () => {
   assert.equal(n.primary.action, 'ask'); assert.equal(n.secondary.action, 'won');
   n = M.nextUp({stage: 'lead', requirement: {tiktok: {mid: 1}}});
   assert.equal(n.sentence, 'Nothing sent to the client yet.');
-  assert.equal(n.primary.label, 'Send selection list'); assert.equal(n.primary.action, 'send');
+  assert.equal(n.primary.label, 'Create Selection List'); assert.equal(n.primary.action, 'send');
   n = M.nextUp({stage: 'lead', requirement: {tiktok: {mid: 1}}, batches: [{n: 1, sentAt: '2026-09-10'}]});
   assert.match(n.sentence, /Waiting on the client · sent \{date\}/);
   assert.equal(n.date, '2026-09-10');
@@ -237,10 +237,10 @@ test('nextUp in sourcing: confirm first, then send, then move on', () => {
     roster: [{inf: 'a', platform: 'tiktok', tier: 'mid', state: 'approved'}]});
   assert.equal(n.sentence, '1 approval to confirm and 1 open slot.');
   assert.equal(n.primary.label, 'Confirm availability (1)'); assert.equal(n.primary.action, 'confirm');
-  assert.equal(n.secondary.label, 'Send batch 2');
+  assert.equal(n.secondary.label, 'Create Selection List');
   n = M.nextUp({stage: 'sourcing', requirement: req, roster: []});
   assert.equal(n.sentence, '2 open slots.');
-  assert.equal(n.primary.label, 'Send batch 1'); assert.equal(n.secondary, null);
+  assert.equal(n.primary.label, 'Create Selection List'); assert.equal(n.secondary, null);
   n = M.nextUp({stage: 'sourcing', requirement: req, roster: [
     {inf: 'a', platform: 'tiktok', tier: 'mid', state: 'confirmed'},
     {inf: 'b', platform: 'tiktok', tier: 'mid', state: 'confirmed'}]});

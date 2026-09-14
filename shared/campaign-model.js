@@ -267,7 +267,6 @@
     var stage = (c && c.stage) || 'lead';
     var batches = (c && c.batches) || [];
     var last = batches.length ? batches[batches.length - 1] : null;
-    var k = batches.length + 1;
     var hasAsk = slotsOf(c).length > 0;
     var open = shortfallOf(c).reduce(function (a, s) { return a + s.want; }, 0);
     var pending = ((c && c.roster) || []).filter(function (r) { return r.state === 'approved'; }).length;
@@ -280,7 +279,7 @@
         out.primary = act('Set the ask', 'ask'); out.secondary = act('Mark as won', 'won');
       } else if (!last) {
         out.sentence = 'Nothing sent to the client yet.';
-        out.primary = act('Send selection list', 'send'); out.secondary = act('Mark as won', 'won');
+        out.primary = act('Create Selection List', 'send'); out.secondary = act('Mark as won', 'won');
       } else {
         out.sentence = 'Waiting on the client · sent {date}.'; out.date = last.sentAt || null;
         out.primary = act('Open client view', 'client'); out.secondary = act('Mark as won', 'won');
@@ -290,13 +289,13 @@
     if (stage === 'sourcing') {
       if (!hasAsk) {
         out.sentence = 'No ask yet. Set what you need before sending a batch.';
-        out.primary = act('Set the ask', 'ask'); out.secondary = act('Send batch ' + k, 'send');
+        out.primary = act('Set the ask', 'ask'); out.secondary = act('Create Selection List', 'send');
       } else if (pending) {
         out.sentence = plural(pending, 'approval', 'approvals') + ' to confirm' + (open ? ' and ' + plural(open, 'open slot', 'open slots') : '') + '.';
-        out.primary = act('Confirm availability (' + pending + ')', 'confirm'); out.secondary = act('Send batch ' + k, 'send');
+        out.primary = act('Confirm availability (' + pending + ')', 'confirm'); out.secondary = act('Create Selection List', 'send');
       } else if (open) {
         out.sentence = plural(open, 'open slot', 'open slots') + '.';
-        out.primary = act('Send batch ' + k, 'send');
+        out.primary = act('Create Selection List', 'send');
       } else {
         out.sentence = 'Line-up complete.';
         out.primary = act('Move to Drafting', 'stage:drafting');
