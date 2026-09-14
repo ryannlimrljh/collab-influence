@@ -105,37 +105,96 @@
   var CSS = [
     '.ss-scrim{position:fixed; inset:0; z-index:400; background:var(--shadow-overlay);',
     '  display:flex; align-items:center; justify-content:center;}',
-    '.ss-modal{margin:var(--spacing-16); max-width:560px; max-height:86vh; display:flex; flex-direction:column;}',
-    '.ss-modal .c-modal-body{overflow:auto;}',
-    '.ss-count{margin:0 0 var(--spacing-16); font-size:var(--text-caption-size); color:var(--color-neutral-6);}',
-    '.ss-h{margin:var(--spacing-20) 0 var(--spacing-8); font-size:var(--text-caption-size); font-weight:800; color:var(--color-neutral-9);}',
-    '.ss-h:first-of-type{margin-top:0;}',
-    '.ss-radio{display:flex; align-items:center; gap:8px; min-height:36px; font-size:var(--text-body2-size); cursor:pointer;}',
-    '.ss-indent{margin:var(--spacing-4) 0 var(--spacing-12) 24px;}',
-    '.ss-row{display:flex; gap:var(--spacing-12); flex-wrap:wrap;}',
-    '.ss-row .c-field{flex:1; min-width:160px;}',
-    '.ss-hint{margin:6px 0 0; font-size:var(--text-footnote-size); color:var(--color-neutral-6);}',
+
+    /* Chrome mirrors the campaign form's sheet exactly: a bordered head, a
+       scrolling body, a bordered foot. The two screens are the same job seen
+       from two directions and should not look like different products. */
+    '.ss-sheet{width:min(680px, calc(100vw - var(--spacing-32))); max-height:86vh;',
+    '  display:flex; flex-direction:column; background:var(--color-neutral-1);',
+    '  border-radius:var(--radius-lg); box-shadow:var(--shadow-4); overflow:hidden;}',
+    '.ss-head{position:relative; padding:var(--spacing-24) var(--spacing-24) var(--spacing-16);',
+    '  border-bottom:1px solid var(--color-neutral-3);}',
+    '.ss-head h4{margin:0; padding-right:var(--spacing-32); font-size:var(--text-h4-size); font-weight:800;}',
+    '.ss-head .sub{margin:4px 0 0; font-size:var(--text-caption-size); color:var(--color-neutral-5);}',
+    '.ss-close{position:absolute; top:var(--spacing-16); right:var(--spacing-16); width:32px; height:32px;',
+    '  border:0; background:transparent; border-radius:var(--radius-sm); color:var(--color-neutral-6);',
+    '  cursor:pointer; display:inline-flex; align-items:center; justify-content:center;}',
+    '.ss-close:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}',
+    '.ss-close:focus-visible{outline:none; box-shadow:var(--shadow-focus);}',
+    '.ss-body{padding:0 var(--spacing-24); overflow-y:auto;}',
+    '.ss-foot{display:flex; align-items:center; gap:var(--spacing-8); padding:var(--spacing-16) var(--spacing-24);',
+    '  border-top:1px solid var(--color-neutral-3); background:var(--color-neutral-1);}',
+    '.ss-foot .grow{flex:1;}',
+
+    /* A rule between sections, never a box around them - the campaign form
+       settled on the same thing for its ask summary. */
+    '.ss-sec{padding:var(--spacing-20) 0; border-top:1px solid var(--color-neutral-3);}',
+    '.ss-sec:first-child{border-top:0;}',
+    '.ss-sec-h{display:flex; align-items:baseline; gap:8px; margin:0 0 var(--spacing-12);',
+    '  font-size:11px; font-weight:700; text-transform:uppercase;',
+    '  letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}',
+    '.ss-sec-h .opt{text-transform:none; letter-spacing:0; font-weight:400;}',
+
+    /* Destination: the two choices side by side, left and right. */
+    '.ss-dest{display:grid; grid-template-columns:1fr 1fr; gap:var(--spacing-12);}',
+    '.ss-dest label{display:flex; align-items:flex-start; gap:8px; box-sizing:border-box;',
+    '  padding:var(--spacing-12); min-height:44px; cursor:pointer;',
+    '  border:1px solid var(--color-neutral-3); border-radius:var(--radius-md);',
+    '  background:var(--color-neutral-1); transition:border-color 160ms var(--ease-standard);}',
+    '.ss-dest label:hover{border-color:var(--color-neutral-5);}',
+    '.ss-dest label.is-on{border-color:var(--color-obsidian); box-shadow:inset 0 0 0 1px var(--color-obsidian);}',
+    '.ss-dest label:focus-within{box-shadow:var(--shadow-focus);}',
+    '.ss-dest input{margin-top:3px; flex:none;}',
+    '.ss-dest .t{display:block; font-size:var(--text-body2-size); font-weight:700; color:var(--color-neutral-9);}',
+    '.ss-dest .s{display:block; margin-top:2px; font-size:var(--text-footnote-size); color:var(--color-neutral-5);}',
+    '.ss-destbody{margin-top:var(--spacing-12);}',
+
+    /* Fields two up, on the campaign form's grid. */
+    '.ss-grid{display:grid; grid-template-columns:1fr 1fr; gap:var(--spacing-16) var(--spacing-12);}',
+    '.ss-grid .span2{grid-column:1 / -1;}',
+    '.ss-sheet .c-field{width:100%;}',
+    '.ss-sheet .c-field label{display:block; margin-bottom:4px; font-size:var(--text-caption-size);',
+    '  font-weight:700; color:var(--color-neutral-9);}',
+    '.ss-sheet .c-field input, .ss-sheet .c-field select{width:100%; height:40px; box-sizing:border-box;',
+    '  border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm);',
+    '  padding:0 var(--spacing-12); font:inherit; font-size:var(--text-body2-size);',
+    '  color:var(--color-neutral-9); background:var(--color-neutral-1);}',
+    '.ss-sheet .c-field input:focus, .ss-sheet .c-field select:focus{outline:none;',
+    '  border-color:var(--color-obsidian); box-shadow:var(--shadow-focus);}',
     '.ss-opt{font-weight:400; color:var(--color-neutral-5);}',
-    '.ss-ask-row{display:flex; align-items:center; gap:var(--spacing-12); min-height:44px; font-size:var(--text-caption-size);}',
-    '.ss-ask-row span{flex:1;}',
-    '.ss-ask-row input{width:72px; height:36px; text-align:center; border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); font-family:inherit;}',
-    '.ss-cov{width:100%; border-collapse:collapse; font-size:var(--text-caption-size);}',
-    '.ss-cov td{padding:6px 0; border-bottom:1px solid var(--color-neutral-2);}',
-    '.ss-cov th{text-align:left; padding:0 0 6px; font-size:var(--text-footnote-size); font-weight:400; color:var(--color-neutral-5);}',
-    '.ss-cov th.n{text-align:center; width:90px;}',
-    '.ss-cov td.n{text-align:center; font-weight:700; width:90px;}',
-    '.ss-cov td.have{color:var(--color-neutral-7);}',
-    '.ss-cov td.n input{width:56px; height:36px; text-align:center; border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); font-family:inherit; font-size:var(--text-caption-size);}',
-    '.ss-cov td.n input:focus{outline:none; border-color:var(--color-navy); box-shadow:var(--shadow-focus);}',
-    '.ss-cov td.note{text-align:right; width:110px; color:var(--color-neutral-6);}',
-    '.ss-cov tr.is-ok td.note{color:var(--color-green);}',
-    '.ss-cov tr.is-short td.note{color:#8A5A00;}',
-    '.ss-cov tr.is-none td.note{color:var(--color-red);}',
-    '.ss-cov td.note{font-style:normal;}',
-    '.ss-warn{display:flex; gap:6px; align-items:flex-start; margin:var(--spacing-8) 0 0; font-size:var(--text-footnote-size); color:#8A5A00;}',
-    '.ss-check{display:flex; align-items:center; gap:8px; min-height:44px; font-size:var(--text-caption-size); cursor:pointer;}',
+    '.ss-hint{margin:6px 0 0; font-size:var(--text-footnote-size); color:var(--color-neutral-6);}',
+
+    /* The pax table, same skeleton as the campaign form's ask lines: bordered
+       box, uppercase header strip, one hairline between rows. */
+    '.ss-lines{border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); overflow:hidden;}',
+    '.ss-line-h, .ss-line{display:grid; grid-template-columns:1fr 104px 104px 112px;',
+    '  gap:var(--spacing-8); align-items:center; padding:8px var(--spacing-12);}',
+    '.ss-line-h{font-size:11px; font-weight:700; text-transform:uppercase;',
+    '  letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);',
+    '  background:var(--color-neutral-2); border-bottom:1px solid var(--color-neutral-3);}',
+    '.ss-line{border-bottom:1px solid var(--color-neutral-2); font-size:var(--text-body2-size);}',
+    '.ss-line:last-child{border-bottom:0;}',
+    '.ss-line .band{display:inline-flex; align-items:center; gap:6px; font-weight:700; color:var(--color-neutral-9);}',
+    '.ss-line .band .cmp-dot{width:6px; height:6px; border-radius:99px; flex:none;}',
+    '.ss-line input{height:36px; width:100%; box-sizing:border-box; text-align:center;',
+    '  font:inherit; font-weight:800; border:1px solid var(--color-neutral-3);',
+    '  border-radius:var(--radius-sm); background:var(--color-neutral-1); -moz-appearance:textfield;}',
+    '.ss-line input::-webkit-outer-spin-button, .ss-line input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}',
+    '.ss-line input:focus{outline:none; border-color:var(--color-obsidian); box-shadow:var(--shadow-focus);}',
+    '.ss-line .have{text-align:center; font-weight:800; font-variant-numeric:tabular-nums; color:var(--color-neutral-7);}',
+    '.ss-line .note{text-align:right; font-size:var(--text-caption-size); color:var(--color-neutral-5);}',
+    '.ss-line.is-ok .note{color:var(--color-green);}',
+    '.ss-line.is-short .note{color:#8A5A00;}',
+    '.ss-line.is-none .note{color:var(--color-red);}',
+    '.ss-th-n{text-align:center;}',
+
+    '.ss-warn{display:flex; gap:6px; align-items:flex-start; margin:var(--spacing-12) 0 0;',
+    '  font-size:var(--text-footnote-size); color:#8A5A00;}',
+    '.ss-check{display:flex; align-items:center; gap:8px; min-height:44px; cursor:pointer;',
+    '  font-size:var(--text-caption-size); color:var(--color-neutral-9);}',
     '.ss-err{margin:var(--spacing-12) 0 0; color:var(--color-red); font-size:var(--text-caption-size);}',
-    '.ss-to{margin:0 0 var(--spacing-8); font-size:var(--text-body2-size); font-weight:700; color:var(--color-neutral-9);}'
+    '@media (max-width:600px){ .ss-dest, .ss-grid{grid-template-columns:1fr;}',
+    '  .ss-line-h, .ss-line{grid-template-columns:1fr 64px 64px 84px;} }'
   ].join('\n');
 
   function injectCSS() {
@@ -203,117 +262,131 @@
       var sum = summary(state.ask, state.infIds, opts.people);
       var c = destinationCampaign();
 
+      function stillNeeds() {
+        if (!c) return '';
+        if (!model().derivedPax(c)) {
+          return 'No pax set on this campaign yet — set them below and they save to it.';
+        }
+        var rows = askRows();
+        return rows.length
+          ? 'Still needs to fill: ' + rows.map(function (r) {
+              return esc(PLAT_LABEL[r.platform] || r.platform) + ' ' +
+                esc(window.tiers.tierByKey(r.tier).name) + ' ×' + r.want;
+            }).join(', ')
+          : 'Every slot on this campaign is already filled.';
+      }
+
+      function lineHtml(r) {
+        /* A band you have asked nothing of says so, rather than claiming to
+           be covered — you are simply not asking for it. */
+        var cls = !r.want ? '' : (r.have === 0 ? 'is-none' : (r.gap > 0 ? 'is-short' : 'is-ok'));
+        var note = !r.want ? 'not asked for'
+                 : (r.have === 0 ? 'none to pick from'
+                 : (r.gap > 0 ? 'short ' + r.gap : 'enough'));
+        var tier = window.tiers.tierByKey(r.tier);
+        return '<div class="ss-line ' + cls + '">' +
+          '<span class="band"><span class="cmp-dot" style="background:' + tier.dot + '"></span>' +
+            esc(PLAT_LABEL[r.platform] || r.platform) + ' · ' + esc(tier.name) + '</span>' +
+          '<input type="number" min="0" inputmode="numeric" value="' + r.want +
+            '" data-ss="ask" data-plat="' + esc(r.platform) + '" data-tier="' + esc(r.tier) +
+            '" aria-label="Pax to pick, ' + esc(PLAT_LABEL[r.platform] + ' ' + tier.name) + '" />' +
+          '<span class="have">' + r.have + '</span>' +
+          '<span class="note">' + note + '</span></div>';
+      }
+
       host.innerHTML =
-        '<div class="c-modal ss-modal" role="dialog" aria-modal="true" aria-labelledby="ssTitle">' +
-        '<div class="c-modal-head"><h4 id="ssTitle">' + (opts.lockCampaign ? 'Create selection list' : 'Create selection list for:') + '</h4>' +
-          '<button class="c-icon-btn" type="button" data-ss="close" aria-label="Close"><i class="ph ph-x"></i></button></div>' +
-        '<div class="c-modal-body">' +
+        '<div class="ss-sheet" role="dialog" aria-modal="true" aria-labelledby="ssTitle">' +
 
-          '<p class="ss-count">' + sum.candidates +
-            (sum.candidates === 1 ? ' profile' : ' profiles') + ' · ' +
-            sum.channels + ' channel accounts</p>' +
-
-          (opts.lockCampaign
-            ? '<p class="ss-to"><span class="ss-opt">To</span> ' + esc(c ? c.name : '') +
-              (c && model().derivedPax(c)
-                ? ' <span class="ss-opt">· still needs ' + (askRows().length
-                    ? askRows().map(function (r) {
-                        return esc(PLAT_LABEL[r.platform] || r.platform) + ' ' +
-                          esc(window.tiers.tierByKey(r.tier).name) + ' ×' + r.want;
-                      }).join(', ')
-                    : 'nothing — every slot is filled') + '</span>'
-                : ' <span class="ss-opt">· no ask set yet</span>') + '</p>'
-            : '') +
-          (opts.lockCampaign ? '' :
-                    '<label class="ss-radio"><input type="radio" name="ssMode" value="existing"' +
-            (state.mode === 'existing' ? ' checked' : '') + ' /> Existing campaign</label>' +
-          (state.mode === 'existing'
-            ? '<div class="c-field ss-indent"><select data-ss="campaign">' +
-              opts.campaigns.map(function (x) {
-                return '<option value="' + esc(x.id) + '"' +
-                  (x.id === state.campaignId ? ' selected' : '') + '>' + esc(x.name) +
-                  (x.brand ? ' · ' + esc(x.brand) : '') +
-                  (x.stage === 'lead' ? ' (lead)' : '') + '</option>';
-              }).join('') + '</select>' +
-              (c && model().derivedPax(c)
-                ? '<p class="ss-hint">Still needs to fill: ' + (askRows().length
-                    ? askRows().map(function (r) {
-                        return esc(PLAT_LABEL[r.platform] || r.platform) + ' ' +
-                          esc(window.tiers.tierByKey(r.tier).name) + ' ×' + r.want;
-                      }).join(', ')
-                    : 'nothing — this campaign is already filled') + '</p>'
-                : '<p class="ss-hint">No pax set on this campaign yet. Set them below and they will be saved to it.</p>') +
-              '</div>'
-            : '') +
-
-          '<label class="ss-radio"><input type="radio" name="ssMode" value="lead"' +
-            (state.mode === 'lead' ? ' checked' : '') + ' /> New campaign (lead)</label>' +
-          (state.mode === 'lead'
-            ? '<div class="ss-indent ss-row">' +
-              '<div class="c-field"><label for="ssLeadName">Name</label>' +
-                '<input id="ssLeadName" data-ss="leadName" value="' + esc(state.leadName) +
-                '" placeholder="e.g. Raya 2027 pitch" /></div>' +
-              '<div class="c-field"><label for="ssLeadBrand">Brand</label>' +
-                '<input id="ssLeadBrand" data-ss="leadBrand" value="' + esc(state.leadBrand) +
-                '" placeholder="e.g. Shopee" /></div>' +
-              '</div><p class="ss-hint ss-indent">Creates a campaign at stage Lead. It stays out of the active counts until you move it to Sourcing.</p>'
-            : '')) +
-
-          /* One table, not two. An editable column and a read-only one used
-             to sit in separate sections with identical row labels, which
-             read as the same thing said twice. Here each row is one band:
-             the box is what you set, the count beside it is what you ticked. */
-          '<h5 class="ss-h">Pax to select <span class="ss-opt">per platform and tier</span></h5>' +
-          (cov.length
-            ? '<table class="ss-cov"><thead><tr><th></th>' +
-              '<th class="n">Pax to pick</th><th class="n">Profiles sent</th><th></th></tr></thead><tbody>' +
-              cov.map(function (r) {
-                /* A band you have not asked for says nothing — it is neither
-                   covered nor short, you simply are not asking. */
-                var cls = !r.want ? '' : (r.have === 0 ? 'is-none' : (r.gap > 0 ? 'is-short' : 'is-ok'));
-                var note = !r.want ? 'not asked for'
-                         : (r.have === 0 ? 'none to pick from'
-                         : (r.gap > 0 ? 'short ' + r.gap : 'enough'));
-                var tier = window.tiers.tierByKey(r.tier);
-                return '<tr class="' + cls + '"><td>' +
-                  esc(PLAT_LABEL[r.platform] || r.platform) + ' · ' + esc(tier.name) + '</td>' +
-                  '<td class="n"><input type="number" min="0" inputmode="numeric" value="' + r.want +
-                    '" data-ss="ask" data-plat="' + esc(r.platform) + '" data-tier="' + esc(r.tier) +
-                    '" aria-label="Pax to pick, ' + esc(PLAT_LABEL[r.platform] + ' ' + tier.name) +
-                    '" /></td>' +
-                  '<td class="n have">' + r.have + '</td>' +
-                  '<td class="note">' + note + '</td></tr>';
-              }).join('') + '</tbody></table>' +
-              (sum.shortBands
-                ? '<p class="ss-warn"><i class="ph-fill ph-warning"></i> ' + sum.shortBands +
-                  (sum.shortBands === 1 ? ' band has' : ' bands have') +
-                  ' fewer profiles than you are asking the client to pick. You can still send — ' +
-                  'they will see the number and not be able to reach it.</p>'
-                : '')
-            : '<p class="ss-hint">Tick some profiles first and their platforms and tiers will appear here.</p>') +
-
-          '<h5 class="ss-h">Link</h5>' +
-          '<div class="ss-row">' +
-            '<div class="c-field"><label for="ssName">Batch name</label>' +
-              '<input id="ssName" data-ss="name" value="' + esc(state.name) + '" /></div>' +
-            '<div class="c-field"><label for="ssExpiry">Expires</label>' +
-              '<select id="ssExpiry" data-ss="expiryDays">' + EXPIRY_OPTIONS.map(function (o) {
-                return '<option value="' + o.days + '"' +
-                  (o.days === state.expiryDays ? ' selected' : '') + '>' + o.label + '</option>';
-              }).join('') + '</select></div>' +
-          '</div>' +
-          '<div class="c-field"><label for="ssRecipient">Client contact <span class="ss-opt">(optional)</span></label>' +
-            '<input id="ssRecipient" data-ss="recipient" value="' + esc(state.recipient) +
-            '" placeholder="Name or email — recorded against their answers" /></div>' +
-          '<label class="ss-check"><input type="checkbox" data-ss="requireName"' +
-            (state.requireName ? ' checked' : '') + ' /> Ask for a name before responding</label>' +
-
-          '<p class="ss-err" data-ss="err" hidden></p>' +
+        '<div class="ss-head">' +
+          '<button class="ss-close" type="button" data-ss="close" aria-label="Close"><i class="ph ph-x"></i></button>' +
+          '<h4 id="ssTitle">Create selection list</h4>' +
+          '<p class="sub">' + sum.candidates + (sum.candidates === 1 ? ' profile' : ' profiles') +
+            ' · ' + sum.channels + ' channel accounts' +
+            (opts.lockCampaign && c ? ' · for ' + esc(c.name) : '') + '</p>' +
         '</div>' +
-        '<div class="c-modal-foot">' +
+
+        '<div class="ss-body">' +
+
+          (opts.lockCampaign ? '' :
+            '<section class="ss-sec">' +
+              '<h5 class="ss-sec-h">Send to</h5>' +
+              '<div class="ss-dest">' +
+                '<label class="' + (state.mode === 'existing' ? 'is-on' : '') + '">' +
+                  '<input type="radio" name="ssMode" value="existing"' +
+                    (state.mode === 'existing' ? ' checked' : '') + ' />' +
+                  '<span><span class="t">Existing campaign</span>' +
+                  '<span class="s">Adds a list to a campaign you already have.</span></span></label>' +
+                '<label class="' + (state.mode === 'lead' ? 'is-on' : '') + '">' +
+                  '<input type="radio" name="ssMode" value="lead"' +
+                    (state.mode === 'lead' ? ' checked' : '') + ' />' +
+                  '<span><span class="t">New campaign (lead)</span>' +
+                  '<span class="s">For work you have not won yet.</span></span></label>' +
+              '</div>' +
+              '<div class="ss-destbody">' + (state.mode === 'existing'
+                ? '<div class="c-field"><label for="ssCampaign">Campaign</label>' +
+                  '<select id="ssCampaign" data-ss="campaign">' + opts.campaigns.map(function (x) {
+                    return '<option value="' + esc(x.id) + '"' +
+                      (x.id === state.campaignId ? ' selected' : '') + '>' + esc(x.name) +
+                      (x.brand ? ' · ' + esc(x.brand) : '') +
+                      (x.stage === 'lead' ? ' (lead)' : '') + '</option>';
+                  }).join('') + '</select>' +
+                  '<p class="ss-hint">' + stillNeeds() + '</p></div>'
+                : '<div class="ss-grid">' +
+                  '<div class="c-field"><label for="ssLeadName">Campaign name</label>' +
+                    '<input id="ssLeadName" data-ss="leadName" value="' + esc(state.leadName) +
+                    '" placeholder="e.g. Raya 2027 pitch" /></div>' +
+                  '<div class="c-field"><label for="ssLeadBrand">Brand <span class="ss-opt">(optional)</span></label>' +
+                    '<input id="ssLeadBrand" data-ss="leadBrand" value="' + esc(state.leadBrand) +
+                    '" placeholder="e.g. Shopee" /></div>' +
+                  '<p class="ss-hint span2">Starts at stage Lead and stays out of the active counts ' +
+                  'until you mark it won.</p></div>') +
+              '</div>' +
+            '</section>') +
+
+          '<section class="ss-sec">' +
+            '<h5 class="ss-sec-h">Pax to select <span class="opt">per platform and tier</span></h5>' +
+            (cov.length
+              ? '<div class="ss-lines">' +
+                  '<div class="ss-line-h"><span>Channel · Tier</span>' +
+                    '<span class="ss-th-n">Pax to pick</span>' +
+                    '<span class="ss-th-n">Profiles sent</span><span></span></div>' +
+                  cov.map(lineHtml).join('') +
+                '</div>' +
+                (sum.shortBands
+                  ? '<p class="ss-warn"><i class="ph-fill ph-warning"></i> ' + sum.shortBands +
+                    (sum.shortBands === 1 ? ' band has' : ' bands have') +
+                    ' fewer profiles than you are asking the client to pick. You can still send — ' +
+                    'they will see the number and not be able to reach it.</p>'
+                  : '')
+              : '<p class="ss-hint">Tick some profiles first and their channels and tiers appear here.</p>') +
+          '</section>' +
+
+          '<section class="ss-sec">' +
+            '<h5 class="ss-sec-h">The link</h5>' +
+            '<div class="ss-grid">' +
+              '<div class="c-field"><label for="ssName">List name</label>' +
+                '<input id="ssName" data-ss="name" value="' + esc(state.name) + '" /></div>' +
+              '<div class="c-field"><label for="ssExpiry">Expires</label>' +
+                '<select id="ssExpiry" data-ss="expiryDays">' + EXPIRY_OPTIONS.map(function (o) {
+                  return '<option value="' + o.days + '"' +
+                    (o.days === state.expiryDays ? ' selected' : '') + '>' + o.label + '</option>';
+                }).join('') + '</select></div>' +
+              '<div class="c-field span2"><label for="ssRecipient">Client contact ' +
+                '<span class="ss-opt">(optional)</span></label>' +
+                '<input id="ssRecipient" data-ss="recipient" value="' + esc(state.recipient) +
+                '" placeholder="Name or email — recorded against their answers" /></div>' +
+            '</div>' +
+            '<label class="ss-check"><input type="checkbox" data-ss="requireName"' +
+              (state.requireName ? ' checked' : '') + ' /> Ask for a name before responding</label>' +
+            '<p class="ss-err" data-ss="err" hidden></p>' +
+          '</section>' +
+
+        '</div>' +
+
+        '<div class="ss-foot"><span class="grow"></span>' +
           '<button class="c-btn c-btn-ghost c-btn-md" type="button" data-ss="cancel">Cancel</button>' +
           '<button class="c-btn c-btn-primary c-btn-md" type="button" data-ss="send">' +
-            '<i class="ph ph-paper-plane-tilt"></i> ' + 'Create selection list' + '</button>' +
+            '<i class="ph ph-paper-plane-tilt"></i> Create selection list</button>' +
         '</div></div>';
     }
 
