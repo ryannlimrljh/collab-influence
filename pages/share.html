@@ -237,8 +237,17 @@
     '</div>' +
     '<main id="shList"></main>';
 
+  /* What THIS client was asked for. A batch records the ask it was sent
+     with, so batch 2 shows the two slots still outstanding rather than the
+     campaign's running total of five. Older batches predate the field and
+     fall back to the campaign's own requirement. */
+  function askSlots() {
+    var own = M.slotsOf({requirement: batch.ask || {}});
+    return own.length ? own : M.slotsOf(campaign);
+  }
+
   /* ── The contract. Counts what has been approved, per channel and tier,
-     against the campaign's ask. */
+     against that ask. */
   function chosen() {
     var out = {};
     (batch.picks || []).forEach(function (p) {
@@ -257,7 +266,7 @@
   }
 
   function renderContract() {
-    var got = chosen(), slots = M.slotsOf(campaign), total = 0, want = 0;
+    var got = chosen(), slots = askSlots(), total = 0, want = 0;
     var html = slots.map(function (s) {
       var n = (got[s.platform] && got[s.platform][s.tier]) || 0;
       total += n; want += s.want;
@@ -342,7 +351,7 @@
   /* ── Filters and grouping */
   var filter = {q: '', plat: 'all', flat: false};
 
-  var platsInAsk = M.slotsOf(campaign).map(function (s) { return s.platform; })
+  var platsInAsk = askSlots().map(function (s) { return s.platform; })
     .filter(function (p, i, a) { return a.indexOf(p) === i; });
   /* Fall back to whatever the candidates are actually on, so a campaign with
      no ask still gets usable filters. */
@@ -377,7 +386,7 @@
   /* Which opening in the ask this creator is being put forward for. Grouping
      by it lets the client read the list the same way the ask is written. */
   function slotFor(rec){
-    var slots = M.slotsOf(campaign), hit = null;
+    var slots = askSlots(), hit = null;
     M.channelsOf(rec).forEach(function (ch) {
       if (hit) return;
       var t = window.tiers.tierOf(ch.followers);

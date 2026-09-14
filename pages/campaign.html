@@ -850,7 +850,8 @@
       '<div class="cd-batch-head" data-batch-toggle="' + b.n + '"><div><span class="eyebrow">Batch ' + b.n + ' · ' + esc(b.name) + '</span>' +
         '<span class="sub">Sent ' + esc(S.fmtDate(b.sentAt, true)) + ' · ' + b.picks.length + (b.picks.length === 1 ? ' influencer' : ' influencers') + '</span></div>' +
         '<div class="acts"><button class="c-btn c-btn-ghost c-btn-sm" type="button" data-batch-toggle="' + b.n + '">' + (open ? 'Hide <i class="ph ph-caret-up"></i>' : 'Show <i class="ph ph-caret-down"></i>') + '</button>' +
-        '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-batch-link="' + b.n + '"><i class="ph ph-arrow-square-out"></i> Open link</button></div></div>' +
+        '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon" type="button" data-batch-copy="' + b.n + '" aria-label="Copy the client link for batch ' + b.n + '" title="Copy client link"><i class="ph ph-link"></i></button>' +
+        '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-batch-link="' + b.n + '"><i class="ph ph-arrow-square-out"></i> Client view</button></div></div>' +
       '<div class="cd-batch-body"' + (open ? '' : ' hidden') + '>' + body + '</div></div>';
   }
   /* Pax-to-select boxes: one per platform × tier actually present in
@@ -1018,6 +1019,17 @@
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeMenu(); });
   window.addEventListener('scroll', closeMenu, true);
 
+  /* The client-facing link for a batch. Absolute when it is going to be
+     pasted into an email, relative when we are just opening it ourselves. */
+  function shareURL(n, absolute){
+    var rel = 'share.html?c=' + encodeURIComponent(c.id) + '&b=' + encodeURIComponent(n);
+    if (!absolute) return rel;
+    return location.origin + location.pathname.replace(/[^/]*$/, '') + rel;
+  }
+  function batchOf(n){
+    return (c.batches || []).filter(function(b){ return String(b.n) === String(n); })[0] || null;
+  }
+
   /* ── KOL panel interactions. */
   E('pan-kol').addEventListener('click', function(e){
     if (e.target.closest('#cdAddManual')) return openPicker('roster');
@@ -1033,12 +1045,24 @@
               : ' removed from the campaign.'), 'danger');
       return;
     }
+    /* The client-facing page is share.html. This used to copy a made-up
+       /preview/ path and say the page was a later build; it exists now. */
+    var copy = e.target.closest('[data-batch-copy]');
+    if (copy) {
+      e.stopPropagation();
+      var b = batchOf(copy.dataset.batchCopy);
+      navigator.clipboard.writeText(shareURL(copy.dataset.batchCopy, true))
+        .then(function(){
+          toast('Client link copied' +
+            (b && b.expiresAt ? ' — expires ' + S.fmtDate(b.expiresAt, true) : '') + '.');
+        })
+        .catch(function(){ toast('Could not copy. Use Client view and copy from the address bar.', 'danger'); });
+      return;
+    }
     var link = e.target.closest('[data-batch-link]');
     if (link) {
       e.stopPropagation();
-      var url = location.origin + '/preview/' + c.id + '/b' + link.dataset.batchLink;
-      try { navigator.clipboard.writeText(url); } catch (x) {}
-      toast('Preview link copied. The client-facing page is a later build.', 'info');
+      window.open(shareURL(link.dataset.batchLink, false), '_blank', 'noopener');
       return;
     }
     var chip = e.target.closest('[data-batch-filter]');
