@@ -12,6 +12,19 @@
 
 ---
 
+## Amendments made during execution
+
+Recorded here because later tasks build on them.
+
+| Change | Why |
+|---|---|
+| `campaignModel.pickStatus(pick)` added | The campaign page still shows one row per creator, so the per-channel statuses need a rollup. Most positive wins: `selected > kiv > rejected > unavailable > none`. |
+| `campaignStore.setCreatorStatus(id, n, inf, status)` added | The page's per-creator status control fans an answer out to every channel. The share page answers channels individually via `setChannelStatus`. |
+| `campaignStore.updatePick(id, n, inf, patch)` kept | Task 5 deleted it, orphaning three callers. It returns for remarks only and strips `status`/`channels` from the patch. |
+| `migrate()` passes records through untouched when `people` is empty | `campaigns.html` reads the store but has no influencer data. Migrating without it emptied every roster and lost every answer. Load order must not decide whether data survives. |
+| `tiers.js` + `campaign-model.js` loaded on `campaigns.html` and `influencers-v2.html` | Both read the store, whose `merged()` now calls `campaignModel.migrate()`. Without the model they throw. |
+| Cache-busters bumped: `campaign-store.js?v=4`, `campaign-model.js?v=2`, `tiers.js?v=1` | These pages cache hard — HANDOVER.md warns about it. A changed file with an unchanged `?v=` serves stale. **Bump the version of every shared file you edit.** |
+
 ## File structure
 
 **Create**
