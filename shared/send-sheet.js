@@ -93,7 +93,12 @@
     '.ss-ask-row input{width:72px; height:36px; text-align:center; border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); font-family:inherit;}',
     '.ss-cov{width:100%; border-collapse:collapse; font-size:var(--text-caption-size);}',
     '.ss-cov td{padding:6px 0; border-bottom:1px solid var(--color-neutral-2);}',
-    '.ss-cov td.n{text-align:right; font-weight:700; width:72px;}',
+    '.ss-cov th{text-align:left; padding:0 0 6px; font-size:var(--text-footnote-size); font-weight:400; color:var(--color-neutral-5);}',
+    '.ss-cov th.n{text-align:center; width:90px;}',
+    '.ss-cov td.n{text-align:center; font-weight:700; width:90px;}',
+    '.ss-cov td.have{color:var(--color-neutral-7);}',
+    '.ss-cov td.n input{width:56px; height:36px; text-align:center; border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); font-family:inherit; font-size:var(--text-caption-size);}',
+    '.ss-cov td.n input:focus{outline:none; border-color:var(--color-navy); box-shadow:var(--shadow-focus);}',
     '.ss-cov td.note{text-align:right; width:110px; color:var(--color-neutral-6);}',
     '.ss-cov tr.is-ok td.note{color:var(--color-green);}',
     '.ss-cov tr.is-short td.note{color:#8A5A00;}',
@@ -210,39 +215,36 @@
               '</div><p class="ss-hint ss-indent">Creates a campaign at stage Lead. It stays out of the active counts until you move it to Sourcing.</p>'
             : '') +
 
+          /* One table, not two. An editable column and a read-only one used
+             to sit in separate sections with identical row labels, which
+             read as the same thing said twice. Here each row is one band:
+             the box is what you set, the count beside it is what you ticked. */
           '<h5 class="ss-h">Pax to select <span class="ss-opt">per platform and tier</span></h5>' +
-          '<div class="ss-ask">' + (askRows().length
-            ? askRows().map(function (r) {
-                return '<div class="ss-ask-row"><span>' +
-                  esc(PLAT_LABEL[r.platform] || r.platform) + ' · ' +
-                  esc(window.tiers.tierByKey(r.tier).name) + '</span>' +
-                  '<input type="number" min="0" inputmode="numeric" value="' + r.want +
-                  '" data-ss="ask" data-plat="' + esc(r.platform) + '" data-tier="' +
-                  esc(r.tier) + '" aria-label="' + esc(PLAT_LABEL[r.platform] + ' ' +
-                  window.tiers.tierByKey(r.tier).name + ' wanted') + '" /></div>';
-              }).join('')
-            : '<p class="ss-hint">No pax set, so the client sees the list with no number to hit. Add a campaign ask, or type numbers above.</p>') +
-          '</div>' +
-
-          '<h5 class="ss-h">Profiles you are sending <span class="ss-opt">against those numbers</span></h5>' +
           (cov.length
-            ? '<table class="ss-cov"><tbody>' + cov.map(function (r) {
+            ? '<table class="ss-cov"><thead><tr><th></th>' +
+              '<th class="n">Client picks</th><th class="n">You are sending</th><th></th></tr></thead><tbody>' +
+              cov.map(function (r) {
                 var cls = r.have === 0 ? 'is-none' : (r.gap > 0 ? 'is-short' : 'is-ok');
                 var note = r.have === 0 ? 'none to pick from'
                          : (r.gap > 0 ? 'short ' + r.gap : 'enough');
+                var tier = window.tiers.tierByKey(r.tier);
                 return '<tr class="' + cls + '"><td>' +
-                  esc(PLAT_LABEL[r.platform] || r.platform) + ' · ' +
-                  esc(window.tiers.tierByKey(r.tier).name) + '</td>' +
-                  '<td class="n">' + r.have + ' / ' + r.want + '</td>' +
+                  esc(PLAT_LABEL[r.platform] || r.platform) + ' · ' + esc(tier.name) + '</td>' +
+                  '<td class="n"><input type="number" min="0" inputmode="numeric" value="' + r.want +
+                    '" data-ss="ask" data-plat="' + esc(r.platform) + '" data-tier="' + esc(r.tier) +
+                    '" aria-label="How many ' + esc(PLAT_LABEL[r.platform] + ' ' + tier.name) +
+                    ' profiles the client should pick" /></td>' +
+                  '<td class="n have">' + r.have + '</td>' +
                   '<td class="note">' + note + '</td></tr>';
               }).join('') + '</tbody></table>' +
               (sum.shortBands
                 ? '<p class="ss-warn"><i class="ph-fill ph-warning"></i> ' + sum.shortBands +
                   (sum.shortBands === 1 ? ' band has' : ' bands have') +
-                  ' fewer profiles than the pax you asked for. You can still send — ' +
-                  'the client will see the number and not be able to reach it.</p>'
+                  ' fewer profiles than you are asking the client to pick. You can still send — ' +
+                  'they will see the number and not be able to reach it.</p>'
                 : '')
-            : '<p class="ss-hint">Set the pax above and this checks whether your picks can cover them.</p>') +
+            : '<p class="ss-hint">This campaign has no pax set. Pick a campaign that has some, ' +
+              'or send the list with no number for the client to hit.</p>') +
 
           '<h5 class="ss-h">Link</h5>' +
           '<div class="ss-row">' +
