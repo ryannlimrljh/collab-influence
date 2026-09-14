@@ -114,6 +114,31 @@
 .cf-dp-panel.is-up{top:auto; bottom:calc(100% + 4px);}\
 .cf-dp-panel[hidden]{display:none;}\
 .cf-dp .c-icon-btn{width:32px; height:32px;}\
+.cf-dd{position:relative; width:100%; min-width:0; display:block; gap:0;}\
+.cf-dd select{display:none;}\
+.cf-dd .input-wrap{position:relative; display:flex; align-items:center;}\
+.cf-dd .c-dropdown-input{width:100%; min-width:0; height:40px; border-radius:var(--radius-sm); border:1px solid var(--color-neutral-3); padding:0 36px 0 var(--spacing-12); font-size:var(--text-body2-size); font-family:inherit; color:var(--color-neutral-9); background:var(--color-neutral-1); text-overflow:ellipsis;}\
+.cf-dd .c-dropdown-input:focus{outline:none; border:2px solid var(--color-obsidian); padding:0 35px 0 11px;}\
+.cf-dd.open .c-dropdown-input{padding:0 35px 0 11px;}\
+.cf-dd .icon-trailing{position:absolute; right:var(--spacing-12); display:flex; pointer-events:none; color:var(--color-neutral-5); font-size:var(--icon-sm);}\
+.cf-dd .c-dropdown-panel{position:absolute; left:0; right:0; top:calc(100% + 4px); margin-top:0; z-index:7; width:auto;}\
+.cf-dd .c-dropdown-panel.is-up{top:auto; bottom:calc(100% + 4px);}\
+.cf-dd .c-dropdown-panel[hidden]{display:none;}\
+.cf-dd .c-dropdown-row.hover{background:var(--color-neutral-2);}\
+.cf-dd .c-dropdown-row-label .d{display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5);}\
+.cf-dd .c-dropdown-add{border-top:1px solid var(--color-neutral-2); margin-top:4px; padding-top:10px;}\
+.cf-dd .c-dropdown-add .c-dropdown-row-label{font-weight:700; display:inline-flex; align-items:center; gap:6px;}\
+.cf-dd .c-dropdown-new{display:flex; gap:var(--spacing-8); padding:var(--spacing-8) var(--spacing-12); border-top:1px solid var(--color-neutral-2);}\
+.cf-dd .c-dropdown-new input{flex:1; min-width:0; height:36px; border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); padding:0 10px; font:inherit; font-size:var(--text-body2-size);}\
+.cf-dd .c-dropdown-new input:focus{outline:none; border-color:var(--color-obsidian);}\
+.cf-line .cf-dd .c-dropdown-input{height:36px;}\
+.cf-line .cf-dd.is-empty .c-dropdown-input{color:var(--color-neutral-5);}\
+.cf-io{display:flex; align-items:stretch;}\
+.cf-io .pre{display:flex; align-items:center; padding:0 10px; height:40px; border:1px solid var(--color-neutral-3); border-right:0; border-radius:var(--radius-sm) 0 0 var(--radius-sm); background:var(--color-neutral-2); font-size:var(--text-body2-size); font-weight:700; color:var(--color-neutral-6); white-space:nowrap; font-variant-numeric:tabular-nums;}\
+.cf-io input{flex:1; min-width:0; border-radius:0 var(--radius-sm) var(--radius-sm) 0 !important; font-variant-numeric:tabular-nums; font-weight:700;}\
+.cf-io-hint{display:flex; align-items:center; gap:6px; margin-top:6px; font-size:var(--text-caption-size); color:var(--color-neutral-5);}\
+.cf-io-hint button{border:0; background:transparent; padding:0; font:inherit; font-size:inherit; font-weight:700; color:var(--color-neutral-9); text-decoration:underline; text-underline-offset:2px; cursor:pointer;}\
+.cf-money{font-variant-numeric:tabular-nums;}\
 @media (max-width:640px){ .cf-grid{grid-template-columns:1fr;} .cf-line-h, .cf-line{grid-template-columns:1fr 1fr 80px 32px;} .cf-stepbtn .lbl{display:none;} .cf-stepbtn.is-on .lbl{display:inline;} }';
 
   var HTML = '\
@@ -166,15 +191,16 @@
         <p class="cf-intro">The commercial side. Leave anything you do not have yet.</p>\
         <div class="cf-grid">\
           <div class="c-field"><label for="cf-io">Campaign IO</label>\
-            <input id="cf-io" placeholder="KULT-2026-00031" /></div>\
+            <div class="cf-io"><span class="pre" id="cfIoPre">KULT-2026-</span><input id="cf-io" inputmode="numeric" placeholder="0001" autocomplete="off" /></div>\
+            <div class="cf-io-hint" id="cfIoHint" hidden></div></div>\
           <div class="c-field"><label for="cf-stage">Stage</label>\
             <select id="cf-stage"></select></div>\
           <div class="c-field"><label for="cf-quote">Quote (RM)</label>\
-            <input id="cf-quote" inputmode="numeric" placeholder="e.g. 12,000" /></div>\
+            <input id="cf-quote" class="cf-money" inputmode="numeric" placeholder="e.g. 12,000" /></div>\
           <div class="c-field"><label for="cf-cost">Cost (RM)</label>\
-            <input id="cf-cost" inputmode="numeric" placeholder="e.g. 7,500" /></div>\
+            <input id="cf-cost" class="cf-money" inputmode="numeric" placeholder="e.g. 7,500" /></div>\
           <div class="c-field"><label for="cf-sales">Salesperson<span class="opt">(optional)</span></label>\
-            <input id="cf-sales" placeholder="e.g. Amir Rahman" /></div>\
+            <select id="cf-sales"></select></div>\
           <div class="c-field"><label for="cf-overseer">Overseer</label>\
             <select id="cf-overseer"></select></div>\
           <div class="c-field"><label for="cf-picpct">PIC %</label>\
@@ -231,6 +257,175 @@
         (is ? '<i class="ph ph-check"></i>' : '') + '</span>' + esc(l) + '</label>';
     }).join('');
   }
+  /* Money fields carry thousands separators as you type; read() strips
+     them. Digits only — the decimals nobody enters here are not worth
+     the caret gymnastics. */
+  function fmtMoney(v) {
+    var d = String(v == null ? '' : v).replace(/[^\d]/g, '');
+    return d ? d.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '';
+  }
+  function bindMoney(inp) {
+    inp.addEventListener('input', function () {
+      var atEnd = inp.selectionStart === inp.value.length;
+      inp.value = fmtMoney(inp.value);
+      if (atEnd) inp.setSelectionRange(inp.value.length, inp.value.length);
+    });
+  }
+
+  /* Campaign IO is KULT-<year>-<running number>. The prefix is fixed from
+     the start date's year (or this year); the box takes the number and
+     pads it to four digits. An IO that does not fit the pattern is kept
+     whole rather than mangled. */
+  var IO_RE = /^KULT-(\d{4})-(.+)$/;
+  var ioYear = null;
+  function ioPrefix() {
+    var y = ioYear || (F('cf-start').value || '').slice(0, 4) || String(new Date().getFullYear());
+    return 'KULT-' + y + '-';
+  }
+  function ioNext(year) {
+    var max = 0;
+    S.merged().forEach(function (c) {
+      var m = IO_RE.exec(c.io || ''); if (m && m[1] === year && /^\d+$/.test(m[2])) max = Math.max(max, Number(m[2]));
+    });
+    return String(max + 1).replace(/^(\d{1,3})$/, function (n) { return ('0000' + n).slice(-4); });
+  }
+  function ioRead() {
+    var n = F('cf-io').value.trim();
+    if (!n) return '';
+    if (/^KULT-/i.test(n)) return n.toUpperCase();
+    if (/^\d+$/.test(n)) return ioPrefix() + (n.length < 4 ? ('0000' + n).slice(-4) : n);
+    return ioPrefix() + n;
+  }
+  function ioFill(io) {
+    var m = IO_RE.exec(io || '');
+    ioYear = m ? m[1] : null;
+    F('cf-io').value = m ? m[2] : (io || '');
+    paintIo();
+  }
+  function paintIo() {
+    var pre = ioPrefix(), year = pre.slice(5, 9), next = ioNext(year);
+    F('cfIoPre').textContent = pre;
+    F('cf-io').placeholder = next;
+    var hint = F('cfIoHint');
+    if (F('cf-io').value.trim()) { hint.hidden = true; return; }
+    hint.hidden = false;
+    hint.innerHTML = 'Next in ' + year + ': <button type="button" data-io-next="' + next + '">' + pre + next + '</button>';
+  }
+  F('cfIoHint').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-io-next]'); if (!b) return;
+    F('cf-io').value = b.dataset.ioNext; paintIo(); F('cf-io').focus();
+  });
+  F('cf-io').addEventListener('input', function () { if (!F('cf-io').value.trim()) ioYear = null; paintIo(); });
+  F('cf-start').addEventListener('change', function () { if (!F('cf-io').value.trim()) ioYear = null; paintIo(); });
+  bindMoney(F('cf-quote')); bindMoney(F('cf-cost'));
+
+  /* ── DLS dropdown over a native select. The select stays the value
+     holder — every F('cf-…').value read and every change listener keeps
+     working — and the trigger/panel is the c-dropdown-field recipe. Rows
+     are read off the select's options on open, so options disabled or
+     added later show as such. `addNew` puts a last row that turns into
+     an inline name box. */
+  var DD_OPEN = null;
+  function closeDD() {
+    if (!DD_OPEN) return;
+    DD_OPEN.classList.remove('open');
+    DD_OPEN.querySelector('.c-dropdown-panel').hidden = true;
+    DD_OPEN = null;
+  }
+  function ddSync(sel) {
+    var field = sel.closest('.cf-dd'); if (!field) return;
+    var input = field.querySelector('.c-dropdown-input');
+    var o = sel.options[sel.selectedIndex];
+    var empty = !sel.value;
+    input.value = empty ? '' : (o ? o.text.replace(/ \(added\)$/, '') : '');
+    field.classList.toggle('has-value', !empty);
+    field.classList.toggle('is-empty', empty);
+  }
+  function enhanceSelect(sel, o) {
+    o = o || {};
+    if (sel.closest('.cf-dd')) { ddSync(sel); return; }
+    var field = document.createElement('div');
+    field.className = 'c-field c-dropdown-field cf-dd';
+    field.innerHTML = '<div class="input-wrap has-trailing-icon">' +
+      '<input type="text" class="c-dropdown-input" readonly placeholder="' + esc(o.placeholder || 'Pick one') + '" aria-haspopup="listbox" aria-expanded="false"' + (sel.getAttribute('aria-label') ? ' aria-label="' + esc(sel.getAttribute('aria-label')) + '"' : '') + ' />' +
+      '<span class="icon-trailing" aria-hidden="true"><i class="ph ph-caret-down c-dropdown-chevron"></i></span>' +
+      '<div class="c-dropdown-panel" hidden><div class="c-dropdown-list" role="listbox"></div></div></div>';
+    sel.parentNode.insertBefore(field, sel);
+    field.appendChild(sel);
+    if (sel.id) { var lab = document.querySelector('label[for="' + sel.id + '"]'); if (lab) { field.querySelector('.c-dropdown-input').id = 'dd-' + sel.id; lab.setAttribute('for', 'dd-' + sel.id); } }
+    var input = field.querySelector('.c-dropdown-input'), panel = field.querySelector('.c-dropdown-panel'), list = field.querySelector('.c-dropdown-list');
+    function rows() {
+      list.innerHTML = Array.prototype.map.call(sel.options, function (op) {
+        var seld = op.value === sel.value;
+        var txt = esc(op.text.replace(/ \(added\)$/, ''));
+        return '<div class="c-dropdown-row' + (seld ? ' selected' : '') + (op.disabled ? ' disabled' : '') + '" data-v="' + esc(op.value) + '" role="option" aria-selected="' + seld + '">' +
+          '<span class="c-dropdown-row-label">' + txt + (op.dataset.desc ? '<span class="d">' + esc(op.dataset.desc) + '</span>' : '') + '</span><i class="ph ph-check c-dropdown-row-check"></i></div>';
+      }).join('') + (o.addNew ? '<div class="c-dropdown-row c-dropdown-add" data-add><span class="c-dropdown-row-label"><i class="ph ph-plus"></i>' + esc(o.addNew) + '</span></div>' : '');
+    }
+    function open() {
+      closeDD();
+      rows();
+      panel.hidden = false;
+      var body = field.closest('.cf-body'), tb = input.getBoundingClientRect(), bb = body ? body.getBoundingClientRect() : {bottom: window.innerHeight, top: 0};
+      panel.classList.toggle('is-up', tb.bottom + Math.min(340, panel.offsetHeight + 8) > bb.bottom && tb.top - bb.top > panel.offsetHeight + 8);
+      field.classList.add('open'); input.setAttribute('aria-expanded', 'true');
+      DD_OPEN = field;
+      /* Scroll the list only — scrollIntoView would drag the sheet body
+         along with it. */
+      var cur = list.querySelector('.selected'); if (cur) list.scrollTop = Math.max(0, cur.offsetTop - list.clientHeight / 2 + cur.offsetHeight / 2);
+    }
+    function pick(v) {
+      sel.value = v; ddSync(sel); closeDD();
+      sel.dispatchEvent(new Event('change', {bubbles: true}));
+    }
+    function showAdd() {
+      list.innerHTML = '<div class="c-dropdown-new"><input placeholder="Name" aria-label="New name" /><button class="c-btn c-btn-primary c-btn-sm" type="button" data-add-ok>Add</button></div>';
+      var box = list.querySelector('input');
+      box.focus();
+      function commit() {
+        var name = box.value.trim(); if (!name) { box.focus(); return; }
+        if (o.onAdd) o.onAdd(name);
+        var exists = Array.prototype.some.call(sel.options, function (op) { return op.value === name; });
+        if (!exists) { var op = document.createElement('option'); op.value = name; op.textContent = name; sel.appendChild(op); }
+        pick(name);
+      }
+      box.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commit(); } if (e.key === 'Escape') { e.stopPropagation(); closeDD(); } });
+      list.querySelector('[data-add-ok]').addEventListener('click', function (e) { e.stopPropagation(); commit(); });
+    }
+    input.addEventListener('click', function (e) { e.stopPropagation(); if (DD_OPEN === field) closeDD(); else open(); });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+        if (DD_OPEN !== field) { e.preventDefault(); open(); return; }
+        if (e.key === 'ArrowDown') { e.preventDefault(); move(1); return; }
+        if (e.key === 'Enter') { e.preventDefault(); var h = list.querySelector('.hover, .selected'); if (h) { if (h.hasAttribute('data-add')) showAdd(); else pick(h.dataset.v); } return; }
+      }
+      if (e.key === 'ArrowUp' && DD_OPEN === field) { e.preventDefault(); move(-1); }
+      if (e.key === 'Escape' && DD_OPEN === field) { e.stopPropagation(); closeDD(); }
+    });
+    function move(d) {
+      var all = Array.prototype.filter.call(list.querySelectorAll('.c-dropdown-row'), function (r) { return !r.classList.contains('disabled'); });
+      if (!all.length) return;
+      var i = all.findIndex(function (r) { return r.classList.contains('hover'); });
+      if (i < 0) i = all.findIndex(function (r) { return r.classList.contains('selected'); });
+      all.forEach(function (r) { r.classList.remove('hover'); });
+      var n = all[Math.max(0, Math.min(all.length - 1, i + d))];
+      n.classList.add('hover');
+      if (n.offsetTop < list.scrollTop) list.scrollTop = n.offsetTop;
+      else if (n.offsetTop + n.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = n.offsetTop + n.offsetHeight - list.clientHeight;
+    }
+    list.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (e.target.closest('.c-dropdown-new')) return;
+      var row = e.target.closest('.c-dropdown-row'); if (!row || row.classList.contains('disabled')) return;
+      if (row.hasAttribute('data-add')) { showAdd(); return; }
+      pick(row.dataset.v);
+    });
+    panel.addEventListener('click', function (e) { e.stopPropagation(); });
+    ddSync(sel);
+  }
+  document.addEventListener('click', function (e) { if (DD_OPEN && !e.target.closest('.cf-dd')) closeDD(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && DD_OPEN) { e.stopPropagation(); closeDD(); } }, true);
+
   function checked(hostEl) {
     return Array.prototype.map.call(hostEl.querySelectorAll('.cf-check'), function (l) {
       return l.querySelector('.c-checkbox-box').classList.contains('on') ? l.dataset.v : null;
@@ -316,6 +511,8 @@
       '<div class="cf-line-foot"><button class="c-btn c-btn-secondary c-btn-sm" type="button" data-line-add><i class="ph ph-plus"></i> Add line</button>' +
       (mirrorable ? '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-line-mirror title="Copy the first channel\'s lines to the other channels"><i class="ph ph-copy"></i> Same ask on every channel</button>' : '') +
       '<span class="hint"><kbd>↵</kbd> in a count adds the next line</span></div></div>';
+    F('cfAsk').querySelectorAll('select[data-line="plat"]').forEach(function (sl) { enhanceSelect(sl, {placeholder: 'Channel'}); });
+    F('cfAsk').querySelectorAll('select[data-line="tier"]').forEach(function (sl) { enhanceSelect(sl, {placeholder: 'Pick a tier'}); });
     renderAskSum();
   }
   function renderAskSum() {
@@ -385,15 +582,16 @@
     F('cf-agency').value = r.agency || '';
     F('cf-desc').value = r.description || '';
     F('cf-pic').value = r.pic || S.TEAM[0];
+    salesOptions(r.salesperson);
     F('cf-sales').value = r.salesperson || '';
     F('cf-start').value = r.start || '';
     F('cf-end').value = r.end || '';
-    F('cf-io').value = r.io || '';
+    ioFill(r.io);
     checks(F('cfTypes'), S.TYPES, r.types || ['Influencers']);
     F('cf-stage').value = (r.stage && r.stage !== 'lead') ? r.stage : 'sourcing';
     F('cf-overseer').value = r.overseer || '';
-    F('cf-quote').value = r.quote == null ? '' : r.quote;
-    F('cf-cost').value = r.cost == null ? '' : r.cost;
+    F('cf-quote').value = r.quote == null ? '' : fmtMoney(r.quote);
+    F('cf-cost').value = r.cost == null ? '' : fmtMoney(r.cost);
     F('cf-picpct').value = r.picPct == null ? '' : r.picPct;
     var ov = F('cf-ovpct');
     delete ov.dataset.touched;
@@ -413,6 +611,7 @@
     F('cfFieldName').classList.remove('c-field-error'); F('cfNameHelp').hidden = true;
     F('cfFieldEnd').classList.remove('c-field-error'); F('cfEndHelp').hidden = true;
     dpSync();
+    ['cf-pic', 'cf-stage', 'cf-overseer', 'cf-sales'].forEach(function (id) { ddSync(F(id)); });
     renderAsk();
   }
   function read() {
@@ -431,7 +630,7 @@
       start: F('cf-start').value,
       end: F('cf-end').value,
       color: color,
-      io: F('cf-io').value.trim(),
+      io: ioRead(),
       stage: stage,
       types: checked(F('cfTypes')),
       requirement: requirement,
@@ -472,6 +671,16 @@
   opts(F('cf-pic'), S.TEAM);
   opts(F('cf-overseer'), S.TEAM, '—');
   opts(F('cf-stage'), S.STAGES.filter(function (s) { return s.key !== 'lead'; }));
+  function salesOptions(keep) {
+    var list = S.salespeople();
+    if (keep && list.indexOf(keep) < 0) list.push(keep);
+    opts(F('cf-sales'), list, '—');
+  }
+  salesOptions();
+  enhanceSelect(F('cf-pic'), {placeholder: 'Who runs it'});
+  enhanceSelect(F('cf-stage'), {placeholder: 'Stage'});
+  enhanceSelect(F('cf-overseer'), {placeholder: 'Nobody'});
+  enhanceSelect(F('cf-sales'), {placeholder: 'Nobody yet', addNew: 'Add a new salesperson', onAdd: function (n) { S.addSalesperson(n); }});
 
   F('cfClose').addEventListener('click', close);
   F('cfCancel').addEventListener('click', close);

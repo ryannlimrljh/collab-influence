@@ -315,3 +315,13 @@ test('the first deliverable replaces an old {done,total} pair', () => {
   S.addDeliverable('c9', {inf: 'inf-001', platform: 'tiktok'});
   assert.deepEqual(M.deliverableCounts(S.get('c9')), {done: 0, total: 1, list: true});
 });
+
+test('salespeople lists everyone named on a campaign plus names added by hand, once', () => {
+  const win = fresh(); const S = win.campaignStore;
+  win.CAMPAIGNS = [{id: 'a', salesperson: 'Grace Wong', roster: [], batches: []}, {id: 'b', salesperson: 'grace wong', roster: [], batches: []}, {id: 'c', salesperson: '', roster: [], batches: []}];
+  assert.deepEqual(S.salespeople(), ['Grace Wong']);
+  S.addSalesperson('Amir Rahman'); S.addSalesperson('  '); S.addSalesperson('amir rahman');
+  assert.deepEqual(S.salespeople(), ['Amir Rahman', 'Grace Wong']);
+  S.reset();
+  assert.deepEqual(S.salespeople(), ['Amir Rahman', 'Grace Wong'], 'survives a store reset');
+});

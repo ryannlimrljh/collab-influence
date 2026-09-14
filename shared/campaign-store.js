@@ -39,6 +39,7 @@
     {key: 'xhs',       label: 'Xiaohongshu'}
   ];
   var TYPES = ['Influencers', 'Seeders', 'KOC'];
+  var SALES_KEY = 'collab-salespeople-v1';
   var TEAM = ['Digital Team', 'Neeza', 'Melissa N.', 'Izuan I.', 'Pui Yann', 'Grace Wong', 'Amir Rahman'];
   /* Colour swatches for the campaign's own bar — DLS tokens only. */
   var COLORS = [
@@ -372,6 +373,26 @@
         c = window.campaignStore.setChannelStatus(id, n, inf, platform, status);
       });
       return c;
+    },
+
+    /* ── Salespeople: everyone named on a campaign, plus names added by
+       hand, kept under their own key so a store reset leaves them. */
+    salespeople: function () {
+      var seen = {}, out = [];
+      function add(n) { n = String(n || '').trim(); if (n && !seen[n.toLowerCase()]) { seen[n.toLowerCase()] = true; out.push(n); } }
+      try { (JSON.parse(localStorage.getItem(SALES_KEY)) || []).forEach(add); } catch (e) {}
+      merged().forEach(function (c) { add(c.salesperson); });
+      return out.sort(function (a, b) { return a.toLowerCase() < b.toLowerCase() ? -1 : 1; });
+    },
+    addSalesperson: function (name) {
+      name = String(name || '').trim(); if (!name) return null;
+      var list = [];
+      try { list = JSON.parse(localStorage.getItem(SALES_KEY)) || []; } catch (e) {}
+      if (!list.some(function (x) { return x.toLowerCase() === name.toLowerCase(); })) {
+        list.push(name);
+        try { localStorage.setItem(SALES_KEY, JSON.stringify(list)); } catch (e) {}
+      }
+      return name;
     },
 
     /* ── Deliverables. */
