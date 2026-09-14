@@ -61,6 +61,47 @@
   .cd-connector{flex:1; height:2px; min-width:12px; background:var(--color-neutral-3); margin:0 2px;
     position:relative; overflow:hidden; border-radius:1px;}
   .cd-connector.is-done::after{content:''; position:absolute; inset:0; background:var(--color-neutral-9);}
+  /* Lead is the ghost ahead of the flow, the same dashed node the list
+     draws: a place a campaign passes through, not a stage it works in. */
+  .cd-step.is-ghost .ind{border-style:dashed; border-color:var(--color-neutral-4); background:transparent;}
+  .cd-step.is-ghost.is-done .ind{background:transparent; border-color:var(--color-neutral-4); color:var(--color-neutral-5);}
+  .cd-step.is-ghost.is-now{border-style:dashed; background:transparent; box-shadow:none;}
+  .cd-step.is-ghost.is-now .ind{background:var(--color-obsidian); border-style:solid; border-color:var(--color-obsidian); color:var(--color-neutral-1);}
+  .cd-step.is-ghost .cap{font-weight:500; color:var(--color-neutral-5);}
+  .cd-step.is-ghost:hover{background:transparent;}
+  .cd-step.is-ghost.is-refused{animation:cd-shake 320ms var(--ease-standard);}
+  @keyframes cd-shake{0%,100%{transform:none;} 30%{transform:translateX(-3px);} 60%{transform:translateX(3px);}}
+  @media (max-width:1100px){ .cd-step.is-ghost.is-now .cap{display:none;} }
+
+  /* ── Next up — one sentence of state and the one thing to do about it,
+     computed from the record. Sits between the track and the facts so the
+     eye lands on it right after the stage. */
+  .cd-next{display:flex; align-items:center; gap:var(--spacing-16); margin-top:var(--spacing-16);
+    padding:var(--spacing-12) var(--spacing-16); border:1px solid var(--color-neutral-3);
+    border-radius:var(--radius-md); background:var(--color-neutral-1); box-shadow:var(--shadow-1);}
+  .cd-next .eyebrow{display:inline-flex; align-items:center; gap:6px; flex:none;
+    font-size:var(--text-caption-size); font-weight:700; text-transform:uppercase;
+    letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
+  .cd-next .eyebrow i{font-size:var(--icon-sm); color:var(--color-neutral-9);}
+  .cd-next .say{flex:1; min-width:0; font-size:var(--text-body2-size); font-weight:600;
+    color:var(--color-neutral-9); overflow-wrap:anywhere;}
+  .cd-next.is-quiet .say{font-weight:500; color:var(--color-neutral-5);}
+  .cd-next .acts{display:flex; gap:var(--spacing-8); flex:none; flex-wrap:wrap; justify-content:flex-end;}
+  @media (max-width:640px){ .cd-next{flex-wrap:wrap;} .cd-next .say{flex-basis:100%;} .cd-next .acts{justify-content:flex-start;} }
+
+  /* ── The ask, on Overview: one chip per slot, coloured by how it stands. */
+  .cd-ask{display:flex; flex-wrap:wrap; align-items:center; gap:var(--spacing-8);}
+  .cd-slot{display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 12px 0 10px;
+    border-radius:var(--radius-pill); border:1px solid var(--color-neutral-3); background:var(--color-neutral-1);
+    font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-9); white-space:nowrap;}
+  .cd-slot i{font-size:var(--icon-sm); color:var(--color-neutral-5);}
+  .cd-slot .n{font-variant-numeric:tabular-nums; font-weight:600; color:var(--color-neutral-5); margin-left:2px;}
+  .cd-slot.is-met{border-color:color-mix(in srgb, var(--color-green) 40%, transparent); background:var(--color-earth-bg);}
+  .cd-slot.is-met i, .cd-slot.is-met .n{color:var(--color-green);}
+  .cd-slot.is-over{border-color:color-mix(in srgb, var(--color-amber) 50%, transparent); background:color-mix(in srgb, var(--color-amber) 12%, transparent);}
+  .cd-slot.is-over i, .cd-slot.is-over .n{color:var(--color-amber);}
+  .cd-ask .c-btn{margin-left:var(--spacing-4);}
+  .cd-ask .none{font-size:var(--text-body2-size); color:var(--color-neutral-5);}
   @media (max-width:1100px){ .cd-step .lbl{display:none;} .cd-step.is-now .lbl{display:inline;} }
 
   /* ── Run-date timeline — the flight against today. */
@@ -355,7 +396,8 @@
   @keyframes cd-arrive{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:none;}}
   .cd-arriving .cd-head, .cd-arriving .cd-io{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:40ms;}
   .cd-arriving .cd-track{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:100ms;}
-  .cd-arriving .cd-meta{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:160ms;}
+  .cd-arriving .cd-next{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:130ms;}
+  .cd-arriving .cd-meta{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:180ms;}
   .cd-arriving .cd-tabs{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:240ms;}
   .cd-arriving .cd-panels{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:320ms;}
   @media (prefers-reduced-motion:reduce){ .cd-arriving *{animation:none !important;} }
@@ -429,6 +471,7 @@
         </div>
         <hr class="cd-rule" />
         <div class="cd-track" id="cdTrack" role="group" aria-label="Stage"></div>
+        <div class="cd-next" id="cdNext" role="status" aria-live="polite"></div>
 
         <div class="cd-meta">
           <div style="flex:1; min-width:0;">
@@ -449,16 +492,18 @@
 
         <div class="c-tabs cd-tabs" role="tablist" id="cdTabs">
           <button class="c-tab active" type="button" role="tab" data-tab="overview">Overview</button>
-          <button class="c-tab" type="button" role="tab" data-tab="kol">KOL Selection<span class="count" id="cdKolCount" hidden></span></button>
+          <button class="c-tab" type="button" role="tab" data-tab="selection">Selection<span class="count" id="cdKolCount" hidden></span></button>
+          <button class="c-tab" type="button" role="tab" data-tab="deliverables">Deliverables</button>
           <button class="c-tab" type="button" role="tab" data-tab="docs">Documents</button>
-          <button class="c-tab" type="button" role="tab" data-tab="drafts">Drafts</button>
+          <button class="c-tab" type="button" role="tab" data-tab="activity">Activity</button>
         </div>
 
         <div class="cd-panels">
           <div class="cd-panel is-on" id="pan-overview" role="tabpanel"></div>
-          <div class="cd-panel" id="pan-kol" role="tabpanel"></div>
+          <div class="cd-panel" id="pan-selection" role="tabpanel"></div>
+          <div class="cd-panel" id="pan-deliverables" role="tabpanel"></div>
           <div class="cd-panel" id="pan-docs" role="tabpanel"></div>
-          <div class="cd-panel" id="pan-drafts" role="tabpanel"></div>
+          <div class="cd-panel" id="pan-activity" role="tabpanel"></div>
         </div>
       </div>
 
@@ -544,10 +589,10 @@
 <script>window.INFLUENCER_STORE_KEY = 'collab-influencers-v2';</script>
 <script src="../shared/influencer-store.js?v=2"></script>
 <script src="../shared/campaigns-data.js?v=3"></script>
+<script src="../shared/tiers.js?v=1"></script>
+<script src="../shared/campaign-model.js?v=4"></script>
 <script src="../shared/campaign-store.js?v=7"></script>
 <script src="../shared/campaign-form.js?v=4"></script>
-<script src="../shared/tiers.js?v=1"></script>
-<script src="../shared/campaign-model.js?v=3"></script>
 <script>
 (function () {
   'use strict';
@@ -661,8 +706,8 @@
       fact('Platform', plats ? '<span class="v"><span class="cmp-plats">' + plats + '</span></span>' : dash()) +
       fact('Campaign type', (c.types || []).length ? '<span class="v">' + esc(c.types.join(', ')) + '</span>' : dash()) +
       fact('Pax', c.pax != null ? '<span class="v">' + S.fmtNum(c.pax) + '</span>' : dash());
-    renderTrack(); renderTimeline();
-    var d = c.deliverables || {done: 0, total: 0};
+    renderTrack(); renderNext(); renderTimeline();
+    var d = M.deliverableCounts(c);
     var circ = 213.6, frac = d.total ? d.done / d.total : 0;
     E('cdRingFill').style.strokeDashoffset = String(circ * (1 - frac));
     E('cdRingN').textContent = d.done + '/' + d.total;
@@ -672,13 +717,60 @@
   function renderTrack(){
     var idx = S.STAGES.map(function(s){ return s.key; }).indexOf(c.stage);
     E('cdTrack').innerHTML = S.STAGES.map(function(s, i){
-      var cls = i < idx ? 'is-done' : i === idx ? 'is-now' : '';
-      var ind = i < idx ? '<i class="ph ph-check"></i>' : (i + 1);
+      var ghost = s.key === 'lead';
+      var cls = (i < idx ? 'is-done' : i === idx ? 'is-now' : '') + (ghost ? ' is-ghost' : '');
+      var ind = ghost ? '<i class="ph ph-flag"></i>' : i < idx ? '<i class="ph ph-check"></i>' : i;
+      var title = i === idx ? 'Current stage' : ghost ? 'Already won' : idx === 0 ? 'Mark as won and move to ' + s.label : 'Move to ' + s.label;
+      var lbl = s.short + (ghost && i === idx ? '<span class="cap"> · not yet won</span>' : '');
       return (i ? '<span class="cd-connector' + (i <= idx ? ' is-done' : '') + '"></span>' : '') +
-        '<button type="button" class="cd-step ' + cls + '" data-go-stage="' + s.key + '" aria-current="' + (i === idx ? 'step' : 'false') + '" title="' + (i === idx ? 'Current stage' : 'Move to ' + s.label) + '">' +
-        '<span class="ind">' + ind + '</span><span class="lbl">' + s.short + '</span></button>';
+        '<button type="button" class="cd-step ' + cls + '" data-go-stage="' + s.key + '" aria-current="' + (i === idx ? 'step' : 'false') + '" title="' + title + '">' +
+        '<span class="ind">' + ind + '</span><span class="lbl">' + lbl + '</span></button>';
     }).join('');
   }
+  /* ── Next up. The model decides what to say and which action keys to
+     offer; this maps the keys to what the page can do. */
+  function renderNext(){
+    var n = M.nextUp(c), el = E('cdNext');
+    var say = esc(n.sentence).replace('{date}', esc(n.date ? S.fmtDate(n.date) : 'earlier'));
+    function btn(a, primary){
+      if (!a) return '';
+      return '<button class="c-btn ' + (primary ? 'c-btn-primary' : 'c-btn-secondary') + ' c-btn-sm" type="button" data-next="' + a.action + '">' + esc(a.label) + '</button>';
+    }
+    el.classList.toggle('is-quiet', !n.primary);
+    el.innerHTML = '<span class="eyebrow"><i class="ph-fill ph-arrow-bend-down-right"></i>Next up</span>' +
+      '<span class="say">' + say + '</span>' +
+      (n.primary || n.secondary ? '<span class="acts">' + btn(n.secondary, false) + btn(n.primary, true) + '</span>' : '');
+  }
+  E('cdNext').addEventListener('click', function(e){
+    var b = e.target.closest('[data-next]'); if (!b) return;
+    var a = b.dataset.next;
+    if (a === 'ask') return campaignForm.open({rec: c, step: 2, onSave: saveEdit});
+    if (a === 'won') return moveStage('sourcing');
+    if (a === 'send') { setTab('selection'); return openPicker('batch'); }
+    if (a === 'confirm') return setTab('selection');
+    if (a === 'client') {
+      var last = (c.batches || [])[(c.batches || []).length - 1];
+      if (last) window.open(shareURL(last.n, false), '_blank', 'noopener');
+      return;
+    }
+    if (a.indexOf('tab:') === 0) return setTab(a.slice(4));
+    if (a.indexOf('stage:') === 0) return moveStage(a.slice(6));
+  });
+  function saveEdit(fields, cid){
+    var was = c.stage;
+    S.update(cid, fields); renderAll();
+    toast(was === 'lead' && fields.stage !== 'lead' ? 'Marked as won, moved to ' + S.stageOf(fields.stage).label + '.' : 'Changes saved.');
+  }
+  /* One place for every stage move: the track, the badge menu, Next up. */
+  function moveStage(to){
+    if (to === c.stage) return;
+    if (to === 'lead') { toast('A won campaign cannot go back to being a lead.', 'info'); return; }
+    var won = c.stage === 'lead';
+    S.update(c.id, {stage: to});
+    renderAll();
+    toast((won ? 'Marked as won, moved to ' : 'Moved to ') + S.stageOf(to).label + '.');
+  }
+
   function daysBetween(a, b){ return Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 864e5); }
   function renderTimeline(){
     var el = E('cdTimeline');
@@ -714,19 +806,36 @@
   }
   function pct(v){ return v == null ? null : v + '%'; }
   function rm(v){ return v == null ? null : S.fmtRM(v); }
+  function askRow(){
+    var slots = M.slotsOf(c), st = M.slotStatus(c);
+    var legacy = (c.roster || []).some(function(r){ return !r.platform; });
+    var edit = '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-edit-ask><i class="ph ph-pencil-simple"></i> ' + (slots.length ? 'Edit ask' : 'Set the ask') + '</button>';
+    if (!slots.length) return '<div class="cd-ask"><span class="none">No ask yet — set what you need from the client.</span>' + edit + '</div>';
+    return '<div class="cd-ask">' + slots.map(function(sl){
+      var x = (st[sl.platform] && st[sl.platform][sl.tier]) || {filled: 0};
+      var filled = legacy ? null : x.filled;
+      var tone = filled == null ? '' : filled > sl.want ? ' is-over' : filled >= sl.want ? ' is-met' : '';
+      var tier = window.tiers.tierByKey(sl.tier);
+      var tierName = tier ? tier.name : sl.tier.charAt(0).toUpperCase() + sl.tier.slice(1);
+      return '<span class="cd-slot' + tone + '" title="' + esc(PLAT_LABEL[sl.platform] || sl.platform) + ' · ' + esc(tierName) + '">' +
+        (PLAT_ICON[sl.platform] || '') + esc(tierName) +
+        '<span class="n">' + (filled == null ? sl.want : filled + ' / ' + sl.want) + '</span></span>';
+    }).join('') + edit + '</div>';
+  }
   function renderOverview(){
     var m = S.money(c);
     var roster = c.roster || [];
     var selected = roster.length;
-    var booked = roster.filter(function(r){ return r.batch != null && r.source === 'client'; }).length;
+    var booked = roster.filter(function(r){ return r.state === 'confirmed'; }).length;
     E('pan-overview').innerHTML = '<div class="cd-ov">' +
+      '<div class="cd-ov-row"><div class="cd-ov-lbl"><span class="cd-chip water"><i class="ph ph-target"></i></span>The ask</div>' + askRow() + '</div>' +
       '<div class="cd-ov-row"><div class="cd-ov-lbl"><span class="cd-chip earth"><i class="ph ph-currency-dollar"></i></span>Financials</div><div class="cd-ov-cells">' +
         cell('Quote', rm(m.quote), 'Total expected') + cell('Cost', rm(m.cost), 'Total expenses') +
         cell('Margin', rm(m.margin), m.marginPct != null ? '<span class="cmp-dot" style="background:' + (m.margin >= 0 ? 'var(--color-green)' : 'var(--color-red)') + '"></span>' + m.marginPct + '% of quote' : '') +
       '</div></div>' +
       '<div class="cd-ov-row"><div class="cd-ov-lbl"><span class="cd-chip water"><i class="ph ph-users"></i></span>Roster</div><div class="cd-ov-cells">' +
         '<div class="cd-ov-cell"><span class="k">Selected</span><span class="v">' + selected + '</span><span class="c-badge c-badge-neutral">cleared by client</span></div>' +
-        '<div class="cd-ov-cell"><span class="k">Booked</span><span class="v">' + booked + '</span><span class="c-badge c-badge-neutral">have deliverables</span></div>' +
+        '<div class="cd-ov-cell"><span class="k">Booked</span><span class="v">' + booked + '</span><span class="c-badge c-badge-neutral">confirmed channel fills</span></div>' +
       '</div></div>' +
       '<div class="cd-ov-row"><div class="cd-ov-lbl"><span class="cd-chip purple"><i class="ph ph-user"></i></span>Ownership</div><div class="cd-ov-cells">' +
         '<div class="cd-ov-cell"><span class="k">PIC</span>' + person(c.pic) + '</div>' +
@@ -740,7 +849,11 @@
     '</div>';
   }
 
-  /* ── KOL Selection. */
+  E('pan-overview').addEventListener('click', function(e){
+    if (e.target.closest('[data-edit-ask]')) campaignForm.open({rec: c, step: 2, onSave: saveEdit});
+  });
+
+  /* ── Selection. */
   function statusBadge(status, n, inf){
     var p = S.PICK_STATUS.filter(function(x){ return x.key === status; })[0] || S.PICK_STATUS[0];
     var tone = {selected:'tone-success', kiv:'tone-warning', rejected:'tone-error'}[p.key] || '';
@@ -802,7 +915,7 @@
       if (!Object.keys(openBatches).length) openBatches[batches[batches.length - 1].n] = true;
       html += batches.slice().reverse().map(batchHtml).join('');
     }
-    var pan = E('pan-kol');
+    var pan = E('pan-selection');
     pan.innerHTML = html;
     hydrateAvatars(pan);
   }
@@ -909,9 +1022,9 @@
   }
   function renderDrafts(){
     var roster = c.roster || [];
-    var pan = E('pan-drafts');
+    var pan = E('pan-deliverables');
     if (!roster.length) {
-      pan.innerHTML = '<div class="cd-note">Nobody is on this campaign yet — <button class="c-empty-link" type="button" data-go-tab="kol">select influencers in KOL Selection first</button>.</div>';
+      pan.innerHTML = '<div class="cd-note">Nobody is on this campaign yet — <button class="c-empty-link" type="button" data-go-tab="selection">confirm influencers in Selection first</button>.</div>';
       return;
     }
     pan.innerHTML = roster.map(function(r){
@@ -924,7 +1037,11 @@
   }
 
   /* ── Tabs. */
+  var TABS = ['overview', 'selection', 'deliverables', 'docs', 'activity'];
+  var TAB_ALIAS = {kol: 'selection', drafts: 'deliverables'};
   function setTab(key, push){
+    key = TAB_ALIAS[key] || key;
+    if (TABS.indexOf(key) < 0) key = 'overview';
     tab = key;
     document.querySelectorAll('#cdTabs .c-tab').forEach(function(t){
       var on = t.dataset.tab === key;
@@ -942,7 +1059,11 @@
   function renderAll(){
     reload();
     if (!c) return missing();
-    renderHeader(); renderOverview(); renderKol(); renderDocs(); renderDrafts();
+    renderHeader(); renderOverview(); renderKol(); renderDocs(); renderDrafts(); renderActivity();
+  }
+  function renderActivity(){
+    var n = (c.activity || []).length;
+    E('pan-activity').innerHTML = '<div class="cd-note">' + (n ? n + (n === 1 ? ' entry' : ' entries') + ' on the record — the stream lands in the next build.' : 'Nothing on the record yet — the stream lands in the next build.') + '</div>';
   }
 
   /* ── Toasts. */
@@ -972,17 +1093,17 @@
   E('cdTrack').addEventListener('click', function(e){
     var b = e.target.closest('[data-go-stage]'); if (!b) return;
     var to = b.dataset.goStage;
-    if (to === c.stage) return;
-    S.update(c.id, {stage: to});
-    renderAll();
-    toast('Moved to ' + S.stageOf(to).label + '.');
+    if (to === 'lead' && c.stage !== 'lead') {
+      b.classList.add('is-refused'); setTimeout(function(){ b.classList.remove('is-refused'); }, 400);
+    }
+    moveStage(to);
   });
   document.addEventListener('click', function(e){
     var sb = e.target.closest('#cdStageBtn');
     if (sb) {
       e.stopPropagation();
       if (menuAnchor === sb) return closeMenu();
-      return openMenu(sb, S.STAGES.map(function(s){
+      return openMenu(sb, S.STAGES.filter(function(s){ return s.key !== 'lead' || c.stage === 'lead'; }).map(function(s){
         var on = s.key === c.stage;
         return '<button type="button" class="cmp-menu-item" data-set-stage="' + s.key + '"><span class="cmp-dot" style="background:' + s.dot + '"></span>' + s.label + (on ? '<i class="ph ph-check chk"></i>' : '') + '</button>';
       }).join(''));
@@ -1003,10 +1124,7 @@
     e.stopPropagation();
     if (b.dataset.setStage) {
       closeMenu();
-      if (c.stage === b.dataset.setStage) return;
-      S.update(c.id, {stage: b.dataset.setStage});
-      renderAll();
-      toast('Moved to ' + S.stageOf(b.dataset.setStage).label + '.');
+      moveStage(b.dataset.setStage);
     } else if (b.dataset.setPick) {
       closeMenu();
       var n = Number(b.dataset.batch), inf = b.dataset.inf, st = b.dataset.setPick;
@@ -1031,7 +1149,7 @@
   }
 
   /* ── KOL panel interactions. */
-  E('pan-kol').addEventListener('click', function(e){
+  E('pan-selection').addEventListener('click', function(e){
     if (e.target.closest('#cdAddManual')) return openPicker('roster');
     if (e.target.closest('#cdNewBatch') || e.target.closest('#cdNewBatch2')) return openPicker('batch');
     var rm = e.target.closest('[data-roster-remove]');
@@ -1079,7 +1197,7 @@
   });
   /* Remarks, pax targets and notes save on change, not per keystroke,
      and never re-render — the field you are typing in stays put. */
-  E('pan-kol').addEventListener('change', function(e){
+  E('pan-selection').addEventListener('change', function(e){
     var t = e.target;
     if (t.matches('[data-kult-remark]')) S.updatePick(c.id, Number(t.dataset.batch), t.dataset.inf, {kultRemark: t.value});
     else if (t.matches('[data-client-remark]')) S.updatePick(c.id, Number(t.dataset.batch), t.dataset.inf, {clientRemark: t.value});
@@ -1093,7 +1211,7 @@
     else if (t.matches('[data-batch-notes]')) S.updateBatch(c.id, Number(t.dataset.batchNotes), {notes: t.value});
     reload();
   });
-  E('pan-drafts').addEventListener('click', function(e){
+  E('pan-deliverables').addEventListener('click', function(e){
     var go = e.target.closest('[data-go-tab]'); if (go) return setTab(go.dataset.goTab);
     var sw = e.target.closest('.c-switch-track');
     if (sw) { e.stopPropagation(); sw.classList.toggle('on'); sw.setAttribute('aria-checked', sw.classList.contains('on')); return; }
@@ -1184,11 +1302,9 @@
 
   /* ── Header actions. */
   E('cdEdit').addEventListener('click', function(){
-    campaignForm.open({rec: c, onSave: function(fields, cid){
-      S.update(cid, fields); renderAll(); toast('Changes saved.');
-    }});
+    campaignForm.open({rec: c, onSave: saveEdit});
   });
-  E('cdShare').addEventListener('click', function(){ setTab('kol'); openPicker('batch'); });
+  E('cdShare').addEventListener('click', function(){ setTab('selection'); openPicker('batch'); });
   var delScrim = E('cdDelScrim');
   E('cdDelete').addEventListener('click', function(){
     E('cdDelBody').innerHTML = 'This removes <strong>' + esc(c.name) + '</strong> and its roster and preview batches from the workspace. The seeded sample data on disk is untouched.';
@@ -1214,12 +1330,14 @@
     E('cdTrack').innerHTML = S.STAGES.map(function(s, i){
       return (i ? '<span class="cd-connector"></span>' : '') + '<span class="cd-sk-node"><span class="ind"></span><span class="cd-sk" style="width:56px; height:10px"></span></span>';
     }).join('');
+    E('cdNext').classList.remove('is-quiet');
+    E('cdNext').innerHTML = '<span class="cd-sk" style="width:56px; height:10px"></span><span class="say"><span class="cd-sk" style="width:min(320px, 50%); height:12px"></span></span><span class="acts"><span class="cd-sk pill" style="width:120px; height:30px"></span></span>';
     E('cdFacts').innerHTML = [0,1,2,3,4,5].map(function(){
       return '<div class="cd-fact"><span class="cd-sk" style="width:72px; height:9px; margin-bottom:8px"></span><br><span class="cd-sk" style="width:60%; height:14px"></span></div>';
     }).join('');
     E('cdTimeline').hidden = true;
     E('cdRingN').textContent = '';
-    E('pan-overview').innerHTML = '<div class="cd-ov">' + ['Financials', 'Roster', 'Ownership', 'Revenue split'].map(function(){
+    E('pan-overview').innerHTML = '<div class="cd-ov">' + ['The ask', 'Financials', 'Roster', 'Ownership', 'Revenue split'].map(function(){
       return '<div class="cd-ov-row"><div class="cd-ov-lbl"><span class="cd-chip" style="background:var(--color-neutral-2)"></span><span class="cd-sk" style="width:96px"></span></div>' +
         '<div class="cd-ov-cells">' + [0,1,2].map(function(){
           return '<div class="cd-ov-cell"><span class="cd-sk" style="width:64px; height:9px; margin-bottom:8px"></span><br><span class="cd-sk" style="width:110px; height:18px"></span></div>';
@@ -1230,7 +1348,7 @@
   if (!c) { missing(); }
   else {
     skeleton();
-    setTab(['overview', 'kol', 'docs', 'drafts'].indexOf(tab) > -1 ? tab : 'overview');
+    setTab(tab);
     setTimeout(function(){
       /* A hidden document never advances CSS animations, so the cascade
          would hold everything at its first, invisible frame. Skip it. */

@@ -209,3 +209,69 @@ test('askFor is empty when the ask is fully filled', () => {
 test('askFor on a campaign with no requirement is empty', () => {
   assert.deepEqual(M.askFor({roster: []}), {});
 });
+
+/* ── deliverableCounts and nextUp. */
+test('deliverableCounts reads {done,total} until the list exists, then posted/length', () => {
+  assert.deepEqual(M.deliverableCounts({deliverables: {done: 1, total: 8}}), {done: 1, total: 8, list: false});
+  assert.deepEqual(M.deliverableCounts({}), {done: 0, total: 0, list: false});
+  assert.deepEqual(M.deliverableCounts({deliverables: [
+    {inf: 'a', status: 'posted'}, {inf: 'a', status: 'drafted'}, {inf: 'b', status: 'posted'}
+  ]}), {done: 2, total: 3, list: true});
+});
+
+test('nextUp on a lead walks ask → send → wait', () => {
+  let n = M.nextUp({stage: 'lead'});
+  assert.equal(n.primary.action, 'ask'); assert.equal(n.secondary.action, 'won');
+  n = M.nextUp({stage: 'lead', requirement: {tiktok: {mid: 1}}});
+  assert.equal(n.sentence, 'Nothing sent to the client yet.');
+  assert.equal(n.primary.label, 'Send selection list'); assert.equal(n.primary.action, 'send');
+  n = M.nextUp({stage: 'lead', requirement: {tiktok: {mid: 1}}, batches: [{n: 1, sentAt: '2026-09-10'}]});
+  assert.match(n.sentence, /Waiting on the client · sent \{date\}/);
+  assert.equal(n.date, '2026-09-10');
+  assert.equal(n.primary.action, 'client'); assert.equal(n.secondary.action, 'won');
+});
+
+test('nextUp in sourcing: confirm first, then send, then move on', () => {
+  const req = {tiktok: {mid: 2}};
+  let n = M.nextUp({stage: 'sourcing', requirement: req, batches: [{n: 1}],
+    roster: [{inf: 'a', platform: 'tiktok', tier: 'mid', state: 'approved'}]});
+  assert.equal(n.sentence, '1 approval to confirm and 1 open slot.');
+  assert.equal(n.primary.label, 'Confirm availability (1)'); assert.equal(n.primary.action, 'confirm');
+  assert.equal(n.secondary.label, 'Send batch 2');
+  n = M.nextUp({stage: 'sourcing', requirement: req, roster: []});
+  assert.equal(n.sentence, '2 open slots.');
+  assert.equal(n.primary.label, 'Send batch 1'); assert.equal(n.secondary, null);
+  n = M.nextUp({stage: 'sourcing', requirement: req, roster: [
+    {inf: 'a', platform: 'tiktok', tier: 'mid', state: 'confirmed'},
+    {inf: 'b', platform: 'tiktok', tier: 'mid', state: 'confirmed'}]});
+  assert.equal(n.sentence, 'Line-up complete.');
+  assert.equal(n.primary.action, 'stage:drafting');
+  n = M.nextUp({stage: 'sourcing'});
+  assert.equal(n.primary.action, 'ask');
+});
+
+test('nextUp in drafting and posting reads the deliverables', () => {
+  const roster = [{inf: 'a', platform: 'tiktok', tier: 'mid', state: 'confirmed'},
+                  {inf: 'b', platform: 'instagram', tier: 'mid', state: 'confirmed'}];
+  let n = M.nextUp({stage: 'drafting', roster, deliverables: {done: 0, total: 0}});
+  assert.equal(n.sentence, '2 creators have no deliverables yet.');
+  assert.equal(n.primary.action, 'tab:deliverables'); assert.equal(n.secondary.action, 'stage:posting');
+  n = M.nextUp({stage: 'drafting', roster, deliverables: [{inf: 'a', status: 'drafted'}, {inf: 'b', status: 'not_started'}]});
+  assert.equal(n.sentence, '2 deliverables planned.');
+  assert.equal(n.primary.action, 'stage:posting');
+  n = M.nextUp({stage: 'drafting', roster: []});
+  assert.equal(n.primary.action, 'tab:selection');
+  n = M.nextUp({stage: 'posting', roster, deliverables: {done: 1, total: 8}});
+  assert.equal(n.sentence, '1 of 8 posted.');
+  assert.equal(n.primary.label, 'Track deliverables'); assert.equal(n.secondary.action, 'stage:reporting');
+  n = M.nextUp({stage: 'posting', roster, deliverables: {done: 3, total: 3}});
+  assert.equal(n.primary.action, 'stage:reporting'); assert.equal(n.secondary, null);
+});
+
+test('nextUp on the late stages just moves on, and completed only reports', () => {
+  assert.equal(M.nextUp({stage: 'reporting'}).primary.action, 'stage:payment');
+  assert.equal(M.nextUp({stage: 'payment'}).primary.label, 'Move to Completed');
+  const n = M.nextUp({stage: 'completed', end: '2026-10-01'});
+  assert.equal(n.sentence, 'Wrapped {date}.'); assert.equal(n.date, '2026-10-01');
+  assert.equal(n.primary, null); assert.equal(n.secondary, null);
+});

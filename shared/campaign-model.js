@@ -164,10 +164,127 @@
     return out;
   }
 
+
+  /* ── Deliverables. A record that still holds {done, total} keeps reading
+     from those two numbers until someone adds a deliverable; once it is a
+     list, the list is the truth and `posted` is what counts as done. */
+  function deliverableCounts(c) {
+    var d = (c && c.deliverables) || null;
+    if (Array.isArray(d)) {
+      return {done: d.filter(function (x) { return x.status === 'posted'; }).length, total: d.length, list: true};
+    }
+    return {done: (d && Number(d.done)) || 0, total: (d && Number(d.total)) || 0, list: false};
+  }
+
+  /* Distinct creators holding at least one confirmed channel fill. */
+  function confirmedCreators(c) {
+    var seen = {};
+    ((c && c.roster) || []).forEach(function (r) { if (r.state === 'confirmed') seen[r.inf] = true; });
+    return Object.keys(seen);
+  }
+
+  /* ── What to do next: one sentence of state, one primary action, at most
+     one secondary, computed from where the campaign is. Actions are plain
+     keys the page maps to handlers:
+       send · won · client · confirm · ask · tab:<key> · stage:<key>
+     A sentence may carry `{date}`; the page formats `date` into it. */
+  var ORDER = ['lead', 'sourcing', 'drafting', 'posting', 'reporting', 'payment', 'completed'];
+  function nextStage(stage) {
+    var i = ORDER.indexOf(stage);
+    return i > -1 && i < ORDER.length - 1 ? ORDER[i + 1] : null;
+  }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+  function nextUp(c) {
+    var stage = (c && c.stage) || 'lead';
+    var batches = (c && c.batches) || [];
+    var last = batches.length ? batches[batches.length - 1] : null;
+    var k = batches.length + 1;
+    var hasAsk = slotsOf(c).length > 0;
+    var open = shortfallOf(c).reduce(function (a, s) { return a + s.want; }, 0);
+    var pending = ((c && c.roster) || []).filter(function (r) { return r.state === 'approved'; }).length;
+    var out = {stage: stage, sentence: '', primary: null, secondary: null};
+    function act(label, action) { return {label: label, action: action}; }
+
+    if (stage === 'lead') {
+      if (!hasAsk && !last) {
+        out.sentence = 'No ask yet. Set what you need before anything goes to the client.';
+        out.primary = act('Set the ask', 'ask'); out.secondary = act('Mark as won', 'won');
+      } else if (!last) {
+        out.sentence = 'Nothing sent to the client yet.';
+        out.primary = act('Send selection list', 'send'); out.secondary = act('Mark as won', 'won');
+      } else {
+        out.sentence = 'Waiting on the client · sent {date}.'; out.date = last.sentAt || null;
+        out.primary = act('Open client view', 'client'); out.secondary = act('Mark as won', 'won');
+      }
+      return out;
+    }
+    if (stage === 'sourcing') {
+      if (!hasAsk) {
+        out.sentence = 'No ask yet. Set what you need before sending a batch.';
+        out.primary = act('Set the ask', 'ask'); out.secondary = act('Send batch ' + k, 'send');
+      } else if (pending) {
+        out.sentence = plural(pending, 'approval', 'approvals') + ' to confirm' + (open ? ' and ' + plural(open, 'open slot', 'open slots') : '') + '.';
+        out.primary = act('Confirm availability (' + pending + ')', 'confirm'); out.secondary = act('Send batch ' + k, 'send');
+      } else if (open) {
+        out.sentence = plural(open, 'open slot', 'open slots') + '.';
+        out.primary = act('Send batch ' + k, 'send');
+      } else {
+        out.sentence = 'Line-up complete.';
+        out.primary = act('Move to Drafting', 'stage:drafting');
+      }
+      return out;
+    }
+    var d = deliverableCounts(c);
+    var creators = confirmedCreators(c);
+    if (stage === 'drafting') {
+      var without;
+      if (d.list) {
+        var has = {};
+        c.deliverables.forEach(function (x) { has[x.inf] = true; });
+        without = creators.filter(function (inf) { return !has[inf]; }).length;
+      } else {
+        without = d.total ? 0 : creators.length;
+      }
+      if (!creators.length) {
+        out.sentence = 'Nobody confirmed yet.';
+        out.primary = act('Open selection', 'tab:selection');
+      } else if (without) {
+        out.sentence = plural(without, 'creator has', 'creators have') + ' no deliverables yet.';
+        out.primary = act('Add deliverables', 'tab:deliverables'); out.secondary = act('Move to Posting', 'stage:posting');
+      } else {
+        out.sentence = plural(d.total, 'deliverable', 'deliverables') + ' planned.';
+        out.primary = act('Move to Posting', 'stage:posting');
+      }
+      return out;
+    }
+    if (stage === 'posting') {
+      if (!d.total) {
+        out.sentence = 'No deliverables planned.';
+        out.primary = act('Add deliverables', 'tab:deliverables'); out.secondary = act('Move to Reporting', 'stage:reporting');
+      } else if (d.done < d.total) {
+        out.sentence = d.done + ' of ' + d.total + ' posted.';
+        out.primary = act('Track deliverables', 'tab:deliverables'); out.secondary = act('Move to Reporting', 'stage:reporting');
+      } else {
+        out.sentence = 'All ' + d.total + ' posted.';
+        out.primary = act('Move to Reporting', 'stage:reporting');
+      }
+      return out;
+    }
+    if (stage === 'completed') {
+      out.sentence = c && c.end ? 'Wrapped {date}.' : 'Wrapped.'; out.date = (c && c.end) || null;
+      return out;
+    }
+    var nx = nextStage(stage);
+    out.sentence = 'In ' + stage.charAt(0).toUpperCase() + stage.slice(1) + '.';
+    if (nx) out.primary = act('Move to ' + nx.charAt(0).toUpperCase() + nx.slice(1), 'stage:' + nx);
+    return out;
+  }
+
   window.campaignModel = {
     migrate: migrate, channelsOf: channelsOf,
     pickStatus: pickStatus,
     slotsOf: slotsOf, askFor: askFor, derivedPax: derivedPax, slotStatus: slotStatus,
-    shortfallOf: shortfallOf, coverageOf: coverageOf
+    shortfallOf: shortfallOf, coverageOf: coverageOf,
+    deliverableCounts: deliverableCounts, confirmedCreators: confirmedCreators, nextUp: nextUp
   };
 })();
