@@ -77,7 +77,10 @@
 .cf-brandmark[hidden]{display:none;}\
 .cf-brandmark img{width:20px; height:20px; object-fit:contain;}\
 @keyframes cf-pop{from{opacity:0; transform:translateY(-50%) scale(.8);} to{opacity:1; transform:translateY(-50%) scale(1);}}\
-.cf-lines{border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); overflow:hidden; background:var(--color-neutral-1);}\
+.cf-lines{border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); background:var(--color-neutral-1);}\
+.cf-line-h{border-radius:var(--radius-md) var(--radius-md) 0 0;}\
+.cf-line-foot{border-radius:0 0 var(--radius-md) var(--radius-md);}\
+.cf-line:has(.cf-dd.open){position:relative; z-index:8;}\
 .cf-line-h, .cf-line{display:grid; grid-template-columns:1.1fr 1.5fr 112px 36px; gap:var(--spacing-8); align-items:center; padding:8px var(--spacing-12);}\
 .cf-line-h{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5); background:var(--color-neutral-2); border-bottom:1px solid var(--color-neutral-3);}\
 .cf-line{border-bottom:1px solid var(--color-neutral-2); animation:cf-row 220ms var(--ease-settle) both;}\
@@ -121,9 +124,9 @@
 .cf-dd .c-dropdown-input:focus{outline:none; border:2px solid var(--color-obsidian); padding:0 35px 0 11px;}\
 .cf-dd.open .c-dropdown-input{padding:0 35px 0 11px;}\
 .cf-dd .icon-trailing{position:absolute; right:var(--spacing-12); display:flex; pointer-events:none; color:var(--color-neutral-5); font-size:var(--icon-sm);}\
-.cf-dd .c-dropdown-panel{position:absolute; left:0; right:0; top:calc(100% + 4px); margin-top:0; z-index:7; width:auto;}\
-.cf-dd .c-dropdown-panel.is-up{top:auto; bottom:calc(100% + 4px);}\
 .cf-dd .c-dropdown-panel[hidden]{display:none;}\
+.cf-dd-portal{position:fixed; margin:0; z-index:1000; width:auto;}\
+.cf-dd-portal .c-dropdown-list{max-height:var(--dd-max, 320px);}\
 .cf-dd .c-dropdown-row.hover{background:var(--color-neutral-2);}\
 .cf-dd .c-dropdown-row-label .d{display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5);}\
 .cf-dd .c-dropdown-add{border-top:1px solid var(--color-neutral-2); margin-top:4px; padding-top:10px;}\
@@ -325,12 +328,35 @@
      are read off the select's options on open, so options disabled or
      added later show as such. `addNew` puts a last row that turns into
      an inline name box. */
-  var DD_OPEN = null;
+  var DD_OPEN = null, DD_PANEL = null;
   function closeDD() {
     if (!DD_OPEN) return;
     DD_OPEN.classList.remove('open');
-    DD_OPEN.querySelector('.c-dropdown-panel').hidden = true;
-    DD_OPEN = null;
+    DD_OPEN.querySelector('.c-dropdown-input').setAttribute('aria-expanded', 'false');
+    if (DD_PANEL) {
+      /* Back home from the portal, styles cleared. */
+      DD_PANEL.hidden = true; DD_PANEL.classList.remove('cf-dd-portal'); DD_PANEL.removeAttribute('style');
+      DD_OPEN.querySelector('.input-wrap').appendChild(DD_PANEL);
+    }
+    DD_OPEN = null; DD_PANEL = null;
+  }
+  /* The sheet body scrolls and clips; a panel that lives inside it gets
+     cut off at the fold. So the open panel is lifted onto the body and
+     fixed under its trigger, and any scroll or resize closes it. */
+  function placeDD(field, panel) {
+    var input = field.querySelector('.c-dropdown-input'), tb = input.getBoundingClientRect();
+    panel.classList.add('cf-dd-portal'); document.body.appendChild(panel); panel.hidden = false;
+    panel.style.left = tb.left + 'px'; panel.style.width = tb.width + 'px';
+    var below = window.innerHeight - tb.bottom - 12, above = tb.top - 12;
+    var want = Math.min(panel.offsetHeight, 340);
+    if (want <= below || below >= above) {
+      panel.style.top = (tb.bottom + 4) + 'px'; panel.style.setProperty('--dd-max', Math.max(120, Math.min(320, below - 4)) + 'px');
+    } else {
+      var h = Math.min(want, above - 4);
+      panel.style.setProperty('--dd-max', Math.max(120, h - 16) + 'px');
+      panel.style.top = Math.max(8, tb.top - 4 - Math.min(panel.offsetHeight, h)) + 'px';
+      panel.style.bottom = 'auto';
+    }
   }
   function ddSync(sel) {
     var field = sel.closest('.cf-dd'); if (!field) return;
@@ -365,11 +391,9 @@
     function open() {
       closeDD();
       rows();
-      panel.hidden = false;
-      var body = field.closest('.cf-body'), tb = input.getBoundingClientRect(), bb = body ? body.getBoundingClientRect() : {bottom: window.innerHeight, top: 0};
-      panel.classList.toggle('is-up', tb.bottom + Math.min(340, panel.offsetHeight + 8) > bb.bottom && tb.top - bb.top > panel.offsetHeight + 8);
       field.classList.add('open'); input.setAttribute('aria-expanded', 'true');
-      DD_OPEN = field;
+      DD_OPEN = field; DD_PANEL = panel;
+      placeDD(field, panel);
       /* Scroll the list only — scrollIntoView would drag the sheet body
          along with it. */
       var cur = list.querySelector('.selected'); if (cur) list.scrollTop = Math.max(0, cur.offsetTop - list.clientHeight / 2 + cur.offsetHeight / 2);
@@ -423,7 +447,9 @@
     panel.addEventListener('click', function (e) { e.stopPropagation(); });
     ddSync(sel);
   }
-  document.addEventListener('click', function (e) { if (DD_OPEN && !e.target.closest('.cf-dd')) closeDD(); });
+  document.addEventListener('click', function (e) { if (DD_OPEN && !e.target.closest('.cf-dd') && !e.target.closest('.cf-dd-portal')) closeDD(); });
+  window.addEventListener('resize', closeDD);
+  document.addEventListener('scroll', function (e) { if (DD_OPEN && !(DD_PANEL && DD_PANEL.contains(e.target))) closeDD(); }, true);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && DD_OPEN) { e.stopPropagation(); closeDD(); } }, true);
 
   function checked(hostEl) {
