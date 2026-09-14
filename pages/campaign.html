@@ -61,12 +61,26 @@
   .cd-kpi .n small{font-size:var(--text-body2-size); font-weight:600; color:var(--color-neutral-5);}
   .cd-kpi .n.dash{color:var(--color-neutral-4); font-weight:400;}
   .cd-kpi .s{font-size:var(--text-caption-size); color:var(--color-neutral-5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .cd-kpi .bar{height:5px; border-radius:var(--radius-pill); background:var(--color-neutral-3); overflow:hidden; display:flex; margin-top:2px;}
-  .cd-kpi .bar span{display:block; height:100%; transition:width .6s var(--ease-settle);}
-  .cd-ring-wrap{position:relative; width:44px; height:44px; flex:none;}
-  .cd-ring-wrap svg{width:44px; height:44px; transform:rotate(-90deg);}
-  .cd-ring-wrap .track{stroke:var(--color-neutral-3);}
-  .cd-ring-wrap .fill{stroke:var(--color-green); stroke-linecap:round; transition:stroke-dashoffset .6s var(--ease-settle);}
+  .cd-kpi .pill{display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:var(--radius-pill); font-size:var(--text-caption-size); font-weight:800; flex:none;}
+  .cd-kpi .pill.up{background:var(--color-earth-bg); color:var(--color-green);}
+  .cd-kpi .pill.down{background:rgba(253,51,67,.1); color:var(--color-red);}
+  /* Rings and dot grids — the two devices that replace a row of bars.
+     A ring reads a share; a dot grid reads a count you can point at. */
+  .cd-ring2{position:relative; flex:none; display:inline-block;}
+  .cd-ring2 svg{display:block; transform:rotate(-90deg);}
+  .cd-ring2 .track{stroke:var(--color-neutral-3);}
+  .cd-ring2 .seg{transition:stroke-dasharray .6s var(--ease-settle), stroke-dashoffset .6s var(--ease-settle);}
+  .cd-ring2 .c{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.05; text-align:center;}
+  .cd-ring2 .c b{font-weight:800; color:var(--color-neutral-9); font-variant-numeric:tabular-nums;}
+  .cd-ring2 .c small{font-size:10px; color:var(--color-neutral-5); font-weight:600;}
+  .cd-dots{display:flex; flex-wrap:wrap; gap:3px; margin-top:2px;}
+  .cd-dots i{width:8px; height:8px; border-radius:2px; background:var(--color-neutral-3); display:block;}
+  .cd-dots i.f{background:var(--color-green);} .cd-dots i.p{background:var(--color-amber);} .cd-dots i.a{background:var(--color-navy);}
+  .cd-dots.lg i{width:10px; height:10px; border-radius:3px;}
+  .cd-fin{display:flex; align-items:center; gap:var(--spacing-16);}
+  .cd-fin .lines{flex:1; min-width:0;}
+  .cd-splitwrap{display:flex; align-items:center; gap:var(--spacing-16);}
+  .cd-splitwrap .cd-split{flex:1; min-width:0;}
   .cd-next{grid-column:span 2; position:relative; z-index:0; background:var(--color-neutral-1); color:var(--color-neutral-9);
     border:1px solid transparent; border-radius:var(--radius-lg); overflow:hidden;
     padding:var(--spacing-20); display:flex; flex-direction:column; gap:var(--spacing-12); min-width:0;}
@@ -194,7 +208,8 @@
   .cd-split .who small{font-weight:600; color:var(--color-neutral-5);}
   .cd-about p{margin:0; font-size:var(--text-body2-size); line-height:1.55; color:var(--color-neutral-7);}
   .cd-about .lbl{font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-5); margin:var(--spacing-8) 0 2px;}
-  .cd-card .cd-askrows + .cd-bar{margin-top:auto;}
+  .cd-card .cd-askfoot{margin-top:auto; display:flex; align-items:center; gap:var(--spacing-16); flex-wrap:wrap;}
+  .cd-card .cd-askfoot .cd-dots{flex:1; min-width:160px;}
   @media (max-width:900px){ .cd-card.span-2, .cd-card.span-4{grid-column:span 3;} }
   @media (max-width:640px){ .cd-card.span-2, .cd-card.span-3, .cd-card.span-4{grid-column:span 6;} }
 
@@ -858,10 +873,30 @@
       '<span class="row"><span class="n' + (num == null ? ' dash' : '') + '">' + (num == null ? '—' : num) + '</span>' + (viz && viz.ring ? viz.ring : '') + '</span>' +
       '<span class="s">' + sub + '</span>' + (viz && viz.bar ? viz.bar : '') + '</button>';
   }
-  function miniBar(parts){
+  /* A multi-segment ring: parts [{n, color}] drawn clockwise from the
+     top over a neutral track, with whatever sits in the middle. */
+  function ringSvg(parts, size, stroke, center){
+    var r = (size - stroke) / 2, C = 2 * Math.PI * r, total = parts.reduce(function(a, p){ return a + p.n; }, 0), off = 0;
+    var segs = parts.filter(function(p){ return p.n > 0 && p.color; }).map(function(p){
+      var len = total ? p.n / total * C : 0;
+      var h = '<circle class="seg" cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" fill="none" stroke="' + p.color + '" stroke-width="' + stroke + '" stroke-dasharray="' + len + ' ' + (C - len) + '" stroke-dashoffset="' + (-off) + '"/>';
+      off += len; return h;
+    }).join('');
+    return '<span class="cd-ring2" style="width:' + size + 'px; height:' + size + 'px"><svg viewBox="0 0 ' + size + ' ' + size + '" width="' + size + '" height="' + size + '" aria-hidden="true">' +
+      '<circle class="track" cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" fill="none" stroke-width="' + stroke + '"/>' + segs + '</svg>' + (center ? '<span class="c">' + center + '</span>' : '') + '</span>';
+  }
+  /* One dot per unit, coloured by state; past `max` the counts scale so
+     the grid stays a grid rather than a wall. */
+  function dotGrid(parts, max, cls){
     var total = parts.reduce(function(a, p){ return a + p.n; }, 0);
-    return '<span class="bar">' + parts.filter(function(p){ return p.n > 0 && p.color; }).map(function(p){
-      return '<span style="width:' + (p.n / total * 100) + '%; background:' + p.color + '"></span>'; }).join('') + '</span>';
+    if (!total) return '';
+    var scale = total > max ? max / total : 1, used = 0;
+    var html = parts.map(function(p, i){
+      var n = i === parts.length - 1 ? Math.round(total * scale) - used : Math.round(p.n * scale);
+      used += n;
+      return new Array(Math.max(0, n) + 1).join('<i class="' + (p.cls || '') + '"></i>');
+    }).join('');
+    return '<span class="cd-dots' + (cls ? ' ' + cls : '') + '" role="img" aria-label="' + parts.map(function(p){ return p.n + ' ' + (p.label || ''); }).join(', ') + '">' + html + '</span>';
   }
   function renderKpis(){
     var groups = M.groupsOf(c, byInf).filter(function(g){ return g.want > 0; });
@@ -870,7 +905,7 @@
     var slots = want
       ? kpi('selection', 'Slots', 'ph-squares-four', '<span>' + confirmed + '<small> / ' + want + '</small></span>',
           approved ? approved + ' pending · ' + Math.max(0, want - confirmed - approved) + ' open' : Math.max(0, want - confirmed) + ' open',
-          {bar: miniBar([{n: confirmed, color: 'var(--color-green)'}, {n: approved, color: 'var(--color-amber)'}, {n: Math.max(0, want - confirmed - approved)}])})
+          {bar: dotGrid([{n: confirmed, cls: 'f', label: 'filled'}, {n: approved, cls: 'p', label: 'pending'}, {n: Math.max(0, want - confirmed - approved), label: 'open'}], 40)})
       : kpi('overview', 'Slots', 'ph-squares-four', null, 'no ask yet');
     var batches = c.batches || [], last = batches[batches.length - 1];
     var client;
@@ -878,18 +913,17 @@
       var picks = last.picks || [], answered = picks.filter(function(p){ return M.pickStatus(p) !== 'none'; }).length;
       client = kpi('selection', 'Client', 'ph-chat-circle-text', '<span>' + answered + '<small> / ' + picks.length + '</small></span>',
         'answered · batch ' + last.n + (last.sentAt ? ' · ' + S.fmtDate(last.sentAt) : ''),
-        {bar: miniBar([{n: answered, color: 'var(--color-navy)'}, {n: picks.length - answered}])});
+        {ring: ringSvg([{n: answered, color: 'var(--color-navy)'}, {n: picks.length - answered}], 44, 5)});
     } else client = kpi('selection', 'Client', 'ph-chat-circle-text', null, 'nothing sent yet');
-    var d = M.deliverableCounts(c), circ = 113.1, frac = d.total ? d.done / d.total : 0;
-    var ring = '<span class="cd-ring-wrap"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="track" cx="22" cy="22" r="18" fill="none" stroke-width="5"/>' +
-      '<circle class="fill" cx="22" cy="22" r="18" fill="none" stroke-width="5" stroke-dasharray="' + circ + '" stroke-dashoffset="' + (circ * (1 - frac)) + '"/></svg></span>';
+    var d = M.deliverableCounts(c);
+    var ring = ringSvg([{n: d.done, color: 'var(--color-green)'}, {n: d.total - d.done}], 44, 5);
     var deliv = d.total
       ? kpi('deliverables', 'Deliverables', 'ph-film-strip', '<span>' + d.done + '<small> / ' + d.total + '</small></span>', 'posted', {ring: ring})
       : kpi('deliverables', 'Deliverables', 'ph-film-strip', null, M.confirmedCreators(c).length ? 'nothing planned yet' : 'nobody confirmed yet');
     var m = S.money(c);
     var margin = m.quote != null
-      ? kpi('overview', 'Margin', 'ph-currency-dollar', S.fmtRM(m.margin), (m.marginPct != null ? m.marginPct + '% of ' : '') + 'quote ' + S.fmtRM(m.quote),
-          {bar: miniBar([{n: Math.max(0, m.margin || 0), color: (m.margin || 0) >= 0 ? 'var(--color-green)' : 'var(--color-red)'}, {n: Math.max(0, m.cost || 0)}])})
+      ? kpi('overview', 'Margin', 'ph-currency-dollar', S.fmtRM(m.margin), 'on a quote of ' + S.fmtRM(m.quote),
+          {ring: m.marginPct != null ? '<span class="pill ' + ((m.margin || 0) >= 0 ? 'up' : 'down') + '">' + m.marginPct + '%</span>' : ''})
       : kpi('overview', 'Margin', 'ph-currency-dollar', null, 'no quote yet');
     E('cdKpis').innerHTML = slots + client + deliv + margin;
   }
@@ -1000,11 +1034,11 @@
     var want = 0, confirmed = 0, approved = 0;
     groups.forEach(function(g){ want += g.want; g.fills.forEach(function(r){ if (r.state === 'confirmed') confirmed += 1; else if (r.state === 'approved') approved += 1; }); });
     var open = Math.max(0, want - confirmed - approved), total = Math.max(want, confirmed + approved);
-    return '<div class="cd-bar"><span style="width:' + (confirmed / total * 100) + '%; background:var(--color-green)"></span><span style="width:' + (approved / total * 100) + '%; background:var(--color-amber)"></span></div>' +
+    return '<div class="cd-askfoot">' + dotGrid([{n: confirmed, cls: 'f', label: 'filled'}, {n: approved, cls: 'p', label: 'pending'}, {n: open, label: 'open'}], 60, 'lg') +
       '<div class="cd-legend"><span><b>' + want + (want === 1 ? ' slot' : ' slots') + '</b></span>' +
       '<span><span class="cmp-dot" style="background:var(--color-green)"></span>' + confirmed + ' filled</span>' +
       '<span><span class="cmp-dot" style="background:var(--color-amber)"></span>' + approved + ' pending</span>' +
-      '<span><span class="cmp-dot" style="background:var(--color-neutral-4)"></span>' + open + ' open</span></div>';
+      '<span><span class="cmp-dot" style="background:var(--color-neutral-4)"></span>' + open + ' open</span></div></div>';
   }
   function line(k, v, extra){
     return '<div class="cd-line"><span class="k">' + k + '</span><span class="v' + (v == null ? ' dash' : '') + '">' + (v == null ? '—' : v) + (extra || '') + '</span></div>';
@@ -1024,19 +1058,23 @@
     var stack = creators.slice(0, 6).map(function(inf){ var rec = byInf[inf]; return rec ? avatarHtml(rec) : ''; }).join('') +
       (creators.length > 6 ? '<span class="more">+' + (creators.length - 6) + '</span>' : '');
     var goSel = '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-go-tab="selection">Open board <i class="ph ph-arrow-right"></i></button>';
-    var fin = line('Quote', rm(m.quote)) + line('Cost', rm(m.cost)) +
-      line('Margin', rm(m.margin), m.marginPct != null ? '<span class="c-badge ' + (m.margin >= 0 ? 'c-badge-success' : 'c-badge-error') + '">' + m.marginPct + '%</span>' : '') +
-      (m.quote ? '<div class="cd-bar"><span style="width:' + Math.max(0, Math.min(100, (m.cost || 0) / m.quote * 100)) + '%; background:var(--color-neutral-5)"></span><span style="width:' + Math.max(0, Math.min(100, (m.margin || 0) / m.quote * 100)) + '%; background:var(--color-green)"></span></div>' +
-        '<div class="cd-legend"><span><span class="cmp-dot" style="background:var(--color-neutral-5)"></span>cost</span><span><span class="cmp-dot" style="background:var(--color-green)"></span>margin</span></div>' : '');
+    var finLines = line('Quote', rm(m.quote)) + line('Cost', rm(m.cost)) + line('Margin', rm(m.margin));
+    var fin = m.quote
+      ? '<div class="cd-fin"><div class="lines">' + finLines + '</div>' +
+        ringSvg([{n: Math.max(0, m.margin || 0), color: (m.margin || 0) >= 0 ? 'var(--color-green)' : 'var(--color-red)'}, {n: Math.max(0, m.cost || 0), color: 'var(--color-neutral-5)'}], 84, 10,
+          '<b style="font-size:var(--text-body1-size)">' + (m.marginPct != null ? m.marginPct + '%' : '—') + '</b><small>margin</small>') + '</div>'
+      : finLines;
     var ros = '<div class="cd-bigs"><div class="cd-big"><span class="n">' + selected + '</span><span class="s">on the campaign</span></div>' +
       '<div class="cd-big"><span class="n">' + booked + '</span><span class="s">confirmed fills</span></div></div>' +
       (creators.length ? '<span class="cd-stack">' + stack + '</span>' : '<span class="cd-legend">Nobody confirmed yet.</span>');
     var own = '<div class="cd-people">' + personRow('PIC', c.pic) + personRow('Overseer', c.overseer) + personRow('Salesperson', c.salesperson) + '</div>';
     var pp = m.picPct == null ? null : Number(m.picPct), op = m.overseerPct == null ? null : Number(m.overseerPct);
-    var split = (pp != null || op != null
-      ? '<div class="cd-bar"><span style="width:' + (pp || 0) + '%; background:var(--color-navy)"></span><span style="width:' + (op || 0) + '%; background:var(--color-purple)"></span></div>' : '') +
-      '<div class="cd-split"><div><div class="who">PIC <small>' + (pp != null ? pp + '%' : '—') + '</small></div>' + line('Revenue', rm(m.picRev)) + line('Gross', rm(m.picGross)) + '</div>' +
-      '<div><div class="who">Overseer <small>' + (op != null ? op + '%' : '—') + '</small></div>' + line('Revenue', rm(m.overseerRev)) + line('Gross', rm(m.overseerGross)) + '</div></div>';
+    var splitCols = '<div class="cd-split"><div><div class="who"><span class="cmp-dot" style="background:var(--color-navy); display:inline-block; margin-right:5px"></span>PIC <small>' + (pp != null ? pp + '%' : '—') + '</small></div>' + line('Revenue', rm(m.picRev)) + line('Gross', rm(m.picGross)) + '</div>' +
+      '<div><div class="who"><span class="cmp-dot" style="background:var(--color-purple); display:inline-block; margin-right:5px"></span>Overseer <small>' + (op != null ? op + '%' : '—') + '</small></div>' + line('Revenue', rm(m.overseerRev)) + line('Gross', rm(m.overseerGross)) + '</div></div>';
+    var split = (pp != null || op != null)
+      ? '<div class="cd-splitwrap">' + ringSvg([{n: pp || 0, color: 'var(--color-navy)'}, {n: op || 0, color: 'var(--color-purple)'}], 72, 9,
+          '<b style="font-size:var(--text-caption-size)">' + (pp != null ? pp : 0) + '<span style="color:var(--color-neutral-4)">/</span>' + (op != null ? op : 0) + '</b>') + splitCols + '</div>'
+      : splitCols;
     var about = (c.description || c.remarks)
       ? card('span-6 cd-about', 'gray', 'ph-text-align-left', 'About',
           (c.description ? '<p>' + esc(c.description) + '</p>' : '') +
