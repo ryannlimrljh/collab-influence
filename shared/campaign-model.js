@@ -288,7 +288,7 @@
     }
     if (stage === 'sourcing') {
       if (!hasAsk) {
-        out.sentence = 'No ask yet. Set what you need before sending a batch.';
+        out.sentence = 'No ask yet. Set what you need before creating a selection list.';
         out.primary = act('Set the ask', 'ask'); out.secondary = act('Create Selection List', 'send');
       } else if (pending) {
         out.sentence = plural(pending, 'approval', 'approvals') + ' to confirm' + (open ? ' and ' + plural(open, 'open slot', 'open slots') : '') + '.';

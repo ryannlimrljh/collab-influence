@@ -20,31 +20,34 @@
      it — one row instead of two. The arrow hangs half out of the grid so
      the title stays on the margin. */
   .cd-headrow{display:flex; align-items:flex-start; gap:var(--spacing-8); min-width:0; flex:1;}
+  .cd-headrow .c-pageheader-text{flex:1; min-width:0;}
   .cd-crumb{flex:none; text-decoration:none; margin-left:calc(var(--spacing-12) * -1); margin-top:4px;}
-
-  /* ── Header: colour bar, title, stage; actions on the right. The
-     bar is the campaign's own colour from the form — the one place it
-     shows, so it stays a quiet 6px stripe rather than a wash. */
-  .cd-head{display:flex; align-items:flex-start; justify-content:space-between;
-    gap:var(--spacing-16); padding-top:var(--spacing-32);}
+  /* The DLS page header every Collabrium page opens with, plus the brand
+     mark the media planner puts beside its title, resolved from the name. */
+  .c-shell .c-pageheader{padding-top:var(--spacing-40);}
+  .cd-divider{border:none; border-top:1px solid var(--color-neutral-3); margin:var(--spacing-20) 0 var(--spacing-24);}
+  .cd-brandmark{flex:none; width:40px; height:40px; margin-top:2px; display:flex; align-items:center; justify-content:center;
+    background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); overflow:hidden;}
+  .cd-brandmark[hidden]{display:none;}
+  .cd-brandmark img{width:26px; height:26px; object-fit:contain;}
   .cd-title{display:flex; align-items:center; gap:var(--spacing-12); min-width:0; flex-wrap:wrap;}
-  .cd-title h1{margin:0; font-size:var(--text-h1-size); line-height:var(--text-h1-lh);
-    font-weight:var(--text-h1-weight); color:var(--color-neutral-9); min-width:0;
-    overflow-wrap:anywhere;}
-  .cd-io{margin:var(--spacing-8) 0 0;
-    font-size:var(--text-body2-size); color:var(--color-neutral-5);}
-  .cd-actions{display:flex; gap:var(--spacing-8); flex:none; flex-wrap:wrap; justify-content:flex-end;}
+  .cd-title h1{min-width:0; overflow-wrap:anywhere;}
+  .c-pageheader .sub{display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px;}
+  .c-pageheader .sub .dot{color:var(--color-neutral-4);}
+  .c-pageheader .sub b{font-weight:700; color:var(--color-neutral-7);}
+  .c-pageheader .sub .cmp-plats{display:inline-flex; gap:6px; font-size:var(--icon-sm); color:var(--color-neutral-7);}
+  .cd-actions{flex-wrap:wrap; justify-content:flex-end;}
   .cd-actions .c-btn{text-decoration:none;}
 
   /* ── Hero — the numbers that matter as tiles, the facts as one strip,
      and Next up as a dark card the eye lands on first. Tiles are buttons
      that open the tab they summarise. */
-  .cd-hero{display:grid; grid-template-columns:minmax(0, 1fr) 340px; gap:var(--spacing-20);
-    padding:var(--spacing-20) 0 var(--spacing-24); align-items:stretch;}
+  .cd-hero{display:grid; grid-template-columns:minmax(0, 1fr) 380px; gap:var(--spacing-16);
+    padding:0 0 var(--spacing-24); align-items:stretch;}
   .cd-hero-main{display:flex; flex-direction:column; gap:var(--spacing-16); min-width:0;}
-  .cd-kpis{display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:var(--spacing-12);}
-  .cd-kpi{display:flex; flex-direction:column; gap:6px; text-align:left; min-width:0;
-    padding:var(--spacing-12) var(--spacing-16); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg);
+  .cd-kpis{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--spacing-12); flex:1;}
+  .cd-kpi{display:flex; flex-direction:column; justify-content:center; gap:6px; text-align:left; min-width:0;
+    padding:var(--spacing-16) var(--spacing-20); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg);
     background:var(--color-neutral-1); font:inherit; color:inherit; cursor:pointer;
     transition:transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);}
   .cd-kpi:hover{transform:translateY(-1px); box-shadow:var(--shadow-1); border-color:var(--color-neutral-4);}
@@ -53,7 +56,7 @@
     letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
   .cd-kpi .k i{font-size:13px; color:var(--color-neutral-6);}
   .cd-kpi .row{display:flex; align-items:center; gap:var(--spacing-12); min-width:0;}
-  .cd-kpi .n{font-size:var(--text-h3-size); line-height:1.1; font-weight:800; color:var(--color-neutral-9);
+  .cd-kpi .n{font-size:var(--text-h2-size); line-height:1.1; font-weight:800; color:var(--color-neutral-9);
     font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .cd-kpi .n small{font-size:var(--text-body2-size); font-weight:600; color:var(--color-neutral-5);}
   .cd-kpi .n.dash{color:var(--color-neutral-4); font-weight:400;}
@@ -64,15 +67,9 @@
   .cd-ring-wrap svg{width:44px; height:44px; transform:rotate(-90deg);}
   .cd-ring-wrap .track{stroke:var(--color-neutral-3);}
   .cd-ring-wrap .fill{stroke:var(--color-green); stroke-linecap:round; transition:stroke-dashoffset .6s var(--ease-settle);}
-  .cd-meta-strip{display:flex; flex-wrap:wrap; gap:var(--spacing-8) var(--spacing-24); padding:0 var(--spacing-4);}
-  .cd-kv{display:inline-flex; align-items:baseline; gap:6px; font-size:var(--text-body2-size); min-width:0;}
-  .cd-kv .k{font-size:var(--text-caption-size); font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
-  .cd-kv .v{font-weight:700; color:var(--color-neutral-9); overflow-wrap:anywhere;}
-  .cd-kv .v.u{text-decoration:underline; text-underline-offset:3px;}
-  .cd-kv .v .cmp-plats{display:inline-flex; gap:6px; font-size:var(--icon-sm); vertical-align:-2px;}
-  .cd-kv .v .muted{color:var(--color-neutral-4); font-weight:400;}
   .cd-next{background:var(--color-obsidian); color:var(--color-neutral-1); border-radius:var(--radius-lg);
     padding:var(--spacing-20); display:flex; flex-direction:column; gap:var(--spacing-12); min-width:0; box-shadow:var(--shadow-2);}
+  .cd-next-body{display:flex; flex-direction:column; gap:var(--spacing-12); flex:1;}
   .cd-next .eyebrow{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; text-transform:uppercase;
     letter-spacing:var(--tracking-eyebrow); color:rgba(255,255,255,.6);}
   .cd-next .eyebrow i{font-size:14px; color:var(--color-neutral-1);}
@@ -85,7 +82,8 @@
   .cd-next .c-btn-secondary:hover{background:rgba(255,255,255,.12); border-color:rgba(255,255,255,.5);}
   .cd-next .c-btn:focus-visible{outline:2px solid var(--color-neutral-1); outline-offset:2px;}
   .cd-next .cd-sk{background:rgba(255,255,255,.14);}
-  @media (max-width:1000px){ .cd-hero{grid-template-columns:1fr;} .cd-next{order:-1;} .cd-kpis{grid-template-columns:repeat(2, minmax(0, 1fr));} }
+  @media (max-width:1000px){ .cd-hero{grid-template-columns:1fr;} .cd-next{order:-1;} }
+  @media (max-width:420px){ .cd-kpis{grid-template-columns:1fr;} }
 
   /* ── The ask, on Overview: one chip per slot, coloured by how it stands. */
   .cd-ask{display:flex; flex-wrap:wrap; align-items:center; gap:var(--spacing-8);}
@@ -102,20 +100,22 @@
   .cd-ask .none{font-size:var(--text-body2-size); color:var(--color-neutral-5);}
   @media (max-width:1100px){ .cd-step .lbl{display:none;} .cd-step.is-now .lbl{display:inline;} }
 
-  /* ── Run-date timeline — the flight against today. */
-  .cd-timeline{margin-top:var(--spacing-4);}
+  /* ── Run-date timeline — the flight against today, at the foot of the
+     Next up card, in the card's own light-on-dark palette. */
+  .cd-timeline{margin-top:var(--spacing-4); padding-top:var(--spacing-12); border-top:1px solid rgba(255,255,255,.14);}
+  .cd-timeline[hidden]{display:none;}
   .cd-timeline .row{display:flex; align-items:baseline; justify-content:space-between; gap:var(--spacing-12);
-    font-size:var(--text-caption-size); color:var(--color-neutral-5); margin-bottom:6px;}
-  .cd-timeline .row b{color:var(--color-neutral-9); font-weight:700;}
-  .cd-tl-track{position:relative; height:8px; border-radius:var(--radius-pill); background:var(--color-neutral-3);}
+    font-size:var(--text-caption-size); color:rgba(255,255,255,.65); margin-bottom:8px;}
+  .cd-timeline .row b{color:var(--color-neutral-1); font-weight:700;}
+  .cd-tl-track{position:relative; height:6px; border-radius:var(--radius-pill); background:rgba(255,255,255,.18);}
   .cd-tl-fill{position:absolute; left:0; top:0; bottom:0; border-radius:var(--radius-pill); background:var(--color-green);
     transition:width .6s var(--ease-settle);}
-  .cd-tl-fill.is-over{background:var(--color-neutral-5);}
-  .cd-tl-today{position:absolute; top:-4px; width:2px; height:16px; background:var(--color-obsidian); border-radius:1px;
+  .cd-tl-fill.is-over{background:rgba(255,255,255,.5);}
+  .cd-tl-today{position:absolute; top:-4px; width:2px; height:14px; background:var(--color-neutral-1); border-radius:1px;
     transform:translateX(-1px);}
-  .cd-tl-today::after{content:'Today'; position:absolute; top:18px; left:50%; transform:translateX(-50%);
-    font-size:10px; font-weight:700; color:var(--color-neutral-9); white-space:nowrap;}
-  .cd-timeline .ends{display:flex; justify-content:space-between; font-size:10px; color:var(--color-neutral-4);
+  .cd-tl-today::after{content:'Today'; position:absolute; top:16px; left:50%; transform:translateX(-50%);
+    font-size:10px; font-weight:700; color:var(--color-neutral-1); white-space:nowrap;}
+  .cd-timeline .ends{display:flex; justify-content:space-between; font-size:10px; color:rgba(255,255,255,.45);
     margin-top:var(--spacing-16); font-variant-numeric:tabular-nums;}
 
   /* ── Answer bar — how a batch is going, at a glance. */
@@ -518,13 +518,13 @@
     @keyframes cd-sk-pulse{0%,100%{opacity:1;} 50%{opacity:.45;}}
   }
   @keyframes cd-arrive{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:none;}}
-  .cd-arriving .cd-head, .cd-arriving .cd-io{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:40ms;}
+  .cd-arriving .c-pageheader{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:40ms;}
   .cd-arriving .cd-hero-main{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:110ms;}
   .cd-arriving .cd-next{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:170ms;}
   .cd-arriving .cd-tabs{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:240ms;}
   .cd-arriving .cd-panels{animation:cd-arrive 420ms var(--ease-settle) both; animation-delay:320ms;}
   @media (prefers-reduced-motion:reduce){ .cd-arriving *{animation:none !important;} }
-  @media (max-width:640px){ .cd-head{flex-direction:column;} .cd-ring{align-items:flex-start;} .cd-meta{flex-direction:column;} }
+  @media (max-width:640px){ .c-pageheader-row{flex-direction:column; gap:var(--spacing-12);} .cd-headrow{flex:none; width:100%;} .cd-actions{justify-content:flex-start;} .c-shell .c-pageheader{padding-top:var(--spacing-24);} }
 </style>
 </head>
 <body>
@@ -574,31 +574,36 @@
       <div id="cdMissing" hidden style="padding-top:var(--spacing-32)"></div>
 
       <div id="cdPage">
-        <div class="cd-head">
-          <div class="cd-headrow">
-            <a class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-crumb" href="campaigns.html" aria-label="Back to campaigns" title="Back to campaigns"><i class="ph ph-arrow-left"></i></a>
-            <div style="min-width:0">
-              <div class="cd-title">
-                <h1 id="cdName"></h1>
-                <span id="cdStageWrap"></span>
+        <header class="c-pageheader">
+          <div class="c-pageheader-row">
+            <div class="cd-headrow">
+              <a class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-crumb" href="campaigns.html" aria-label="Back to campaigns" title="Back to campaigns"><i class="ph ph-arrow-left"></i></a>
+              <span class="cd-brandmark" id="cdBrandMark" hidden><img id="cdBrandImg" alt="" /></span>
+              <div class="c-pageheader-text">
+                <div class="cd-title">
+                  <h1 id="cdName"></h1>
+                  <span id="cdStageWrap"></span>
+                </div>
+                <p class="sub" id="cdSub"></p>
               </div>
-              <p class="cd-io" id="cdIo" hidden></p>
+            </div>
+            <div class="c-pageheader-actions cd-actions">
+              <button class="c-btn c-btn-secondary c-btn-md" type="button" id="cdDelete"><i class="ph ph-trash"></i> Delete</button>
+              <button class="c-btn c-btn-secondary c-btn-md" type="button" id="cdEdit"><i class="ph ph-pencil-simple"></i> Edit</button>
+              <button class="c-btn c-btn-primary c-btn-md" type="button" id="cdShare"><i class="ph ph-plus"></i> Create Selection List</button>
             </div>
           </div>
-          <div class="cd-actions">
-            <button class="c-btn c-btn-secondary c-btn-md" type="button" id="cdDelete"><i class="ph ph-trash"></i> Delete</button>
-            <button class="c-btn c-btn-secondary c-btn-md" type="button" id="cdEdit"><i class="ph ph-pencil-simple"></i> Edit</button>
-            <button class="c-btn c-btn-primary c-btn-md" type="button" id="cdShare"><i class="ph ph-plus"></i> Create Selection List</button>
-          </div>
-        </div>
+        </header>
+        <hr class="cd-divider" />
 
         <div class="cd-hero">
           <div class="cd-hero-main">
             <div class="cd-kpis" id="cdKpis"></div>
-            <div class="cd-meta-strip" id="cdFacts"></div>
-            <div class="cd-timeline" id="cdTimeline" hidden></div>
           </div>
-          <aside class="cd-next" id="cdNext" role="status" aria-live="polite"></aside>
+          <aside class="cd-next" id="cdNext" role="status" aria-live="polite">
+            <div class="cd-next-body" id="cdNextBody"></div>
+            <div class="cd-timeline" id="cdTimeline" hidden></div>
+          </aside>
         </div>
 
         <div class="c-tabs cd-tabs" role="tablist" id="cdTabs">
@@ -700,9 +705,9 @@
 <script src="../shared/influencer-store.js?v=2"></script>
 <script src="../shared/campaigns-data.js?v=6"></script>
 <script src="../shared/tiers.js?v=1"></script>
-<script src="../shared/campaign-model.js?v=7"></script>
+<script src="../shared/campaign-model.js?v=8"></script>
 <script src="../shared/campaign-store.js?v=9"></script>
-<script src="../shared/campaign-form.js?v=4"></script>
+<script src="../shared/campaign-form.js?v=6"></script>
 <script src="../shared/send-sheet.js?v=9"></script>
 <script>
 (function () {
@@ -810,18 +815,30 @@
     document.title = 'Collab:Influence · ' + c.name;
     E('cdName').textContent = c.name;
     E('cdStageWrap').innerHTML = stageBadge();
-    E('cdIo').hidden = !c.io; E('cdIo').textContent = c.io || '';
     var plats = (c.platforms || []).map(function(p){ return PLAT_ICON[p] || ''; }).join('');
-    E('cdFacts').innerHTML =
-      kv('Brand', c.brand ? '<span class="v u">' + esc(c.brand) + '</span>' : dash()) +
-      kv('Agency', c.agency ? '<span class="v">' + esc(c.agency) + '</span>' : dash()) +
-      kv('Dates', '<span class="v">' + esc(S.fmtRange(c.start, c.end)) + '</span>') +
-      kv('Type', (c.types || []).length ? '<span class="v">' + esc(c.types.join(', ')) + '</span>' : dash()) +
-      kv('Platforms', plats ? '<span class="v"><span class="cmp-plats">' + plats + '</span></span>' : dash()) +
-      kv('Pax', c.pax != null ? '<span class="v">' + S.fmtNum(c.pax) + '</span>' : dash());
+    var bits = [];
+    if (c.brand) bits.push('<b>' + esc(c.brand) + '</b>' + (c.agency ? ' via ' + esc(c.agency) : ''));
+    else if (c.agency) bits.push(esc(c.agency));
+    if (c.start || c.end) bits.push(esc(S.fmtRange(c.start, c.end)));
+    if ((c.types || []).length) bits.push(esc(c.types.join(', ')));
+    if (c.pax != null) bits.push(S.fmtNum(c.pax) + ' pax');
+    if (c.io) bits.push('IO ' + esc(c.io));
+    if (plats) bits.push('<span class="cmp-plats">' + plats + '</span>');
+    E('cdSub').innerHTML = bits.length ? bits.join('<span class="dot">·</span>') : 'No brand or dates yet — edit the campaign to fill them in.';
+    updateBrandMark(c.brand);
     renderKpis(); renderNext(); renderTimeline();
     var n = (c.roster || []).filter(function(r){ return r.state !== 'unavailable'; }).length;
     E('cdKolCount').hidden = !n; E('cdKolCount').textContent = n > 99 ? '99+' : n;
+  }
+  /* Brand mark beside the title, resolved from the name through the
+     shell's collabBrand chain; the img's own load/error decides. */
+  function updateBrandMark(brand){
+    var mark = E('cdBrandMark'), img = E('cdBrandImg');
+    brand = String(brand || '').trim();
+    if (!brand || !window.collabBrand) { mark.hidden = true; img.dataset.brand = ''; return; }
+    if (img.dataset.brand === brand) return;
+    img.dataset.brand = brand; mark.hidden = true;
+    window.collabBrand.attach(img, brand, function(ok){ if (img.dataset.brand === brand) mark.hidden = !ok; });
   }
   /* ── The four numbers: slots, the client's answers, deliverables, margin.
      Each tile opens the tab it summarises. */
@@ -871,14 +888,14 @@
   /* ── Next up. The model decides what to say and which action keys to
      offer; this maps the keys to what the page can do. */
   function renderNext(){
-    var n = M.nextUp(c), el = E('cdNext');
+    var n = M.nextUp(c), el = E('cdNext'), body = E('cdNextBody');
     var say = esc(n.sentence).replace('{date}', esc(n.date ? S.fmtDate(n.date) : 'earlier'));
     function btn(a, primary){
       if (!a) return '';
       return '<button class="c-btn ' + (primary ? 'c-btn-primary' : 'c-btn-secondary') + ' c-btn-md" type="button" data-next="' + a.action + '">' + esc(a.label) + '</button>';
     }
     el.classList.toggle('is-quiet', !n.primary);
-    el.innerHTML = '<span class="eyebrow"><i class="ph-fill ph-arrow-bend-down-right"></i>Next up</span>' +
+    body.innerHTML = '<span class="eyebrow"><i class="ph-fill ph-arrow-bend-down-right"></i>Next up</span>' +
       '<span class="say">' + say + '</span>' +
       (n.primary || n.secondary ? '<span class="acts">' + btn(n.primary, true) + btn(n.secondary, false) + '</span>' : '');
   }
@@ -931,8 +948,6 @@
       (todayPos != null ? '<div class="cd-tl-today" style="left:' + todayPos + '%"></div>' : '') + '</div>' +
       '<div class="ends"><span>' + esc(S.fmtDate(c.start, true)) + '</span><span>' + esc(S.fmtDate(c.end, true)) + '</span></div>';
   }
-  function kv(k, v){ return '<span class="cd-kv"><span class="k">' + k + '</span>' + v + '</span>'; }
-  function dash(){ return '<span class="v"><span class="muted">—</span></span>'; }
 
   /* ── Overview. */
   function cell(k, v, sub, opts){
@@ -1807,15 +1822,13 @@
     if (!c) return;
     E('cdName').innerHTML = '<span class="cd-sk" style="width:min(360px, 60vw); height:28px"></span>';
     E('cdStageWrap').innerHTML = '<span class="cd-sk pill" style="width:120px"></span>';
-    E('cdIo').hidden = false; E('cdIo').innerHTML = '<span class="cd-sk" style="width:110px; height:10px"></span>';
+    E('cdSub').innerHTML = '<span class="cd-sk" style="width:min(420px, 70%); height:12px"></span>';
+    E('cdBrandMark').hidden = true;
     E('cdKpis').innerHTML = [0,1,2,3].map(function(){
       return '<span class="cd-kpi" style="pointer-events:none"><span class="cd-sk" style="width:56px; height:9px"></span><span class="cd-sk" style="width:64px; height:22px"></span><span class="cd-sk" style="width:80%; height:9px"></span></span>';
     }).join('');
     E('cdNext').classList.remove('is-quiet');
-    E('cdNext').innerHTML = '<span class="cd-sk" style="width:56px; height:10px"></span><span class="say"><span class="cd-sk" style="width:90%; height:14px; margin-bottom:8px"></span><span class="cd-sk" style="width:60%; height:14px"></span></span><span class="acts"><span class="cd-sk pill" style="width:150px; height:40px"></span></span>';
-    E('cdFacts').innerHTML = [0,1,2,3,4].map(function(){
-      return '<span class="cd-kv"><span class="cd-sk" style="width:44px; height:9px"></span><span class="cd-sk" style="width:90px; height:12px"></span></span>';
-    }).join('');
+    E('cdNextBody').innerHTML = '<span class="cd-sk" style="width:56px; height:10px"></span><span class="say"><span class="cd-sk" style="width:90%; height:14px; margin-bottom:8px"></span><span class="cd-sk" style="width:60%; height:14px"></span></span><span class="acts"><span class="cd-sk pill" style="width:150px; height:40px"></span></span>';
     E('cdTimeline').hidden = true;
     E('pan-overview').innerHTML = '<div class="cd-ov">' + ['span-4', 'span-2', 'span-2', 'span-2', 'span-2'].map(function(sp){
       return '<div class="cd-card ' + sp + '"><div class="cd-card-h"><span class="cd-chip gray"></span><span class="cd-sk" style="width:96px"></span></div>' +

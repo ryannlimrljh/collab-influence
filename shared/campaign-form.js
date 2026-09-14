@@ -91,6 +91,14 @@
 .cf-foot .grow{flex:1;}\
 .cf-foot .cf-skip{font-size:var(--text-caption-size); color:var(--color-neutral-5); background:transparent; border:0; font-family:inherit; cursor:pointer; text-decoration:underline; text-underline-offset:3px;}\
 .cf-foot .cf-skip:hover{color:var(--color-neutral-9);}\
+.cf-brandwrap{position:relative; display:block; width:100%;}\
+.cf-brandwrap input{width:100%; box-sizing:border-box; padding-right:44px;}\
+.cf-brandmark{position:absolute; right:6px; top:50%; transform:translateY(-50%); width:30px; height:30px; border-radius:var(--radius-sm);\
+  background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); display:flex; align-items:center; justify-content:center; overflow:hidden;\
+  animation:cf-pop 240ms var(--ease-settle) both;}\
+.cf-brandmark[hidden]{display:none;}\
+.cf-brandmark img{width:20px; height:20px; object-fit:contain;}\
+@keyframes cf-pop{from{opacity:0; transform:translateY(-50%) scale(.8);} to{opacity:1; transform:translateY(-50%) scale(1);}}\
 @media (max-width:640px){ .cf-grid{grid-template-columns:1fr;} .cf-askrow{grid-template-columns:1fr;} .cf-tiers{grid-template-columns:repeat(4, minmax(0, 1fr));} .cf-stepbtn .lbl{display:none;} .cf-stepbtn.is-on .lbl{display:inline;} }';
 
   var HTML = '\
@@ -109,7 +117,8 @@
           <div class="c-field span2" id="cfFieldName"><label for="cf-name">Campaign name<span class="required-mark">*</span></label>\
             <input id="cf-name" placeholder="e.g. Raya 2026 Influencer Push" /><span class="c-helper" hidden id="cfNameHelp">A name is required.</span></div>\
           <div class="c-field"><label for="cf-brand">Brand<span class="opt">(optional)</span></label>\
-            <input id="cf-brand" placeholder="e.g. Nestlé MY" /></div>\
+            <div class="cf-brandwrap"><input id="cf-brand" placeholder="e.g. Nestlé MY" autocomplete="organization" />\
+              <span class="cf-brandmark" id="cfBrandMark" hidden title="Logo resolved from the brand name"><img id="cfBrandImg" alt="" /></span></div></div>\
           <div class="c-field"><label for="cf-agency">Agency<span class="opt">(optional)</span></label>\
             <input id="cf-agency" placeholder="e.g. Wavemaker" /></div>\
           <div class="c-field"><label for="cf-pic">PIC</label>\
@@ -315,6 +324,7 @@
     r = r || {};
     F('cf-name').value = r.name || '';
     F('cf-brand').value = r.brand || '';
+    updateBrandMark(F('cf-brand').value);
     F('cf-agency').value = r.agency || '';
     F('cf-desc').value = r.description || '';
     F('cf-pic').value = r.pic || S.TEAM[0];
@@ -450,6 +460,25 @@
   F('cf-overseer').addEventListener('change', syncOverseer);
   F('cf-picpct').addEventListener('input', function () { delete F('cf-ovpct').dataset.touched; syncOverseer(); });
   F('cf-ovpct').addEventListener('input', function () { F('cf-ovpct').dataset.touched = '1'; });
+  /* Brand logo chip — debounced so typing does not spray requests; the
+     img's own load/error events decide visibility, via the shell's
+     collabBrand chain. Same recipe as the media planner. */
+  var brandMarkTimer = null;
+  function updateBrandMark(brand) {
+    clearTimeout(brandMarkTimer);
+    var mark = F('cfBrandMark'), img = F('cfBrandImg');
+    if (!mark || !img || !window.collabBrand) return;
+    brand = String(brand || '').trim();
+    if (!brand) { mark.hidden = true; img.dataset.brand = ''; return; }
+    brandMarkTimer = setTimeout(function () {
+      if (img.dataset.brand === brand) return;
+      img.dataset.brand = brand; mark.hidden = true;
+      window.collabBrand.attach(img, brand, function (ok) {
+        if (img.dataset.brand === brand) mark.hidden = !ok;
+      });
+    }, 400);
+  }
+  F('cf-brand').addEventListener('input', function () { updateBrandMark(this.value); });
   F('cf-name').addEventListener('input', function () {
     if (F('cf-name').value.trim()) { F('cfFieldName').classList.remove('c-field-error'); F('cfNameHelp').hidden = true; }
   });
