@@ -305,6 +305,80 @@
   .cd-group-foot{display:flex; gap:var(--spacing-8); padding:var(--spacing-12) var(--spacing-16); margin-top:auto;
     border-top:1px solid var(--color-neutral-2); background:var(--color-neutral-2);}
   .cd-group.is-extra .cd-group-head{background:var(--color-neutral-2);}
+  /* ── Selection, by person. Left: everyone on the campaign, one row each
+     with a chip per channel fill, a checkbox for bulk work. Right: the
+     selection lists as a loose stack of cards, each tilted a hair the
+     way the mothership's feedback wall hangs its notes. */
+  .cd-selgrid{display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:var(--spacing-16); align-items:start;}
+  .cd-people{grid-column:span 4;}
+  .cd-lists-col{grid-column:span 2; min-width:0;}
+  @media (max-width:1000px){ .cd-people, .cd-lists-col{grid-column:span 6;} }
+  .cd-bulk{display:flex; align-items:center; gap:var(--spacing-8); flex-wrap:wrap; padding:8px 12px; margin:0 0 var(--spacing-4);
+    background:var(--color-neutral-2); border-radius:var(--radius-md); font-size:var(--text-caption-size); color:var(--color-neutral-9);}
+  .cd-bulk b{font-weight:800;}
+  .cd-bulk .sp{flex:1;}
+  .cd-sp{display:grid; grid-template-columns:18px 34px minmax(0, 1fr) auto; column-gap:var(--spacing-12); row-gap:6px; align-items:center;
+    padding:10px 0; border-bottom:1px solid var(--color-neutral-2); transition:background var(--duration-fast) var(--ease-standard);}
+  .cd-sp:last-child{border-bottom:0;}
+  .cd-sp.is-picked{background:color-mix(in srgb, var(--color-neutral-2) 60%, transparent); margin:0 calc(var(--spacing-20) * -1); padding-left:var(--spacing-20); padding-right:var(--spacing-20);}
+  .cd-sp .c-checkbox-box{margin:0; font-size:11px; cursor:pointer;}
+  .cd-sp .c-card-profile-avatar{width:34px; height:34px; font-size:11px;}
+  .cd-sp .who{min-width:0;}
+  .cd-sp .who .n{display:block; font-weight:700; color:var(--color-neutral-9); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cd-sp .who .s{display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cd-sp .right{display:flex; align-items:center; gap:var(--spacing-4); justify-self:end;}
+  .cd-sp .right .prov{font-size:11px; color:var(--color-neutral-5); white-space:nowrap; display:inline-flex; align-items:center; gap:3px; margin-right:4px;}
+  .cd-sp .chips{grid-column:3 / -1; display:flex; flex-wrap:wrap; gap:6px;}
+  .cd-fchip{display:inline-flex; align-items:center; gap:5px; height:26px; padding:0 9px 0 8px; border-radius:var(--radius-pill); border:1px solid var(--color-neutral-3);
+    background:var(--color-neutral-1); font:inherit; font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-9); cursor:pointer; white-space:nowrap;
+    transition:border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);}
+  .cd-fchip:hover{border-color:var(--color-neutral-5);}
+  .cd-fchip:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+  .cd-fchip > i:first-child{font-size:13px; color:var(--color-neutral-6);}
+  .cd-fchip .st{font-size:13px;}
+  .cd-fchip .sub{color:var(--color-amber); font-weight:700;}
+  .cd-fchip.is-confirmed{border-color:color-mix(in srgb, var(--color-green) 45%, transparent); background:var(--color-earth-bg);} .cd-fchip.is-confirmed .st{color:var(--color-green);}
+  .cd-fchip.is-approved{border-color:color-mix(in srgb, var(--color-amber) 55%, transparent); background:color-mix(in srgb, var(--color-amber) 12%, transparent);} .cd-fchip.is-approved .st{color:var(--color-amber);}
+  .cd-fchip.is-unavailable{opacity:.6; text-decoration:line-through;} .cd-fchip.is-unavailable .st{color:var(--color-neutral-5);}
+  .cd-fchip.is-extra{border-style:dashed;}
+  .cd-fchip.is-flash{box-shadow:0 0 0 3px color-mix(in srgb, var(--color-amber) 35%, transparent);}
+  .cd-fchip .caret{font-size:11px; color:var(--color-neutral-4); margin-left:-2px;}
+  .cd-people-empty{padding:var(--spacing-32) var(--spacing-16); text-align:center; color:var(--color-neutral-5); font-size:var(--text-body2-size);}
+  .cd-people-empty i{font-size:30px; color:var(--color-neutral-4); display:block; margin-bottom:var(--spacing-8);}
+  .cd-people-empty h4{margin:0 0 4px; color:var(--color-neutral-9);}
+  .cd-people-empty .acts{display:flex; gap:var(--spacing-8); justify-content:center; margin-top:var(--spacing-16); flex-wrap:wrap;}
+  .cd-lists-h{display:flex; align-items:center; justify-content:space-between; gap:var(--spacing-12); margin:2px 4px var(--spacing-12);}
+  .cd-lists-h h3{margin:0; font-size:var(--text-body1-size); font-weight:800; color:var(--color-neutral-9);}
+  .cd-lists-h .sub{margin-left:var(--spacing-8); font-size:var(--text-caption-size); font-weight:500; color:var(--color-neutral-5);}
+  .cd-lists{display:flex; flex-direction:column; gap:var(--spacing-16); padding:4px 8px 12px;}
+  .cd-list{position:relative; background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg); padding:var(--spacing-16);
+    box-shadow:var(--shadow-2); transform:translateX(var(--ox, 0px)) rotate(var(--rot, 0deg)); transform-origin:50% 60%;
+    transition:transform var(--duration-base) var(--ease-settle), box-shadow var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);}
+  .cd-list:hover{transform:translateX(var(--ox, 0px)) translateY(-3px) rotate(0deg) scale(1.01); box-shadow:var(--shadow-3); z-index:2;}
+  .cd-list.is-open{border-color:var(--color-obsidian); transform:translateX(var(--ox, 0px)) rotate(0deg); box-shadow:var(--shadow-3);}
+  .cd-list .eyebrow{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
+  .cd-list .nm{display:block; font-weight:800; color:var(--color-neutral-9); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .cd-list .meta{font-size:var(--text-caption-size); color:var(--color-neutral-5); margin-top:2px;}
+  .cd-list .mid{display:flex; align-items:center; justify-content:space-between; gap:var(--spacing-12); margin-top:var(--spacing-12);}
+  .cd-list .cd-stack{padding-left:8px;}
+  .cd-list .cd-stack .c-card-profile-avatar{width:30px; height:30px; margin-left:-9px; border:2px solid var(--color-neutral-1); font-size:10px;}
+  .cd-list .cd-stack .more{width:30px; height:30px; margin-left:-9px; font-size:10px;}
+  .cd-list .ans{display:flex; align-items:center; gap:8px; font-size:var(--text-caption-size); color:var(--color-neutral-5); white-space:nowrap;}
+  .cd-list .ans b{color:var(--color-neutral-9); font-weight:800;}
+  .cd-list .foot{display:flex; align-items:center; gap:var(--spacing-4); margin-top:var(--spacing-12); padding-top:var(--spacing-12); border-top:1px solid var(--color-neutral-2);}
+  .cd-list .foot .sp{flex:1;}
+  .cd-list-empty{border:1px dashed var(--color-neutral-3); border-radius:var(--radius-lg); padding:var(--spacing-24) var(--spacing-16); text-align:center;
+    color:var(--color-neutral-5); font-size:var(--text-body2-size); transform:rotate(-1.2deg);}
+  .cd-list-empty .ghosts{display:flex; justify-content:center; padding-left:10px; margin-bottom:var(--spacing-12);}
+  .cd-list-empty .ghosts i{width:30px; height:30px; border-radius:var(--radius-pill); background:var(--color-neutral-2); border:2px solid var(--color-neutral-1); margin-left:-10px; display:block;}
+  .cd-list-empty h4{margin:0 0 4px; color:var(--color-neutral-9);}
+  .cd-detail{margin-top:var(--spacing-20);}
+  .cd-detail .cd-batch{margin-bottom:0;}
+  .cd-sum .bands{display:flex; flex-wrap:wrap; gap:6px; margin-top:2px;}
+  .cd-sum .bands .cd-slot{cursor:pointer; font:inherit; font-size:var(--text-caption-size); font-weight:700;}
+  .cd-sum .bands .cd-slot:hover{border-color:var(--color-neutral-5);}
+  .cd-sum .bands .cd-slot i{font-size:12px; color:var(--color-neutral-6);}
+  .cmp-menu-item > i.ph{font-size:14px; color:var(--color-neutral-6); margin-right:2px;}
   .cd-noask{background:var(--color-neutral-1); border:1px dashed var(--color-neutral-3); border-radius:var(--radius-lg);
     padding:var(--spacing-32); text-align:center; margin-bottom:var(--spacing-24);}
   .cd-noask i{font-size:28px; color:var(--color-neutral-4);}
@@ -1202,43 +1276,103 @@
       '<div class="mid">' + dotGrid([{n: confirmed, cls: 'f', label: 'filled'}, {n: approved, cls: 'p', label: 'pending'}, {n: open, label: 'open'}], 60, 'lg') +
         '<div class="cd-legend"><span><span class="cmp-dot" style="background:var(--color-green)"></span>' + confirmed + ' filled</span>' +
         '<span><span class="cmp-dot" style="background:var(--color-amber)"></span>' + approved + ' pending</span>' +
-        '<span><span class="cmp-dot" style="background:var(--color-neutral-4)"></span>' + open + ' open</span></div></div>' +
+        '<span><span class="cmp-dot" style="background:var(--color-neutral-4)"></span>' + open + ' open</span></div>' +
+        '<div class="bands">' + groups.map(function(g){
+          var tone = g.over ? ' is-over' : g.open ? '' : ' is-met';
+          return '<button type="button" class="cd-slot' + tone + '" data-send-band="' + g.platform + '/' + g.tier + '" title="' + (g.open ? 'Create a selection list for this band' : 'Band filled') + '">' + (PLAT_ICON[g.platform] || '') + esc(tierName(g.tier)) + '<span class="n">' + g.filled + ' / ' + g.want + '</span></button>';
+        }).join('') + '</div></div>' +
       '<div class="acts">' + (approved ? '<button class="c-btn c-btn-secondary c-btn-sm" type="button" data-confirm-all><i class="ph ph-check"></i> Confirm all (' + approved + ')</button>' : '') +
         '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-edit-ask><i class="ph ph-pencil-simple"></i> Edit ask</button></div></div>';
   }
+  var picked = {};   /* bulk selection on the people list, by influencer id */
+  function tilt(key){ var h = 0; for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) & 0xffff; return ((h % 37) / 10 - 1.8).toFixed(2); }
+  function personHtml(inf, fills){
+    var rec = byInf[inf] || {id: inf, name: 'Unknown profile', platforms: []};
+    var slots = M.slotsOf(c);
+    var chips = fills.map(function(r){
+      var inAsk = slots.some(function(sl){ return sl.platform === r.platform && sl.tier === M.groupTier(r); });
+      var st = r.state === 'confirmed' ? 'ph-fill ph-check-circle' : r.state === 'approved' ? 'ph-fill ph-clock' : 'ph ph-prohibit';
+      return '<button type="button" class="cd-fchip is-' + r.state + (inAsk ? '' : ' is-extra') + '" data-fill="' + esc(r.inf) + '/' + esc(r.platform) + '" data-fill-menu aria-haspopup="menu" title="' + esc(PLAT_LABEL[r.platform] || r.platform) + ' · ' + esc(tierName(r.tier)) + (r.state === 'approved' ? ' — approved by the client, confirm availability' : r.state === 'confirmed' ? ' — confirmed' : ' — unavailable') + (inAsk ? '' : ' · not in the ask') + '">' +
+        (PLAT_ICON[r.platform] || '') + esc(tierName(r.tier)) + (r.substitutedFor ? '<span class="sub">↑ ' + esc(tierName(r.substitutedFor)) + '</span>' : '') +
+        '<i class="' + st + ' st"></i><i class="ph ph-caret-down caret"></i></button>';
+    }).join('');
+    var src = fills[0], prov = src.batch == null ? '<i class="ph ph-hand"></i>by hand' : '<i class="ph ph-paper-plane-tilt"></i>batch ' + src.batch;
+    return '<div class="cd-sp' + (picked[inf] ? ' is-picked' : '') + (fills.some(function(r){ return r.state === 'approved'; }) ? ' is-pending' : '') + '" data-person="' + esc(inf) + '">' +
+      '<span class="c-checkbox-box' + (picked[inf] ? ' on' : '') + '" role="checkbox" aria-checked="' + !!picked[inf] + '" tabindex="0" data-pick-person="' + esc(inf) + '" aria-label="Select ' + esc(rec.name) + '">' + (picked[inf] ? '<i class="ph ph-check"></i>' : '') + '</span>' +
+      avatarHtml(rec) + '<span class="who"><span class="n">' + esc(rec.name) + '</span><span class="s">' + esc(handlesLine(rec)) + '</span></span>' +
+      '<span class="right"><span class="prov">' + prov + '</span><button class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-trash" type="button" data-roster-remove="' + esc(inf) + '" data-roster-plat="" aria-label="Remove from the campaign"><i class="ph ph-trash"></i></button></span>' +
+      '<span class="chips">' + chips + '</span></div>';
+  }
+  function listCardHtml(b, i){
+    var counts = {};
+    S.PICK_STATUS.forEach(function(p){ counts[p.key] = b.picks.filter(function(x){ return M.pickStatus(x) === p.key; }).length; });
+    var answered = b.picks.length - counts.none;
+    var stack = b.picks.slice(0, 5).map(function(p){ var rec = byInf[p.inf]; return rec ? avatarHtml(rec) : ''; }).join('') +
+      (b.picks.length > 5 ? '<span class="more">+' + (b.picks.length - 5) + '</span>' : '');
+    var open = !!openBatches[b.n];
+    return '<div class="cd-list' + (open ? ' is-open' : '') + '" data-list="' + b.n + '" style="--rot:' + tilt('b' + b.n + (b.name || '')) + 'deg; --ox:' + ([0, 6, -4, 3][i % 4]) + 'px">' +
+      '<span class="eyebrow">Batch ' + b.n + (b.sentAt ? ' · ' + esc(S.fmtDate(b.sentAt)) : '') + '</span><span class="nm">' + esc(b.name || 'Batch ' + b.n) + '</span>' +
+      '<span class="meta">' + b.picks.length + (b.picks.length === 1 ? ' creator' : ' creators') + (b.recipient ? ' · to ' + esc(b.recipient) : '') + (b.expiresAt ? ' · expires ' + esc(S.fmtDate(b.expiresAt)) : '') + '</span>' +
+      '<div class="mid"><span class="cd-stack">' + stack + '</span><span class="ans">' + ringSvg([{n: counts.selected, color: 'var(--color-green)'}, {n: counts.kiv, color: 'var(--color-amber)'}, {n: counts.rejected + counts.unavailable, color: 'var(--color-red)'}, {n: counts.none}], 34, 4) + '<span><b>' + answered + '</b>/' + b.picks.length + '<br>answered</span></span></div>' +
+      '<div class="foot"><button class="c-btn ' + (open ? 'c-btn-secondary' : 'c-btn-ghost') + ' c-btn-sm" type="button" data-list-open="' + b.n + '">' + (open ? 'Close' : 'Open') + '</button><span class="sp"></span>' +
+        '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon" type="button" data-batch-copy="' + b.n + '" aria-label="Copy the client link" title="Copy client link"><i class="ph ph-link"></i></button>' +
+        '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon" type="button" data-batch-link="' + b.n + '" aria-label="Open the client view" title="Client view"><i class="ph ph-arrow-square-out"></i></button></div></div>';
+  }
   function renderKol(){
     var batches = c.batches || [];
-    var k = batches.length + 1;
     var groups = M.groupsOf(c, byInf);
-    var asked = groups.filter(function(g){ return g.want > 0; }), extra = groups.filter(function(g){ return g.want === 0; });
+    var asked = groups.filter(function(g){ return g.want > 0; });
     var html = '';
     if (!asked.length) {
-      html += '<div class="cd-noask"><i class="ph ph-target"></i><h4>No ask yet</h4><p>Set what you need from the client — platforms, tiers and how many of each — and the board lays itself out from it.</p>' +
+      html += '<div class="cd-noask"><i class="ph ph-target"></i><h4>No ask yet</h4><p>Set what you need from the client — platforms, tiers and how many of each — and the summary lays itself out from it.</p>' +
         '<button class="c-btn c-btn-primary c-btn-md" type="button" data-edit-ask><i class="ph ph-target"></i> Set the ask</button></div>';
     } else {
-      html += summaryHtml(asked) + '<div class="cd-groups">' + asked.map(function(g){ return groupHtml(g, k); }).join('') + '</div>';
+      html += summaryHtml(asked);
     }
-    if (extra.length) {
-      html += '<div class="cd-gap"></div><div class="cd-sect"><h3>' + (asked.length ? 'Outside the ask' : 'On the roster') + '<span class="sub">bands nobody asked for — count them toward a slot, or leave them</span></h3></div>' +
-        '<div class="cd-groups">' + extra.map(function(g){ return groupHtml(g, k); }).join('') + '</div>';
-    }
-    html += '<div class="cd-gap"></div><div class="cd-sect"><h3>Selection lists<span class="sub">' + (batches.length ? batches.length + (batches.length === 1 ? ' sent to the client' : ' sent to the client') : 'nothing sent yet') + '</span></h3>' +
-      '<button class="c-btn c-btn-ghost c-btn-sm" type="button" id="cdNewBatch"><i class="ph ph-plus"></i> Create Selection List</button></div>';
-    if (!batches.length) {
-      html += '<div class="cd-note">Create a selection list for the client to pick from — it shows here with whatever they answer, per channel.</div>';
+    /* People, in roster order, each with every channel fill they hold. */
+    var order = [], byPerson = {};
+    (c.roster || []).forEach(function(r){ if (!byPerson[r.inf]) { byPerson[r.inf] = []; order.push(r.inf); } byPerson[r.inf].push(r); });
+    Object.keys(picked).forEach(function(k){ if (!byPerson[k]) delete picked[k]; });
+    var nPicked = Object.keys(picked).length;
+    var pendingPicked = order.filter(function(inf){ return picked[inf] && byPerson[inf].some(function(r){ return r.state === 'approved'; }); }).length;
+    var people = '<div class="cd-card cd-people"><div class="cd-card-h"><span class="cd-chip water"><i class="ph ph-users"></i></span>Selected influencers' +
+      (order.length ? '<span class="cd-lists-h" style="margin:0"><span class="sub">' + order.length + ' on the campaign</span></span>' : '') +
+      '<span class="r"><button class="c-btn c-btn-ghost c-btn-sm" type="button" data-add-band=""><i class="ph ph-plus"></i> Add by hand</button>' +
+      '<button class="c-btn c-btn-primary c-btn-sm" type="button" id="cdNewBatch"><i class="ph ph-plus"></i> Create Selection List</button></span></div>';
+    if (!order.length) {
+      people += '<div class="cd-people-empty"><i class="ph ph-user-plus"></i><h4>Nobody selected yet</h4>Create a selection list for the client to pick from, or add someone by hand.' +
+        '<div class="acts"><button class="c-btn c-btn-secondary c-btn-sm" type="button" data-add-band=""><i class="ph ph-plus"></i> Add by hand</button>' +
+        '<button class="c-btn c-btn-primary c-btn-sm" type="button" data-new-list><i class="ph ph-plus"></i> Create Selection List</button></div></div>';
     } else {
-      html += batches.slice().reverse().map(batchHtml).join('');
+      if (nPicked) people += '<div class="cd-bulk"><b>' + nPicked + '</b>&nbsp;selected<span class="sp"></span>' +
+        (pendingPicked ? '<button class="c-btn c-btn-secondary c-btn-sm" type="button" data-bulk="confirmed"><i class="ph ph-check"></i> Confirm (' + pendingPicked + ')</button>' : '') +
+        '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-bulk="unavailable">Unavailable</button>' +
+        '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-bulk="send"><i class="ph ph-paper-plane-tilt"></i> Send as a list</button>' +
+        '<button class="c-btn c-btn-ghost c-btn-sm cd-trash" type="button" data-bulk="remove" style="width:auto; padding:0 10px"><i class="ph ph-trash"></i> Remove</button>' +
+        '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-bulk="clear">Clear</button></div>';
+      else people += '<div class="cd-bulk" style="background:transparent; padding:4px 0; color:var(--color-neutral-5)"><span class="c-checkbox-box" role="checkbox" aria-checked="false" tabindex="0" data-pick-all aria-label="Select everyone" style="margin:0 6px 0 0; font-size:11px; cursor:pointer"></span>Select all · tick people to confirm, mark unavailable, send or remove them together</div>';
+      people += order.map(function(inf){ return personHtml(inf, byPerson[inf]); }).join('');
     }
+    people += '</div>';
+    var lists = '<div class="cd-lists-col"><div class="cd-lists-h"><h3>Selection lists<span class="sub">' + (batches.length ? batches.length + ' sent' : 'none yet') + '</span></h3></div>' +
+      (batches.length
+        ? '<div class="cd-lists">' + batches.slice().reverse().map(listCardHtml).join('') + '</div>'
+        : '<div class="cd-lists"><div class="cd-list-empty"><div class="ghosts"><i></i><i></i><i></i></div><h4>No selection list yet</h4>Pick who the client should see, and the link lands here.' +
+          '<div style="margin-top:var(--spacing-12)"><button class="c-btn c-btn-secondary c-btn-sm" type="button" data-new-list><i class="ph ph-plus"></i> Create Selection List</button></div></div></div>') + '</div>';
+    html += '<div class="cd-selgrid">' + people + lists + '</div>';
+    var openN = Object.keys(openBatches).filter(function(n){ return openBatches[n]; })[0];
+    var ob = openN != null ? batchOf(openN) : null;
+    if (ob) html += '<div class="cd-detail" id="cdBatchDetail">' + batchHtml(ob) + '</div>';
     var pan = E('pan-selection');
     pan.innerHTML = html;
     hydrateAvatars(pan);
   }
   function flashPending(){
-    E('pan-selection').querySelectorAll('.cd-fill.is-approved').forEach(function(el, i){
+    E('pan-selection').querySelectorAll('.cd-fchip.is-approved').forEach(function(el, i){
       el.classList.add('is-flash');
       setTimeout(function(){ el.classList.remove('is-flash'); }, 1600 + i * 80);
     });
-    var first = E('pan-selection').querySelector('.cd-fill.is-approved');
+    var first = E('pan-selection').querySelector('.cd-fchip.is-approved');
     if (first && !document.hidden) first.scrollIntoView({block: 'center', behavior: REDUCED ? 'auto' : 'smooth'});
   }
   function askSentHtml(b){
@@ -1289,7 +1423,7 @@
         '<span class="sub">Sent ' + esc(S.fmtDate(b.sentAt, true)) + ' · ' + b.picks.length + (b.picks.length === 1 ? ' creator' : ' creators') +
         (b.recipient ? ' · to ' + esc(b.recipient) : '') + (b.expiresAt ? ' · expires ' + esc(S.fmtDate(b.expiresAt, true)) : '') +
         ' · <b>' + answered + '</b>/' + b.picks.length + ' answered</span></div></div>' +
-        '<div class="acts"><button class="c-btn c-btn-ghost c-btn-sm" type="button" data-batch-toggle="' + b.n + '">' + (open ? 'Hide <i class="ph ph-caret-up"></i>' : 'Show <i class="ph ph-caret-down"></i>') + '</button>' +
+        '<div class="acts"><button class="c-btn c-btn-ghost c-btn-sm" type="button" data-batch-toggle="' + b.n + '">Close <i class="ph ph-x"></i></button>' +
         '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon" type="button" data-batch-copy="' + b.n + '" aria-label="Copy the client link for batch ' + b.n + '" title="Copy client link"><i class="ph ph-link"></i></button>' +
         '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-batch-link="' + b.n + '"><i class="ph ph-arrow-square-out"></i> Client view</button></div></div>' +
       '<div class="cd-batch-body"' + (open ? '' : ' hidden') + '>' + body + '</div></div>';
@@ -1590,6 +1724,23 @@
         return '<button type="button" class="cmp-menu-item" data-set-dl="' + (isStatus ? 'status' : 'clientApproval') + '" data-val="' + p.key + '" data-did="' + ds.dataset.did + '"><span class="cmp-dot" style="background:' + p.dot + '"></span>' + p.label + (p.key === cur ? '<i class="ph ph-check chk"></i>' : '') + '</button>';
       }).join(''));
     }
+    var fm = e.target.closest('[data-fill-menu]');
+    if (fm) {
+      e.stopPropagation();
+      if (menuAnchor === fm) return closeMenu();
+      var key = fm.dataset.fill.split('/'), inf = key[0], plat = key[1];
+      var fr = (c.roster || []).filter(function(r){ return r.inf === inf && r.platform === plat; })[0]; if (!fr) return;
+      var items = [];
+      function it(act, icon, label){ return '<button type="button" class="cmp-menu-item" data-fill-act="' + act + '" data-inf="' + esc(inf) + '" data-plat="' + esc(plat) + '"><i class="ph ' + icon + '"></i>' + label + '</button>'; }
+      if (fr.state === 'approved') items.push(it('confirmed', 'ph-check', 'Confirm availability'));
+      if (fr.state !== 'unavailable') items.push(it('unavailable', 'ph-prohibit', 'Mark unavailable'));
+      else items.push(it('approved', 'ph-arrow-counter-clockwise', 'Reinstate'));
+      var inAskNow = M.slotsOf(c).some(function(sl){ return sl.platform === plat && sl.tier === M.groupTier(fr); });
+      if (!inAskNow) M.slotsOf(c).filter(function(sl){ return sl.platform === plat; }).forEach(function(sl){ items.push(it('sub:' + sl.tier, 'ph-arrow-bend-right-up', 'Count toward ' + esc(tierName(sl.tier)))); });
+      if (fr.substitutedFor) items.push(it('unsub', 'ph-arrow-u-up-left', 'Stop counting toward ' + esc(tierName(fr.substitutedFor))));
+      items.push(it('remove', 'ph-trash', 'Remove from this slot'));
+      return openMenu(fm, items.join(''));
+    }
     var ct = e.target.closest('[data-count-toward]');
     if (ct) {
       e.stopPropagation();
@@ -1613,6 +1764,13 @@
       renderAll();
       var rec = byInf[inf];
       if (st === 'selected') toast((rec ? rec.name : 'Profile') + ' approved on ' + (PLAT_LABEL[pl] || pl) + ' — confirm their availability on the board.');
+    } else if (b.dataset.fillAct) {
+      closeMenu();
+      var fa = b.dataset.fillAct, fi = b.dataset.inf, fp = b.dataset.plat, who = byInf[fi], nm = who ? who.name : 'Profile', pl = PLAT_LABEL[fp] || fp;
+      if (fa === 'remove') { S.removeFromRoster(c.id, fi, fp); renderAll(); toast(nm + ' removed from ' + pl + '.', 'danger'); }
+      else if (fa === 'unsub') { S.setSubstitution(c.id, fi, fp, null); renderAll(); }
+      else if (fa.indexOf('sub:') === 0) { S.setSubstitution(c.id, fi, fp, fa.slice(4)); renderAll(); toast('Now counted toward ' + pl + ' · ' + tierName(fa.slice(4)) + '.'); }
+      else { S.setRosterState(c.id, fi, fp, fa); renderAll(); toast(fa === 'confirmed' ? nm + ' confirmed on ' + pl + '.' : fa === 'unavailable' ? nm + ' marked unavailable — the slot is open again.' : nm + ' reinstated on ' + pl + '.', fa === 'unavailable' ? 'info' : undefined); }
     } else if (b.dataset.setDl) {
       closeMenu();
       var patchDl = {}; patchDl[b.dataset.setDl] = b.dataset.val;
@@ -1643,11 +1801,40 @@
   /* ── Selection panel interactions. */
   E('pan-selection').addEventListener('click', function(e){
     if (e.target.closest('[data-edit-ask]')) return campaignForm.open({rec: c, step: 2, onSave: saveEdit});
-    if (e.target.closest('#cdNewBatch')) return startSend(null);
+    if (e.target.closest('#cdNewBatch') || e.target.closest('[data-new-list]')) return startSend(null);
     var sb = e.target.closest('[data-send-band]');
     if (sb) { var ps = sb.dataset.sendBand.split('/'); return startSend({platform: ps[0], tier: ps[1]}); }
     var ab = e.target.closest('[data-add-band]');
-    if (ab) { var pa = ab.dataset.addBand.split('/'); return openPicker('roster', {platform: pa[0], tier: pa[1]}); }
+    if (ab) { var pa = ab.dataset.addBand ? ab.dataset.addBand.split('/') : null; return openPicker('roster', pa ? {platform: pa[0], tier: pa[1]} : null); }
+    /* Bulk selection on the people list. */
+    var pp = e.target.closest('[data-pick-person]');
+    if (pp) { var idp = pp.dataset.pickPerson; if (picked[idp]) delete picked[idp]; else picked[idp] = true; renderKol(); return; }
+    if (e.target.closest('[data-pick-all]')) { (c.roster || []).forEach(function(r){ picked[r.inf] = true; }); renderKol(); return; }
+    var bulk = e.target.closest('[data-bulk]');
+    if (bulk) {
+      var ids = Object.keys(picked), act = bulk.dataset.bulk, n = 0;
+      if (act === 'clear') { picked = {}; renderKol(); return; }
+      if (act === 'send') { if (ids.length) openSendSheet(ids); return; }
+      ids.forEach(function(inf){
+        (c.roster || []).filter(function(r){ return r.inf === inf; }).forEach(function(r){
+          if (act === 'confirmed' && r.state === 'approved') { S.setRosterState(c.id, inf, r.platform, 'confirmed'); n += 1; }
+          if (act === 'unavailable' && r.state !== 'unavailable') { S.setRosterState(c.id, inf, r.platform, 'unavailable'); n += 1; }
+        });
+        if (act === 'remove') { S.removeFromRoster(c.id, inf, null); n += 1; }
+      });
+      if (act === 'remove') picked = {};
+      renderAll();
+      toast(act === 'confirmed' ? n + (n === 1 ? ' fill confirmed.' : ' fills confirmed.') : act === 'unavailable' ? n + (n === 1 ? ' fill marked unavailable.' : ' fills marked unavailable.') : n + (n === 1 ? ' creator removed.' : ' creators removed.'), act === 'remove' ? 'danger' : undefined);
+      return;
+    }
+    var lo = e.target.closest('[data-list-open]');
+    if (lo) {
+      var ln = Number(lo.dataset.listOpen);
+      openBatches = openBatches[ln] ? {} : (function(){ var o = {}; o[ln] = true; return o; })();
+      renderKol();
+      var det = E('cdBatchDetail'); if (det && !document.hidden) det.scrollIntoView({block: 'start', behavior: REDUCED ? 'auto' : 'smooth'});
+      return;
+    }
     if (e.target.closest('[data-confirm-all]')) {
       var pending = (c.roster || []).filter(function(r){ return r.state === 'approved'; });
       pending.forEach(function(r){ S.setRosterState(c.id, r.inf, r.platform, 'confirmed'); });
