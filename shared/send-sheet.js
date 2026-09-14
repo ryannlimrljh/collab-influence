@@ -134,7 +134,8 @@
     '.ss-cov td.note{font-style:normal;}',
     '.ss-warn{display:flex; gap:6px; align-items:flex-start; margin:var(--spacing-8) 0 0; font-size:var(--text-footnote-size); color:#8A5A00;}',
     '.ss-check{display:flex; align-items:center; gap:8px; min-height:44px; font-size:var(--text-caption-size); cursor:pointer;}',
-    '.ss-err{margin:var(--spacing-12) 0 0; color:var(--color-red); font-size:var(--text-caption-size);}'
+    '.ss-err{margin:var(--spacing-12) 0 0; color:var(--color-red); font-size:var(--text-caption-size);}',
+    '.ss-to{margin:0 0 var(--spacing-8); font-size:var(--text-body2-size); font-weight:700; color:var(--color-neutral-9);}'
   ].join('\n');
 
   function injectCSS() {
@@ -145,9 +146,11 @@
     document.head.appendChild(s);
   }
 
-  /* opts: {infIds, people, campaigns, defaultCampaignId, onSend}
+  /* opts: {infIds, people, campaigns, defaultCampaignId, lockCampaign, onSend}
      onSend receives the resolved state; the caller writes to the store, so
-     this module never has to know which page it is on. */
+     this module never has to know which page it is on. With `lockCampaign`
+     the destination is fixed — the campaign page opening the sheet for its
+     own next batch — so the destination choice is not offered. */
   function open(opts) {
     injectCSS();
     var S = window.campaignStore;
@@ -202,7 +205,7 @@
 
       host.innerHTML =
         '<div class="c-modal ss-modal" role="dialog" aria-modal="true" aria-labelledby="ssTitle">' +
-        '<div class="c-modal-head"><h4 id="ssTitle">Create selection list for:</h4>' +
+        '<div class="c-modal-head"><h4 id="ssTitle">' + (opts.lockCampaign ? 'Send ' + esc(state.name || 'a batch') + ' to the client' : 'Create selection list for:') + '</h4>' +
           '<button class="c-icon-btn" type="button" data-ss="close" aria-label="Close"><i class="ph ph-x"></i></button></div>' +
         '<div class="c-modal-body">' +
 
@@ -210,6 +213,18 @@
             (sum.candidates === 1 ? ' profile' : ' profiles') + ' · ' +
             sum.channels + ' channel accounts</p>' +
 
+          (opts.lockCampaign
+            ? '<p class="ss-to"><span class="ss-opt">To</span> ' + esc(c ? c.name : '') +
+              (c && model().derivedPax(c)
+                ? ' <span class="ss-opt">· still needs ' + (askRows().length
+                    ? askRows().map(function (r) {
+                        return esc(PLAT_LABEL[r.platform] || r.platform) + ' ' +
+                          esc(window.tiers.tierByKey(r.tier).name) + ' ×' + r.want;
+                      }).join(', ')
+                    : 'nothing — every slot is filled') + '</span>'
+                : ' <span class="ss-opt">· no ask set yet</span>') + '</p>'
+            : '') +
+          (opts.lockCampaign ? '' :
                     '<label class="ss-radio"><input type="radio" name="ssMode" value="existing"' +
             (state.mode === 'existing' ? ' checked' : '') + ' /> Existing campaign</label>' +
           (state.mode === 'existing'
@@ -242,7 +257,7 @@
                 '<input id="ssLeadBrand" data-ss="leadBrand" value="' + esc(state.leadBrand) +
                 '" placeholder="e.g. Shopee" /></div>' +
               '</div><p class="ss-hint ss-indent">Creates a campaign at stage Lead. It stays out of the active counts until you move it to Sourcing.</p>'
-            : '') +
+            : '')) +
 
           /* One table, not two. An editable column and a read-only one used
              to sit in separate sections with identical row labels, which
@@ -298,7 +313,7 @@
         '<div class="c-modal-foot">' +
           '<button class="c-btn c-btn-ghost c-btn-md" type="button" data-ss="cancel">Cancel</button>' +
           '<button class="c-btn c-btn-primary c-btn-md" type="button" data-ss="send">' +
-            '<i class="ph ph-paper-plane-tilt"></i> Create selection list</button>' +
+            '<i class="ph ph-paper-plane-tilt"></i> ' + (opts.lockCampaign ? 'Send ' + esc(state.name || 'batch') : 'Create selection list') + '</button>' +
         '</div></div>';
     }
 

@@ -275,3 +275,57 @@ test('nextUp on the late stages just moves on, and completed only reports', () =
   assert.equal(n.sentence, 'Wrapped {date}.'); assert.equal(n.date, '2026-10-01');
   assert.equal(n.primary, null); assert.equal(n.secondary, null);
 });
+
+/* ── Substitution, mergeAsk, groupsOf. */
+test('a stand-in counts toward the band it substitutes for, not its own tier', () => {
+  const c = {requirement: {tiktok: {mid: 2}}, roster: [
+    {inf: 'a', platform: 'tiktok', tier: 'micro', state: 'confirmed', substitutedFor: 'mid'},
+    {inf: 'b', platform: 'tiktok', tier: 'mid', state: 'confirmed', substitutedFor: null}
+  ]};
+  const st = M.slotStatus(c);
+  assert.equal(st.tiktok.mid.filled, 2);
+  assert.equal(st.tiktok.micro, undefined, 'no stray micro band');
+  assert.deepEqual(M.shortfallOf(c), []);
+});
+
+test('mergeAsk adds what is filled back onto the outstanding ask and keeps met bands', () => {
+  const c = {requirement: {tiktok: {mid: 2, macro: 1}}, roster: [
+    {inf: 'a', platform: 'tiktok', tier: 'mid', state: 'confirmed'},
+    {inf: 'b', platform: 'tiktok', tier: 'macro', state: 'confirmed'}
+  ]};
+  assert.deepEqual(M.mergeAsk(c, {tiktok: {mid: 3}}), {tiktok: {mid: 4, macro: 1}});
+  assert.deepEqual(M.mergeAsk({requirement: {}}, {instagram: {nano: 2}}), {instagram: {nano: 2}});
+});
+
+test('groupsOf lays out asked bands in order, then unasked bands the roster occupies', () => {
+  const c = {requirement: {tiktok: {mid: 2}, instagram: {macro: 1}}, roster: [
+    {inf: 'inf-002', platform: 'tiktok', tier: 'mid', state: 'approved'},
+    {inf: 'inf-001', platform: 'tiktok', tier: 'mid', state: 'confirmed'},
+    {inf: 'inf-001', platform: 'instagram', tier: 'mid', state: 'confirmed'},
+    {inf: 'inf-003', platform: 'tiktok', tier: 'mid', state: 'unavailable'}
+  ], batches: [{n: 1, picks: [
+    {inf: 'inf-002', channels: {tiktok: 'selected'}},
+    {inf: 'inf-001', channels: {tiktok: 'selected', instagram: 'none'}}
+  ]}]};
+  const g = M.groupsOf(c, PEOPLE);
+  assert.deepEqual(g.map(x => x.platform + '/' + x.tier), ['tiktok/mid', 'instagram/macro', 'instagram/mid']);
+  assert.equal(g[0].want, 2); assert.equal(g[0].filled, 2); assert.equal(g[0].open, 0);
+  assert.deepEqual(g[0].fills.map(f => f.inf + ':' + f.state), ['inf-001:confirmed', 'inf-002:approved', 'inf-003:unavailable']);
+  assert.equal(g[1].want, 1); assert.equal(g[1].filled, 0); assert.equal(g[1].open, 1);
+  assert.equal(g[2].want, 0); assert.equal(g[2].filled, 1); assert.equal(g[2].over, 1);
+  /* Abby's Instagram (26.9K, Mid) is on the batch and unanswered. */
+  assert.equal(g[2].awaiting, 1);
+  assert.equal(g[1].awaiting, 0);
+});
+
+test('groupsOf without people still lays the board out, with awaiting at zero', () => {
+  const g = M.groupsOf({requirement: {tiktok: {mid: 1}}, batches: [{n: 1, picks: [{inf: 'x', channels: {tiktok: 'none'}}]}]});
+  assert.equal(g.length, 1); assert.equal(g[0].awaiting, 0);
+});
+
+test('sameAsk ignores key order and zero bands', () => {
+  assert.equal(M.sameAsk({tiktok: {mid: 2, macro: 1}, instagram: {mid: 1}}, {instagram: {mid: 1}, tiktok: {macro: 1, mid: 2}}), true);
+  assert.equal(M.sameAsk({tiktok: {mid: 2}}, {tiktok: {mid: 3}}), false);
+  assert.equal(M.sameAsk({tiktok: {mid: 2, nano: 0}}, {tiktok: {mid: 2}}), true);
+  assert.equal(M.sameAsk({}, null), true);
+});

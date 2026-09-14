@@ -284,6 +284,20 @@
         {inf: inf, platform: platform}));
     },
 
+    /* Count a fill toward a different band than its own tier — or stop
+       doing so, with null. The entry keeps its real tier; only where it is
+       counted moves. */
+    setSubstitution: function (id, inf, platform, forTier) {
+      var c = get(id); if (!c) return null;
+      var tierName = function (k) { var t = k && window.tiers.tierByKey(k); return t ? t.name : k; };
+      return update(id, {roster: (c.roster || []).map(function (r) {
+        return (r.inf === inf && r.platform === platform)
+          ? Object.assign({}, r, {substitutedFor: forTier || null}) : r;
+      })}, entry('roster', (forTier ? 'Counted ' + nameOf(inf) + ' on ' + (PLAT_LABEL[platform] || platform) + ' toward ' + tierName(forTier)
+                                    : 'Stopped counting ' + nameOf(inf) + ' on ' + (PLAT_LABEL[platform] || platform) + ' as a stand-in'),
+        {inf: inf, platform: platform}));
+    },
+
     /* One channel's answer on one pick. `selected` puts that channel on the
        roster as approved; any other answer takes back an entry the client's
        own answer put there, and leaves a hand-added one alone. */

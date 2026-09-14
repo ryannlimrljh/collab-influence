@@ -223,6 +223,75 @@
     .cmp-cell:nth-child(3){border-right:0;}
     .cmp-cell:nth-child(-n+3){border-bottom:1px solid var(--color-neutral-3);} }
 
+  /* ── The board. The requirement is the layout: one card per asked band,
+     fills inside it, open slots as a row of their own. Batches are
+     provenance, a chip on the fill. */
+  .cd-sum{display:flex; flex-direction:column; gap:var(--spacing-10, 10px); margin-bottom:var(--spacing-20);}
+  .cd-sum-line{display:flex; align-items:center; gap:var(--spacing-16); flex-wrap:wrap;}
+  .cd-sum-line .say{flex:1; min-width:0; font-size:var(--text-body2-size); color:var(--color-neutral-5);}
+  .cd-sum-line .say b{color:var(--color-neutral-9); font-weight:800; font-size:var(--text-h4-size);}
+  .cd-sum-line .say .sep{margin:0 6px; color:var(--color-neutral-4);}
+  .cd-sum-line .say .k{display:inline-flex; align-items:center; gap:5px;}
+  .cd-sum .c-progress-track{height:8px;}
+  .cd-groups{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--spacing-16);}
+  @media (max-width:900px){ .cd-groups{grid-template-columns:1fr;} }
+  .cd-group{background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg);
+    display:flex; flex-direction:column; min-width:0; overflow:hidden;
+    transition:box-shadow var(--duration-base) var(--ease-standard);}
+  .cd-group:hover{box-shadow:var(--shadow-1);}
+  .cd-group-head{display:flex; align-items:center; justify-content:space-between; gap:var(--spacing-12);
+    padding:var(--spacing-12) var(--spacing-16); border-bottom:1px solid var(--color-neutral-3);}
+  .cd-group-name{display:inline-flex; align-items:center; gap:8px; font-weight:800; color:var(--color-neutral-9); min-width:0;}
+  .cd-group-name i{font-size:var(--icon-sm); color:var(--color-neutral-6);}
+  .cd-group-name .x{font-size:var(--text-caption-size); font-weight:600; color:var(--color-neutral-5);}
+  .cd-group-cnt{display:inline-flex; align-items:center; gap:6px; flex:none; font-size:var(--text-caption-size);
+    font-weight:700; font-variant-numeric:tabular-nums; color:var(--color-neutral-5);}
+  .cd-group-cnt b{color:var(--color-neutral-9);}
+  .cd-group.is-met .cd-group-cnt{color:var(--color-green);} .cd-group.is-met .cd-group-cnt b{color:var(--color-green);}
+  .cd-group.is-over .cd-group-cnt, .cd-group.is-over .cd-group-cnt b{color:var(--color-amber);}
+  .cd-group-cnt em{font-style:normal; color:var(--color-neutral-9);}
+  .cd-fills{display:flex; flex-direction:column; flex:1;}
+  .cd-fill{display:flex; align-items:center; gap:var(--spacing-12); padding:10px var(--spacing-16);
+    border-bottom:1px solid var(--color-neutral-2); min-width:0;
+    transition:background var(--duration-base) var(--ease-standard);}
+  .cd-fill:last-child{border-bottom:0;}
+  .cd-fill .c-card-profile-avatar{width:32px; height:32px; flex:none; font-size:11px;}
+  .cd-fill .t{min-width:0; flex:1;}
+  .cd-fill .n{display:block; font-weight:700; color:var(--color-neutral-9); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cd-fill .s{display:flex; align-items:center; gap:6px; font-size:var(--text-caption-size); color:var(--color-neutral-5); white-space:nowrap; overflow:hidden;}
+  .cd-fill .s .sub{color:var(--color-amber); font-weight:700;}
+  .cd-fill .acts{display:flex; align-items:center; gap:var(--spacing-4); flex:none;}
+  .cd-fill.is-unavailable{opacity:.55;}
+  .cd-fill.is-unavailable .n{text-decoration:line-through;}
+  .cd-fill.is-flash{background:color-mix(in srgb, var(--color-amber) 14%, transparent);}
+  .cd-prov{display:inline-flex; align-items:center; gap:4px; height:22px; padding:0 8px; border-radius:var(--radius-pill);
+    background:var(--color-neutral-2); font-size:11px; font-weight:600; color:var(--color-neutral-6); white-space:nowrap; flex:none;}
+  .cd-prov i{font-size:12px;}
+  .cd-open{display:flex; align-items:center; gap:var(--spacing-12); padding:10px var(--spacing-16);
+    font-size:var(--text-caption-size); color:var(--color-neutral-5); border-bottom:1px solid var(--color-neutral-2);}
+  .cd-open .ring{width:10px; height:10px; border-radius:var(--radius-pill); border:1.5px dashed var(--color-neutral-4); flex:none;}
+  .cd-open .t{flex:1; min-width:0;}
+  .cd-open b{color:var(--color-neutral-9);}
+  .cd-group-foot{display:flex; gap:var(--spacing-8); padding:var(--spacing-12) var(--spacing-16); margin-top:auto;
+    border-top:1px solid var(--color-neutral-2); background:var(--color-neutral-2);}
+  .cd-group.is-extra .cd-group-head{background:var(--color-neutral-2);}
+  .cd-noask{background:var(--color-neutral-1); border:1px dashed var(--color-neutral-3); border-radius:var(--radius-lg);
+    padding:var(--spacing-32); text-align:center; margin-bottom:var(--spacing-24);}
+  .cd-noask i{font-size:28px; color:var(--color-neutral-4);}
+  .cd-noask h4{margin:var(--spacing-8) 0 var(--spacing-4);}
+  .cd-noask p{margin:0 0 var(--spacing-16); color:var(--color-neutral-5); font-size:var(--text-body2-size);}
+  .cd-ask-sent{display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:var(--text-caption-size); color:var(--color-neutral-5); margin-bottom:var(--spacing-12);}
+  .cd-chstat{display:flex; flex-direction:column; gap:4px; align-items:flex-start;}
+  .cd-chstat .cmp-stage{padding-left:6px;}
+  .cd-chstat .cmp-stage > i:first-child{font-size:12px; color:var(--color-neutral-6); margin-right:2px;}
+  @media (max-width:640px){
+    .cd-fill{flex-wrap:wrap; row-gap:var(--spacing-8);}
+    .cd-fill .t{flex:1 1 calc(100% - 48px); min-width:140px;}
+    .cd-fill .acts{margin-left:auto;}
+  }
+  .cd-pick-filter{display:flex; align-items:center; gap:var(--spacing-8); flex-wrap:wrap; font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+  .cd-pick-filter[hidden]{display:none;}
+
   /* ── Section heads inside a panel. */
   .cd-sect{display:flex; align-items:baseline; justify-content:space-between;
     gap:var(--spacing-16); margin:var(--spacing-8) 0 var(--spacing-12);}
@@ -554,8 +623,7 @@
     <span class="c-herocard-eyebrow" id="cdPickEyebrow">Roster</span>
     <h3 style="margin:0; font-size:var(--text-h4-size); line-height:var(--text-h4-lh); font-weight:var(--text-h4-weight);" id="cdPickTitle">Add influencers</h3>
     <p class="c-cbrief-source" style="margin:-8px 0 0;" id="cdPickHint"></p>
-    <div class="c-field" id="cdBatchNameField" hidden><label for="cdBatchName">Batch name</label>
-      <input id="cdBatchName" placeholder="e.g. Angel picks" /></div>
+    <div class="cd-pick-filter" id="cdPickFilter" hidden></div>
     <div class="c-field"><label for="cdPickSearch">Search the roster</label>
       <div class="input-wrap has-leading-icon"><i class="ph ph-magnifying-glass icon-leading"></i>
         <input id="cdPickSearch" placeholder="Name, handle or niche" autocomplete="off" /></div></div>
@@ -590,9 +658,10 @@
 <script src="../shared/influencer-store.js?v=2"></script>
 <script src="../shared/campaigns-data.js?v=3"></script>
 <script src="../shared/tiers.js?v=1"></script>
-<script src="../shared/campaign-model.js?v=4"></script>
-<script src="../shared/campaign-store.js?v=7"></script>
+<script src="../shared/campaign-model.js?v=6"></script>
+<script src="../shared/campaign-store.js?v=8"></script>
 <script src="../shared/campaign-form.js?v=4"></script>
+<script src="../shared/send-sheet.js?v=8"></script>
 <script>
 (function () {
   'use strict';
@@ -668,6 +737,8 @@
     }).join('  ·  ') || (rec.niches || []).join(', ');
   }
 
+  var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   /* ── Page state. */
   var params = new URLSearchParams(location.search);
   var id = params.get('id');
@@ -711,8 +782,9 @@
     var circ = 213.6, frac = d.total ? d.done / d.total : 0;
     E('cdRingFill').style.strokeDashoffset = String(circ * (1 - frac));
     E('cdRingN').textContent = d.done + '/' + d.total;
-    var n = (c.roster || []).length;
+    var n = (c.roster || []).filter(function(r){ return r.state !== 'unavailable'; }).length;
     E('cdKolCount').hidden = !n; E('cdKolCount').textContent = n > 99 ? '99+' : n;
+    E('cdShare').innerHTML = '<i class="ph ph-paper-plane-tilt"></i> Send batch ' + ((c.batches || []).length + 1);
   }
   function renderTrack(){
     var idx = S.STAGES.map(function(s){ return s.key; }).indexOf(c.stage);
@@ -746,8 +818,8 @@
     var a = b.dataset.next;
     if (a === 'ask') return campaignForm.open({rec: c, step: 2, onSave: saveEdit});
     if (a === 'won') return moveStage('sourcing');
-    if (a === 'send') { setTab('selection'); return openPicker('batch'); }
-    if (a === 'confirm') return setTab('selection');
+    if (a === 'send') return startSend(null);
+    if (a === 'confirm') { setTab('selection'); return flashPending(); }
     if (a === 'client') {
       var last = (c.batches || [])[(c.batches || []).length - 1];
       if (last) window.open(shareURL(last.n, false), '_blank', 'noopener');
@@ -853,71 +925,122 @@
     if (e.target.closest('[data-edit-ask]')) campaignForm.open({rec: c, step: 2, onSave: saveEdit});
   });
 
-  /* ── Selection. */
-  function statusBadge(status, n, inf){
+  /* ── Selection — the slot board. */
+  function tierName(k){ var t = k && window.tiers.tierByKey(k); return t ? t.name : (k || ''); }
+  function bandLabel(platform, tier){
+    return '<span class="cd-group-name">' + (PLAT_ICON[platform] || '') + esc(PLAT_LABEL[platform] || platform) + '<span class="x">·</span>' + esc(tierName(tier)) + '</span>';
+  }
+  function statusBadge(status, n, inf, platform){
     var p = S.PICK_STATUS.filter(function(x){ return x.key === status; })[0] || S.PICK_STATUS[0];
     var tone = {selected:'tone-success', kiv:'tone-warning', rejected:'tone-error'}[p.key] || '';
-    return '<button type="button" class="cmp-stage ' + tone + '" data-pick-status="' + p.key + '" data-batch="' + n + '" data-inf="' + inf + '" aria-haspopup="menu" title="Set the client\'s answer">' +
-      '<span class="cmp-dot" style="background:' + p.dot + '"></span><span class="t">' + p.label + '</span><i class="ph ph-caret-down"></i></button>';
+    return '<button type="button" class="cmp-stage ' + tone + '" data-pick-status="' + p.key + '" data-batch="' + n + '" data-inf="' + inf + '" data-plat="' + platform + '" aria-haspopup="menu" title="' + esc(PLAT_LABEL[platform] || platform) + ' — set the client\'s answer">' +
+      (PLAT_ICON[platform] || '') + '<span class="cmp-dot" style="background:' + p.dot + '"></span><span class="t">' + p.label + '</span><i class="ph ph-caret-down"></i></button>';
+  }
+  function provChip(r){
+    if (r.batch == null) return '<span class="cd-prov" title="Added by the team"><i class="ph ph-hand"></i>By hand</span>';
+    var b = batchOf(r.batch);
+    return '<span class="cd-prov" title="' + esc(b ? b.name : 'Batch ' + r.batch) + '"><i class="ph ph-paper-plane-tilt"></i>Batch ' + r.batch + (b && b.sentAt ? ' · ' + esc(S.fmtDate(b.sentAt)) : '') + '</span>';
+  }
+  function fillHtml(r, g, i){
+    var rec = byInf[r.inf] || {id: r.inf, name: 'Unknown profile', platforms: []};
+    var ch = (rec.platforms || []).filter(function(x){ return x.platform === r.platform; })[0];
+    var over = g.want > 0 && r.state !== 'unavailable' && i >= g.want;
+    var badge = r.state === 'confirmed' ? '<span class="c-badge c-badge-success">Confirmed</span>'
+              : r.state === 'approved' ? '<span class="c-badge c-badge-warning">Approved</span>'
+              : '<span class="c-badge c-badge-neutral">Unavailable</span>';
+    var acts = '';
+    if (r.state === 'approved') acts += '<button class="c-btn c-btn-primary c-btn-sm" type="button" data-fill-state="confirmed" data-inf="' + r.inf + '" data-plat="' + r.platform + '"><i class="ph ph-check"></i> Confirm</button>' +
+      '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-fill-state="unavailable" data-inf="' + r.inf + '" data-plat="' + r.platform + '">Unavailable</button>';
+    if (r.state === 'unavailable') acts += '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-fill-state="approved" data-inf="' + r.inf + '" data-plat="' + r.platform + '">Reinstate</button>';
+    if (g.want === 0 && r.state !== 'unavailable') {
+      var asked = M.slotsOf(c).filter(function(sl){ return sl.platform === r.platform; });
+      if (asked.length) acts += '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-count-toward="' + r.inf + '" data-plat="' + r.platform + '" aria-haspopup="menu">Count toward <i class="ph ph-caret-down"></i></button>';
+    }
+    if (r.substitutedFor) acts += '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon" type="button" data-uncount="' + r.inf + '" data-plat="' + r.platform + '" aria-label="Stop counting toward ' + esc(tierName(r.substitutedFor)) + '" title="Stop counting toward ' + esc(tierName(r.substitutedFor)) + '"><i class="ph ph-arrow-u-up-left"></i></button>';
+    acts += '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-trash" type="button" data-roster-remove="' + esc(r.inf) + '" data-roster-plat="' + esc(r.platform) + '" aria-label="Remove from this slot"><i class="ph ph-trash"></i></button>';
+    return '<div class="cd-fill is-' + r.state + (over ? ' is-over' : '') + '" data-fill="' + esc(r.inf) + '/' + esc(r.platform) + '">' + avatarHtml(rec) +
+      '<span class="t"><span class="n">' + esc(rec.name) + '</span><span class="s">' +
+        (ch ? '@' + esc(ch.handle) + ' · ' + fmtFollowers(ch.followers) : esc(PLAT_LABEL[r.platform] || r.platform)) +
+        (r.substitutedFor ? '<span class="sub">' + esc(tierName(r.tier)) + ' ↑ ' + esc(tierName(r.substitutedFor)) + '</span>' : '') +
+        (over ? '<span class="c-badge c-badge-warning">+1 over</span>' : '') +
+      '</span></span>' + badge + provChip(r) + '<span class="acts">' + acts + '</span></div>';
+  }
+  function groupHtml(g, k){
+    var cnt, cls = '';
+    if (g.want === 0) { cnt = '<span class="c-badge c-badge-neutral">not in the ask</span>'; cls = ' is-extra'; }
+    else if (g.over) { cnt = '<b>' + g.filled + '</b> of ' + g.want + ' · +' + g.over + ' over'; cls = ' is-over'; }
+    else if (g.open) { cnt = '<b>' + g.filled + '</b> of ' + g.want + ' · <em>' + g.open + ' open</em>'; cls = ' is-open'; }
+    else { cnt = '<b>' + g.filled + '</b> of ' + g.want + ' <i class="ph-bold ph-check"></i>'; cls = ' is-met'; }
+    var occ = 0;
+    var rows = g.fills.map(function(r){ var i = r.state === 'unavailable' ? -1 : occ++; return fillHtml(r, g, i); }).join('');
+    if (g.open) {
+      rows += '<div class="cd-open"><span class="ring"></span><span class="t"><b>' + g.open + (g.open === 1 ? ' open slot' : ' open slots') + '</b> · ' +
+        (g.awaiting ? g.awaiting + (g.awaiting === 1 ? ' candidate awaiting the client' : ' candidates awaiting the client') : 'nothing sent for this band yet') + '</span></div>';
+    }
+    if (!g.fills.length && !g.open) rows += '<div class="cd-open"><span class="t">Nobody here.</span></div>';
+    var foot = g.open ? '<div class="cd-group-foot">' +
+      '<button class="c-btn c-btn-secondary c-btn-sm" type="button" data-send-band="' + g.platform + '/' + g.tier + '"><i class="ph ph-paper-plane-tilt"></i> Send batch ' + k + '</button>' +
+      '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-add-band="' + g.platform + '/' + g.tier + '"><i class="ph ph-plus"></i> Add by hand</button></div>' : '';
+    return '<div class="cd-group' + cls + '" data-group="' + g.platform + '/' + g.tier + '"><div class="cd-group-head">' + bandLabel(g.platform, g.tier) +
+      '<span class="cd-group-cnt">' + cnt + '</span></div><div class="cd-fills">' + rows + '</div>' + foot + '</div>';
+  }
+  function summaryHtml(groups){
+    var want = 0, confirmed = 0, approved = 0;
+    groups.forEach(function(g){
+      want += g.want;
+      g.fills.forEach(function(r){ if (r.state === 'confirmed') confirmed += 1; else if (r.state === 'approved') approved += 1; });
+    });
+    var open = Math.max(0, want - confirmed - approved), total = Math.max(want, confirmed + approved);
+    function seg(n, color){ return n ? '<div class="c-progress-stack-segment" style="width:' + (n / total * 100) + '%; background:' + color + '"></div>' : ''; }
+    return '<div class="cd-sum"><div class="cd-sum-line"><span class="say"><b>' + want + (want === 1 ? ' slot' : ' slots') + '</b>' +
+      '<span class="sep">·</span><span class="k"><span class="cmp-dot" style="background:var(--color-green)"></span>' + confirmed + ' filled</span>' +
+      '<span class="sep">·</span><span class="k"><span class="cmp-dot" style="background:var(--color-amber)"></span>' + approved + ' pending</span>' +
+      '<span class="sep">·</span><span class="k"><span class="cmp-dot" style="background:var(--color-neutral-4)"></span>' + open + ' open</span></span>' +
+      '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-edit-ask><i class="ph ph-pencil-simple"></i> Edit ask</button></div>' +
+      (total ? '<div class="c-progress-track size-compact stacked" role="img" aria-label="' + confirmed + ' filled, ' + approved + ' pending, ' + open + ' open">' +
+        seg(confirmed, 'var(--color-green)') + seg(approved, 'var(--color-amber)') + '<div class="c-progress-stack-remainder"></div></div>' : '') + '</div>';
   }
   function renderKol(){
-    var counts = S.pickCounts(c);
-    var roster = c.roster || [];
     var batches = c.batches || [];
+    var k = batches.length + 1;
+    var groups = M.groupsOf(c, byInf);
+    var asked = groups.filter(function(g){ return g.want > 0; }), extra = groups.filter(function(g){ return g.want === 0; });
     var html = '';
-    html += '<div class="cmp-strip">' +
-      '<div class="cmp-cell"><span class="val">' + counts.requested + '</span><span class="lbl">Requested</span></div>' +
-      S.PICK_STATUS.filter(function(p){ return p.key !== 'none'; }).map(function(p){
-        return '<div class="cmp-cell"><span class="val">' + counts[p.key] + '</span><span class="lbl"><span class="cmp-dot" style="background:' + p.dot + '"></span>' + p.label + '</span></div>';
-      }).join('') +
-      '<div class="cmp-cell"><span class="val">' + counts.none + '</span><span class="lbl"><span class="cmp-dot" style="background:var(--color-neutral-4)"></span>No response</span></div>' +
-    '</div>';
-
-    var stack = roster.slice(0, 5).map(function(r){ var rec = byInf[r.inf]; return rec ? avatarHtml(rec) : ''; }).join('') +
-      (roster.length > 5 ? '<span class="more">+' + (roster.length - 5) + '</span>' : '');
-    html += '<div class="cd-sect"><h3>' + (roster.length ? '<span class="cd-stack">' + stack + '</span>' : '') + 'Selected influencers<span class="sub">' + roster.length + ' on this campaign · feeds Documents and Drafts</span></h3>' +
-      '<button class="c-btn c-btn-ghost c-btn-sm" type="button" id="cdAddManual"><i class="ph ph-plus"></i> Add manually</button></div>';
-    if (!roster.length) {
-      html += '<div class="cd-note">Nobody is on this campaign yet. Send a preview link for the client to pick from, or add someone by hand.</div>';
+    if (!asked.length) {
+      html += '<div class="cd-noask"><i class="ph ph-target"></i><h4>No ask yet</h4><p>Set what you need from the client — platforms, tiers and how many of each — and the board lays itself out from it.</p>' +
+        '<button class="c-btn c-btn-primary c-btn-md" type="button" data-edit-ask><i class="ph ph-target"></i> Set the ask</button></div>';
     } else {
-      /* A row is one creator on one channel, so a creator booked on two
-         channels legitimately appears twice. The Booked for column is what
-         tells those rows apart — without it they read as a duplicate. */
-      html += '<div class="c-table-standalone-wrap"><table class="c-table c-table-standalone cd-table"><colgroup><col style="width:56px" /><col /><col style="width:18%" /><col style="width:20%" /><col style="width:10%" /><col style="width:64px" /></colgroup>' +
-        '<thead><tr><th>No.</th><th>Influencer</th><th>Booked for</th><th>Status</th><th>Batch</th><th><span class="sr-only">Action</span></th></tr></thead><tbody>' +
-        roster.map(function(r, i){
-          var rec = byInf[r.inf] || {id: r.inf, name: 'Unknown profile', platforms: []};
-          var t = r.tier ? window.tiers.tierByKey(r.tier) : null;
-          var slot = r.platform
-            ? '<span class="cd-slot">' + (PLAT_ICON[r.platform] || '') +
-              esc(PLAT_LABEL[r.platform] || r.platform) +
-              (t ? ' <span class="c-badge c-badge-neutral">' + esc(t.name) + '</span>' : '') +
-              '</span>'
-            : '<span style="color:var(--color-neutral-4)">—</span>';
-          return '<tr><td class="num" style="text-align:left">' + (i + 1) + '</td>' +
-            '<td><span class="cd-who">' + avatarHtml(rec) + '<span class="t"><span class="n">' + esc(rec.name) + '</span><span class="s">' + esc(handlesLine(rec)) + '</span></span></span></td>' +
-            '<td>' + slot + '</td>' +
-            '<td>' + (r.source === 'client' ? '<span class="c-badge c-badge-success">Selected by client</span>' : '<span class="c-badge c-badge-info">Added by the team</span>') + '</td>' +
-            '<td>' + (r.batch != null ? r.batch : '<span style="color:var(--color-neutral-4)">—</span>') + '</td>' +
-            /* The platform goes on the button too: without it, removing one
-               channel would take every channel that creator is booked for. */
-            '<td><button class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-trash" type="button" data-roster-remove="' + esc(r.inf) + '" data-roster-plat="' + esc(r.platform || '') + '" aria-label="Remove from campaign"><i class="ph ph-trash"></i></button></td></tr>';
-        }).join('') + '</tbody></table></div>';
+      html += summaryHtml(asked) + '<div class="cd-groups">' + asked.map(function(g){ return groupHtml(g, k); }).join('') + '</div>';
     }
-
-    html += '<div class="cd-gap"></div><div class="cd-sect"><h3>Campaign picks</h3>' +
-      '<button class="c-btn c-btn-ghost c-btn-sm" type="button" id="cdNewBatch"><i class="ph ph-plus"></i> New preview link</button></div>';
+    if (extra.length) {
+      html += '<div class="cd-gap"></div><div class="cd-sect"><h3>' + (asked.length ? 'Outside the ask' : 'On the roster') + '<span class="sub">bands nobody asked for — count them toward a slot, or leave them</span></h3></div>' +
+        '<div class="cd-groups">' + extra.map(function(g){ return groupHtml(g, k); }).join('') + '</div>';
+    }
+    html += '<div class="cd-gap"></div><div class="cd-sect"><h3>Sent batches<span class="sub">' + (batches.length ? batches.length + (batches.length === 1 ? ' link sent to the client' : ' links sent to the client') : 'nothing sent yet') + '</span></h3>' +
+      '<button class="c-btn c-btn-ghost c-btn-sm" type="button" id="cdNewBatch"><i class="ph ph-paper-plane-tilt"></i> Send batch ' + k + '</button></div>';
     if (!batches.length) {
-      html += '<div class="c-table-standalone-wrap"><div class="c-empty is-section"><i class="ph-fill ph-users"></i><h4>No selection sent yet</h4>' +
-        '<p>Send a preview link for the client to pick from — it shows here as batch 1, with whatever they answer.</p>' +
-        '<div class="c-empty-actions"><button class="c-btn c-btn-primary c-btn-md" type="button" id="cdNewBatch2"><i class="ph ph-plus"></i> New preview link</button></div></div></div>';
+      html += '<div class="cd-note">Send a batch for the client to pick from — it shows here with whatever they answer, per channel.</div>';
     } else {
-      if (!Object.keys(openBatches).length) openBatches[batches[batches.length - 1].n] = true;
       html += batches.slice().reverse().map(batchHtml).join('');
     }
     var pan = E('pan-selection');
     pan.innerHTML = html;
     hydrateAvatars(pan);
+  }
+  function flashPending(){
+    E('pan-selection').querySelectorAll('.cd-fill.is-approved').forEach(function(el, i){
+      el.classList.add('is-flash');
+      setTimeout(function(){ el.classList.remove('is-flash'); }, 1600 + i * 80);
+    });
+    var first = E('pan-selection').querySelector('.cd-fill.is-approved');
+    if (first && !document.hidden) first.scrollIntoView({block: 'center', behavior: REDUCED ? 'auto' : 'smooth'});
+  }
+  function askSentHtml(b){
+    var rows = M.slotsOf({requirement: b.ask || {}});
+    if (!rows.length) return '';
+    return '<div class="cd-ask-sent"><span>Sent against</span>' + rows.map(function(r){
+      return '<span class="cd-slot" style="height:24px">' + (PLAT_ICON[r.platform] || '') + esc(tierName(r.tier)) + '<span class="n">×' + r.want + '</span></span>';
+    }).join('') + '</div>';
   }
   function batchHtml(b){
     var open = !!openBatches[b.n];
@@ -926,74 +1049,47 @@
     S.PICK_STATUS.forEach(function(p){ counts[p.key] = b.picks.filter(function(x){ return M.pickStatus(x) === p.key; }).length; });
     var picks = f === 'all' ? b.picks : b.picks.filter(function(x){ return M.pickStatus(x) === f; });
     var chips = [{key:'all', label:'All'}].concat(S.PICK_STATUS.map(function(p){ return {key:p.key, label:p.label}; }));
-    var tones = {selected:'tone-success', kiv:'tone-gold', rejected:'tone-error', unavailable:'tone-neutral'};
     var answered = b.picks.length - counts.none;
     var bar = b.picks.length ? '<div class="cd-answers"><div class="c-progress-track size-compact stacked" role="img" aria-label="' + answered + ' of ' + b.picks.length + ' answered">' +
       S.PICK_STATUS.filter(function(p){ return p.key !== 'none' && counts[p.key]; }).map(function(p){
-        return '<div class="c-progress-stack-segment ' + (tones[p.key] || '') + '" style="width:' + (counts[p.key] / b.picks.length * 100) + '%; background:' + p.dot + '"></div>';
+        return '<div class="c-progress-stack-segment" style="width:' + (counts[p.key] / b.picks.length * 100) + '%; background:' + p.dot + '"></div>';
       }).join('') + '<div class="c-progress-stack-remainder"></div></div>' +
       '<div class="lg"><span><b>' + answered + '</b>/' + b.picks.length + ' answered</span>' +
       (counts.selected ? '<span><span class="cmp-dot" style="background:var(--color-green)"></span><b>' + counts.selected + '</b> selected</span>' : '') +
       (counts.kiv ? '<span><span class="cmp-dot" style="background:var(--color-amber)"></span><b>' + counts.kiv + '</b> KIV</span>' : '') +
       '</div></div>' : '';
-    var body = bar + '<div class="cd-chips" style="margin-top:var(--spacing-12)">' + chips.map(function(ch){
+    var body = askSentHtml(b) + bar + '<div class="cd-chips" style="margin-top:var(--spacing-12)">' + chips.map(function(ch){
         return '<button type="button" class="c-chip c-chip-filter' + (f === ch.key ? ' is-active' : '') + '" data-batch-filter="' + ch.key + '" data-batch="' + b.n + '">' + ch.label + ' <span class="count">' + counts[ch.key] + '</span></button>';
       }).join('') + '</div>' +
-      '<div style="overflow-x:auto"><table class="cd-picks"><colgroup><col style="width:40px" /><col style="width:18%" /><col style="width:20%" /><col style="width:14%" /><col style="width:9%" /><col style="width:15%" /><col style="width:12%" /><col style="width:12%" /></colgroup>' +
-      '<thead><tr><th>No</th><th>Influencer</th><th>Platform</th><th>Persona</th><th>Ethnicity</th><th>KULT remarks</th><th>Selection status</th><th>Client remarks</th></tr></thead><tbody>' +
+      '<div style="overflow-x:auto"><table class="cd-picks"><colgroup><col style="width:40px" /><col style="width:18%" /><col style="width:18%" /><col style="width:12%" /><col style="width:8%" /><col style="width:15%" /><col style="width:17%" /><col style="width:12%" /></colgroup>' +
+      '<thead><tr><th>No</th><th>Influencer</th><th>Platform</th><th>Persona</th><th>Ethnicity</th><th>KULT remarks</th><th>Answer per channel</th><th>Client remarks</th></tr></thead><tbody>' +
       (picks.length ? picks.map(function(p, i){
         var rec = byInf[p.inf] || {id: p.inf, name: 'Unknown profile', platforms: [], niches: []};
         var plat = (rec.platforms || []).filter(function(x){ return x.handle; }).map(function(x){
           var t = tierOf(x.followers);
           return '<span>' + (PLAT_ICON[x.platform] || '') + '<span class="h">@' + esc(x.handle) + '</span><span class="f">' + fmtFollowers(x.followers) + (t ? ' (' + t.name + ')' : '') + '</span></span>';
         }).join('') || '<span class="f">—</span>';
+        var chans = Object.keys(p.channels || {});
         return '<tr><td>' + (i + 1) + '</td>' +
           '<td><span class="cd-who">' + avatarHtml(rec) + '<span class="t"><span class="n">' + esc(rec.name) + '</span></span></span></td>' +
           '<td><span class="cd-plat">' + plat + '</span></td>' +
           '<td>' + esc((rec.niches || []).join(', ') || '—') + '</td>' +
           '<td>' + esc(rec.ethnicity || '—') + '</td>' +
           '<td><textarea data-kult-remark data-batch="' + b.n + '" data-inf="' + p.inf + '" placeholder="Why you suggest them">' + esc(p.kultRemark || '') + '</textarea></td>' +
-          '<td>' + statusBadge(M.pickStatus(p), b.n, p.inf) + '</td>' +
+          '<td><span class="cd-chstat">' + (chans.length ? chans.map(function(pl){ return statusBadge(p.channels[pl], b.n, p.inf, pl); }).join('') : '<span class="f">—</span>') + '</span></td>' +
           '<td><textarea data-client-remark data-batch="' + b.n + '" data-inf="' + p.inf + '" placeholder="What the client said">' + esc(p.clientRemark || '') + '</textarea></td></tr>';
       }).join('') : '<tr><td colspan="8" style="text-align:center; color:var(--color-neutral-5)">No one in this batch has that answer yet.</td></tr>') +
       '</tbody></table></div>' +
-      paxHtml(b) +
-      '<div class="cd-notes"><label for="cdNotes' + b.n + '">Notes</label><input id="cdNotes' + b.n + '" data-batch-notes="' + b.n + '" placeholder="e.g. 10 selected + 2 pax KIV, 2 converted from Micro" value="' + esc(b.notes || '') + '" /></div>';
+      '<div class="cd-notes"><label for="cdNotes' + b.n + '">Notes</label><input id="cdNotes' + b.n + '" data-batch-notes="' + b.n + '" placeholder="Anything worth remembering about this batch" value="' + esc(b.notes || '') + '" /></div>';
     return '<div class="cd-batch" data-batch-card="' + b.n + '">' +
       '<div class="cd-batch-head" data-batch-toggle="' + b.n + '"><div><span class="eyebrow">Batch ' + b.n + ' · ' + esc(b.name) + '</span>' +
-        '<span class="sub">Sent ' + esc(S.fmtDate(b.sentAt, true)) + ' · ' + b.picks.length + (b.picks.length === 1 ? ' influencer' : ' influencers') + '</span></div>' +
+        '<span class="sub">Sent ' + esc(S.fmtDate(b.sentAt, true)) + ' · ' + b.picks.length + (b.picks.length === 1 ? ' creator' : ' creators') +
+        (b.recipient ? ' · to ' + esc(b.recipient) : '') + (b.expiresAt ? ' · expires ' + esc(S.fmtDate(b.expiresAt, true)) : '') +
+        ' · <b>' + answered + '</b>/' + b.picks.length + ' answered</span></div>' +
         '<div class="acts"><button class="c-btn c-btn-ghost c-btn-sm" type="button" data-batch-toggle="' + b.n + '">' + (open ? 'Hide <i class="ph ph-caret-up"></i>' : 'Show <i class="ph ph-caret-down"></i>') + '</button>' +
         '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon" type="button" data-batch-copy="' + b.n + '" aria-label="Copy the client link for batch ' + b.n + '" title="Copy client link"><i class="ph ph-link"></i></button>' +
         '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-batch-link="' + b.n + '"><i class="ph ph-arrow-square-out"></i> Client view</button></div></div>' +
       '<div class="cd-batch-body"' + (open ? '' : ' hidden') + '>' + body + '</div></div>';
-  }
-  /* Pax-to-select boxes: one per platform × tier actually present in
-     the batch, so the client is only asked about bands they can see. */
-  function paxHtml(b){
-    var bands = {};
-    b.picks.forEach(function(p){
-      var rec = byInf[p.inf]; if (!rec) return;
-      (rec.platforms || []).forEach(function(x){
-        if (!x.handle) return;
-        var t = tierOf(x.followers); if (!t) return;
-        bands[x.platform] = bands[x.platform] || {};
-        bands[x.platform][t.name] = (bands[x.platform][t.name] || 0) + 1;
-      });
-    });
-    var plats = Object.keys(bands);
-    if (!plats.length) return '';
-    var targets = b.paxTargets || {};
-    return '<div class="cd-pax"><h5>Pax to select, per platform and tier</h5>' + plats.map(function(pl){
-      var tiers = TIERS.filter(function(t){ return bands[pl][t.name]; });
-      var total = tiers.reduce(function(a, t){ return a + bands[pl][t.name]; }, 0);
-      return '<div class="cd-pax-plat"><span class="pl">' + PLAT_LABEL[pl] + '<span class="c">' + total + (total === 1 ? ' account' : ' accounts') + '</span></span><div class="cd-pax-row">' +
-        tiers.map(function(t){
-          var n = t.name;
-          var v = (targets[pl] || {})[n];
-          return '<div class="cd-pax-box"><span class="t"><span class="cmp-dot" style="background:' + t.dot + '"></span><b>' + n + '</b>(' + bands[pl][n] + ' shown)</span>' +
-            '<input inputmode="numeric" placeholder="—" data-pax-target data-batch="' + b.n + '" data-plat="' + pl + '" data-tier="' + n + '" value="' + (v == null ? '' : esc(v)) + '" /></div>';
-        }).join('') + '</div></div>';
-    }).join('') + '<p class="hint">Leave a box blank to show that band with no instruction.</p></div>';
   }
 
   /* ── Documents + Drafts — the shape of the later build, honest about
@@ -1114,7 +1210,15 @@
       if (menuAnchor === ps) return closeMenu();
       return openMenu(ps, S.PICK_STATUS.map(function(p){
         var on = p.key === ps.dataset.pickStatus;
-        return '<button type="button" class="cmp-menu-item" data-set-pick="' + p.key + '" data-batch="' + ps.dataset.batch + '" data-inf="' + ps.dataset.inf + '"><span class="cmp-dot" style="background:' + p.dot + '"></span>' + p.label + (on ? '<i class="ph ph-check chk"></i>' : '') + '</button>';
+        return '<button type="button" class="cmp-menu-item" data-set-pick="' + p.key + '" data-batch="' + ps.dataset.batch + '" data-inf="' + ps.dataset.inf + '" data-plat="' + ps.dataset.plat + '"><span class="cmp-dot" style="background:' + p.dot + '"></span>' + p.label + (on ? '<i class="ph ph-check chk"></i>' : '') + '</button>';
+      }).join(''));
+    }
+    var ct = e.target.closest('[data-count-toward]');
+    if (ct) {
+      e.stopPropagation();
+      if (menuAnchor === ct) return closeMenu();
+      return openMenu(ct, M.slotsOf(c).filter(function(sl){ return sl.platform === ct.dataset.plat; }).map(function(sl){
+        return '<button type="button" class="cmp-menu-item" data-set-sub="' + sl.tier + '" data-inf="' + ct.dataset.countToward + '" data-plat="' + ct.dataset.plat + '">' + esc(PLAT_LABEL[sl.platform] || sl.platform) + ' · ' + esc(tierName(sl.tier)) + '</button>';
       }).join(''));
     }
     if (menu.classList.contains('is-open') && !e.target.closest('#cdMenu')) closeMenu();
@@ -1127,11 +1231,16 @@
       moveStage(b.dataset.setStage);
     } else if (b.dataset.setPick) {
       closeMenu();
-      var n = Number(b.dataset.batch), inf = b.dataset.inf, st = b.dataset.setPick;
-      S.setCreatorStatus(c.id, n, inf, st);
+      var n = Number(b.dataset.batch), inf = b.dataset.inf, st = b.dataset.setPick, pl = b.dataset.plat;
+      S.setChannelStatus(c.id, n, inf, pl, st);
       renderAll();
       var rec = byInf[inf];
-      if (st === 'selected') toast((rec ? rec.name : 'Profile') + ' is now on the campaign.');
+      if (st === 'selected') toast((rec ? rec.name : 'Profile') + ' approved on ' + (PLAT_LABEL[pl] || pl) + ' — confirm their availability on the board.');
+    } else if (b.dataset.setSub) {
+      closeMenu();
+      S.setSubstitution(c.id, b.dataset.inf, b.dataset.plat, b.dataset.setSub);
+      renderAll();
+      toast('Now counted toward ' + (PLAT_LABEL[b.dataset.plat] || b.dataset.plat) + ' · ' + tierName(b.dataset.setSub) + '.');
     }
   });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeMenu(); });
@@ -1148,10 +1257,25 @@
     return (c.batches || []).filter(function(b){ return String(b.n) === String(n); })[0] || null;
   }
 
-  /* ── KOL panel interactions. */
+  /* ── Selection panel interactions. */
   E('pan-selection').addEventListener('click', function(e){
-    if (e.target.closest('#cdAddManual')) return openPicker('roster');
-    if (e.target.closest('#cdNewBatch') || e.target.closest('#cdNewBatch2')) return openPicker('batch');
+    if (e.target.closest('[data-edit-ask]')) return campaignForm.open({rec: c, step: 2, onSave: saveEdit});
+    if (e.target.closest('#cdNewBatch')) return startSend(null);
+    var sb = e.target.closest('[data-send-band]');
+    if (sb) { var ps = sb.dataset.sendBand.split('/'); return startSend({platform: ps[0], tier: ps[1]}); }
+    var ab = e.target.closest('[data-add-band]');
+    if (ab) { var pa = ab.dataset.addBand.split('/'); return openPicker('roster', {platform: pa[0], tier: pa[1]}); }
+    var fs = e.target.closest('[data-fill-state]');
+    if (fs) {
+      var st = fs.dataset.fillState, who = byInf[fs.dataset.inf];
+      S.setRosterState(c.id, fs.dataset.inf, fs.dataset.plat, st);
+      renderAll();
+      var nm = who ? who.name : 'Profile', pl = PLAT_LABEL[fs.dataset.plat] || fs.dataset.plat;
+      toast(st === 'confirmed' ? nm + ' confirmed on ' + pl + '.' : st === 'unavailable' ? nm + ' marked unavailable — the slot is open again.' : nm + ' reinstated on ' + pl + '.', st === 'unavailable' ? 'info' : undefined);
+      return;
+    }
+    var un = e.target.closest('[data-uncount]');
+    if (un) { S.setSubstitution(c.id, un.dataset.uncount, un.dataset.plat, null); renderAll(); return; }
     var rm = e.target.closest('[data-roster-remove]');
     if (rm) {
       var rec = byInf[rm.dataset.rosterRemove];
@@ -1163,8 +1287,7 @@
               : ' removed from the campaign.'), 'danger');
       return;
     }
-    /* The client-facing page is share.html. This used to copy a made-up
-       /preview/ path and say the page was a later build; it exists now. */
+    /* The client-facing page is share.html. */
     var copy = e.target.closest('[data-batch-copy]');
     if (copy) {
       e.stopPropagation();
@@ -1195,22 +1318,43 @@
       renderKol();
     }
   });
-  /* Remarks, pax targets and notes save on change, not per keystroke,
-     and never re-render — the field you are typing in stays put. */
+  /* Remarks and notes save on change, not per keystroke, and never
+     re-render — the field you are typing in stays put. */
   E('pan-selection').addEventListener('change', function(e){
     var t = e.target;
     if (t.matches('[data-kult-remark]')) S.updatePick(c.id, Number(t.dataset.batch), t.dataset.inf, {kultRemark: t.value});
     else if (t.matches('[data-client-remark]')) S.updatePick(c.id, Number(t.dataset.batch), t.dataset.inf, {clientRemark: t.value});
-    else if (t.matches('[data-pax-target]')) {
-      var b = (S.get(c.id).batches || []).filter(function(x){ return x.n === Number(t.dataset.batch); })[0];
-      var targets = Object.assign({}, b.paxTargets || {});
-      targets[t.dataset.plat] = Object.assign({}, targets[t.dataset.plat] || {});
-      targets[t.dataset.plat][t.dataset.tier] = t.value.trim();
-      S.updateBatch(c.id, b.n, {paxTargets: targets});
-    }
     else if (t.matches('[data-batch-notes]')) S.updateBatch(c.id, Number(t.dataset.batchNotes), {notes: t.value});
     reload();
   });
+
+  /* ── Sending a batch: pick the candidates, then the shared send sheet
+     with this campaign locked as the destination. A band narrows the
+     picker to creators who fit it; the sheet's ask is whatever is still
+     open, so the client only sees what is left to fill. */
+  function startSend(band){
+    setTab('selection');
+    openPicker('send', band);
+  }
+  function openSendSheet(ids){
+    window.sendSheet.open({
+      infIds: ids, people: byInf, campaigns: S.merged(), defaultCampaignId: c.id, lockCampaign: true,
+      onSend: function(r){
+        /* Sending against an edited ask updates the campaign's own ask, so
+           the next batch inherits the corrected figure. Compared as slots,
+           not objects: the merge rebuilds the map in a different key order. */
+        if (Object.keys(r.ask).length) {
+          var cur = S.get(c.id), merged = M.mergeAsk(cur, r.ask);
+          if (!M.sameAsk(merged, cur.requirement)) S.setRequirement(c.id, merged);
+        }
+        var n = S.addBatch(c.id, {name: r.name, infIds: r.infIds, ask: r.ask, recipient: r.recipient, expiresAt: r.expiresAt, requireName: r.requireName});
+        openBatches = {}; openBatches[n] = true;
+        renderAll();
+        toast('Batch ' + n + ' sent with ' + ids.length + (ids.length === 1 ? ' creator' : ' creators') + '. Copy the client link from the batch card.');
+      }
+    });
+  }
+
   E('pan-deliverables').addEventListener('click', function(e){
     var go = e.target.closest('[data-go-tab]'); if (go) return setTab(go.dataset.goTab);
     var sw = e.target.closest('.c-switch-track');
@@ -1219,27 +1363,50 @@
     if (h) { var body = h.nextElementSibling; body.hidden = !body.hidden; h.querySelector('.ph-caret-down, .ph-caret-up').className = 'ph ' + (body.hidden ? 'ph-caret-down' : 'ph-caret-up'); }
   });
 
-  /* ── Roster picker. */
-  var pickScrim = E('cdPickScrim'), pickMode = 'roster', chosen = new Set();
-  function openPicker(mode){
+  /* ── Roster picker. `roster` adds fills by hand; `send` gathers the
+     candidates for a batch. A band filter narrows the list to creators
+     on that platform (and at that tier), and can be loosened chip by chip. */
+  var pickScrim = E('cdPickScrim'), pickMode = 'roster', chosen = new Set(), pickFilter = {}, pickBand = null;
+  function openPicker(mode, band){
     pickMode = mode; chosen.clear();
-    E('cdPickEyebrow').textContent = mode === 'batch' ? 'New preview link' : 'Add manually';
-    E('cdPickTitle').textContent = mode === 'batch' ? 'Pick who the client sees' : 'Add influencers to the campaign';
-    E('cdPickHint').textContent = mode === 'batch'
-      ? 'They arrive as a new batch with no answer yet; set each answer here as the client replies.'
-      : 'Added by hand — they skip the client\'s pick and land on the roster straight away.';
-    E('cdBatchNameField').hidden = mode !== 'batch';
-    E('cdBatchName').value = mode === 'batch' ? 'Batch ' + ((c.batches || []).length + 1) : '';
+    /* The band is the slot being filled; the filter is only what the list
+       shows. Widening the search must not change where the fill lands. */
+    pickBand = band ? {platform: band.platform || null, tier: band.tier || null} : null;
+    pickFilter = band ? {platform: band.platform || null, tier: band.tier || null} : {};
+    var k = (c.batches || []).length + 1;
+    E('cdPickEyebrow').textContent = mode === 'send' ? 'Batch ' + k : 'Add by hand';
+    E('cdPickTitle').textContent = mode === 'send' ? 'Who should the client pick from?' : 'Add influencers to a slot';
+    E('cdPickHint').textContent = mode === 'send'
+      ? 'Tick the candidates, then set the ask and the link on the next step.'
+      : 'Added by hand — they skip the client\'s pick and land in the slot as confirmed.';
     E('cdPickSearch').value = '';
     renderPickList();
     pickScrim.classList.add('is-open');
     setTimeout(function(){ E('cdPickSearch').focus(); }, 260);
   }
   function closePicker(){ pickScrim.classList.remove('is-open'); }
+  function channelOf(r, platform){
+    return (r.platforms || []).filter(function(p){ return p.platform === platform && p.handle; })[0] || null;
+  }
+  function paintPickFilter(){
+    var el = E('cdPickFilter');
+    var chips = [];
+    if (pickFilter.platform) chips.push('<button type="button" class="c-chip c-chip-filter is-active" data-drop-filter="platform">' + (PLAT_ICON[pickFilter.platform] || '') + ' ' + esc(PLAT_LABEL[pickFilter.platform] || pickFilter.platform) + ' <i class="ph ph-x"></i></button>');
+    if (pickFilter.tier) chips.push('<button type="button" class="c-chip c-chip-filter is-active" data-drop-filter="tier">' + esc(tierName(pickFilter.tier)) + ' <i class="ph ph-x"></i></button>');
+    el.hidden = !chips.length;
+    el.innerHTML = chips.length ? '<span>Showing</span>' + chips.join('') + '<span>— drop a chip to widen the search</span>' : '';
+  }
   function renderPickList(){
     var q = E('cdPickSearch').value.trim().toLowerCase();
-    var onRoster = {}; (c.roster || []).forEach(function(r){ onRoster[r.inf] = true; });
+    var onRoster = {};
+    (c.roster || []).forEach(function(r){ if (r.state !== 'unavailable') { onRoster[r.inf] = true; onRoster[r.inf + '/' + r.platform] = true; } });
     var hits = INF.filter(function(r){
+      if (pickFilter.platform) {
+        var ch = channelOf(r, pickFilter.platform); if (!ch) return false;
+        if (pickFilter.tier) { var t = tierOf(ch.followers); if (!t || t.key !== pickFilter.tier) return false; }
+      } else if (pickFilter.tier) {
+        if (!(r.platforms || []).some(function(p){ var t = p.handle && tierOf(p.followers); return t && t.key === pickFilter.tier; })) return false;
+      }
       if (!q) return true;
       var hay = [r.name].concat(r.niches || [], (r.platforms || []).map(function(p){ return p.handle; })).join(' ').toLowerCase();
       return hay.indexOf(q) > -1;
@@ -1247,27 +1414,35 @@
     var LIMIT = 60;
     var list = E('cdPickList');
     list.innerHTML = hits.slice(0, LIMIT).map(function(r){
-      var taken = pickMode === 'roster' && onRoster[r.id];
+      var taken = pickFilter.platform ? onRoster[r.id + '/' + pickFilter.platform] : onRoster[r.id];
       var on = chosen.has(r.id);
-      var top = (r.platforms || []).filter(function(p){ return p.followers != null; }).sort(function(a, b){ return b.followers - a.followers; })[0];
-      var t = top ? tierOf(top.followers) : null;
-      return '<div class="cd-pick-row' + (taken ? ' is-disabled' : '') + '" data-pick="' + r.id + '"' + (taken ? ' title="Already on the campaign"' : '') + '>' +
+      var ch = pickFilter.platform ? channelOf(r, pickFilter.platform)
+             : (r.platforms || []).filter(function(p){ return p.followers != null; }).sort(function(a, b){ return b.followers - a.followers; })[0];
+      var t = ch ? tierOf(ch.followers) : null;
+      var line = pickFilter.platform && ch ? '@' + ch.handle + ' · ' + fmtFollowers(ch.followers) + ((r.niches || []).length ? ' · ' + r.niches.join(', ') : '') : handlesLine(r);
+      return '<div class="cd-pick-row' + (taken ? ' is-disabled' : '') + '" data-pick="' + r.id + '"' + (taken ? ' title="Already in this slot"' : '') + '>' +
         '<span class="c-checkbox-box' + (on || taken ? ' on' : '') + '">' + (on || taken ? '<i class="ph ph-check"></i>' : '') + '</span>' +
         avatarHtml(r) + '<span class="t" style="min-width:0"><span class="n" style="display:block; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">' + esc(r.name) + '</span>' +
-        '<span class="s" style="display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis">' + esc(handlesLine(r)) + '</span></span>' +
+        '<span class="s" style="display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis">' + esc(line) + '</span></span>' +
         (t ? '<span class="tier c-badge c-badge-neutral">' + t.name + '</span>' : '') + '</div>';
     }).join('') + (hits.length > LIMIT ? '<div class="cd-picker-more">Showing ' + LIMIT + ' of ' + hits.length + ' — keep typing to narrow it down.</div>' : '') +
-    (!hits.length ? '<div class="cd-picker-more">No profiles match “' + esc(q) + '”.</div>' : '');
+    (!hits.length ? '<div class="cd-picker-more">' + (q ? 'No profiles match “' + esc(q) + '”' : 'Nobody fits this band') + (pickFilter.platform || pickFilter.tier ? ' — drop a chip above to widen the search.' : '.') + '</div>' : '');
     hydrateAvatars(list);
+    paintPickFilter();
     paintPickCount();
   }
   function paintPickCount(){
     var n = chosen.size;
     E('cdPickCount').textContent = n ? n + (n === 1 ? ' profile selected' : ' profiles selected') : 'Nobody selected yet';
     E('cdPickConfirm').disabled = !n;
-    E('cdPickConfirm').textContent = pickMode === 'batch' ? 'Create preview link' : 'Add to campaign';
+    E('cdPickConfirm').innerHTML = pickMode === 'send' ? 'Next: the ask and the link <i class="ph ph-arrow-right"></i>' : 'Add to the slot';
   }
   E('cdPickSearch').addEventListener('input', renderPickList);
+  E('cdPickFilter').addEventListener('click', function(e){
+    var d = e.target.closest('[data-drop-filter]'); if (!d) return;
+    pickFilter[d.dataset.dropFilter] = null;
+    renderPickList();
+  });
   E('cdPickList').addEventListener('click', function(e){
     var row = e.target.closest('[data-pick]'); if (!row || row.classList.contains('is-disabled')) return;
     var idp = row.dataset.pick;
@@ -1283,28 +1458,29 @@
   E('cdPickConfirm').addEventListener('click', function(){
     var ids = Array.from(chosen); if (!ids.length) return;
     closePicker();
-    if (pickMode === 'batch') {
-      var n = S.addBatch(c.id, {name: E('cdBatchName').value.trim() || null, infIds: ids});
-      openBatches = {}; openBatches[n] = true;
-      renderAll();
-      toast('Batch ' + n + ' created with ' + ids.length + (ids.length === 1 ? ' profile' : ' profiles') + '. Open link copies the preview URL.');
-    } else {
-      S.addToRoster(c.id, ids.map(function(inf){
-        var top = (byInf[inf].platforms || []).filter(function(p){ return p.handle; })
-          .sort(function(a,b){ return (b.followers||0) - (a.followers||0); })[0];
-        var t = top ? window.tiers.tierOf(top.followers) : null;
-        return {inf: inf, platform: top ? top.platform : null, tier: t ? t.key : null};
-      }), 'team', null);
-      renderAll();
-      toast(ids.length + (ids.length === 1 ? ' profile' : ' profiles') + ' added to the campaign.');
-    }
+    if (pickMode === 'send') return openSendSheet(ids);
+    /* By hand: the fill takes the band's platform when the creator has it,
+       else their biggest channel; its tier is always the real one, and a
+       mismatch with the band is recorded as a stand-in for that slot. */
+    var band = pickBand || {};
+    S.addToRoster(c.id, ids.map(function(inf){
+      var rec = byInf[inf];
+      var ch = (band.platform && channelOf(rec, band.platform)) ||
+               (rec.platforms || []).filter(function(p){ return p.handle; }).sort(function(a,b){ return (b.followers||0) - (a.followers||0); })[0];
+      var t = ch ? tierOf(ch.followers) : null, tier = t ? t.key : null;
+      var inBand = ch && ch.platform === band.platform;
+      return {inf: inf, platform: ch ? ch.platform : null, tier: tier,
+              substitutedFor: inBand && band.tier && tier && tier !== band.tier ? band.tier : null};
+    }), 'team', null);
+    renderAll();
+    toast(ids.length + (ids.length === 1 ? ' creator' : ' creators') + ' added' + (band.platform ? ' to ' + (PLAT_LABEL[band.platform] || band.platform) + (band.tier ? ' · ' + tierName(band.tier) : '') : ' to the campaign') + '.');
   });
 
   /* ── Header actions. */
   E('cdEdit').addEventListener('click', function(){
     campaignForm.open({rec: c, onSave: saveEdit});
   });
-  E('cdShare').addEventListener('click', function(){ setTab('selection'); openPicker('batch'); });
+  E('cdShare').addEventListener('click', function(){ startSend(null); });
   var delScrim = E('cdDelScrim');
   E('cdDelete').addEventListener('click', function(){
     E('cdDelBody').innerHTML = 'This removes <strong>' + esc(c.name) + '</strong> and its roster and preview batches from the workspace. The seeded sample data on disk is untouched.';
@@ -1344,7 +1520,6 @@
         }).join('') + '</div></div>';
     }).join('') + '</div>';
   }
-  var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (!c) { missing(); }
   else {
     skeleton();

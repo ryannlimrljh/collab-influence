@@ -1072,9 +1072,9 @@
 
 <script src="../shared/shell.js?v=0.9.46"></script>
 <script src="../shared/campaigns-data.js?v=3"></script>
-<script src="../shared/campaign-store.js?v=7"></script>
-<script src="../shared/campaign-model.js?v=4"></script>
-<script src="../shared/send-sheet.js?v=7"></script>
+<script src="../shared/campaign-store.js?v=8"></script>
+<script src="../shared/campaign-model.js?v=6"></script>
+<script src="../shared/send-sheet.js?v=8"></script>
 <script src="../shared/influencers-data.js"></script>
 <script src="../shared/avatar-manifest.js?v=2"></script>
 <script>window.INFLUENCER_STORE_KEY = 'collab-influencers-v2';</script>
@@ -2773,38 +2773,19 @@
         } else if (Object.keys(r.ask).length) {
           /* Sending against an edited ask updates the campaign's own ask, so
              the next batch inherits the corrected figure. */
-          campaignStore.setRequirement(id, mergeAsk(campaignStore.get(id), r.ask));
+          var merged = mergeAsk(campaignStore.get(id), r.ask);
+          if (!window.campaignModel.sameAsk(merged, campaignStore.get(id).requirement)) campaignStore.setRequirement(id, merged);
         }
         var n = campaignStore.addBatch(id, {
           name: r.name, infIds: r.infIds, ask: r.ask,
           recipient: r.recipient, expiresAt: r.expiresAt, requireName: r.requireName
         });
-        location.href = 'campaign.html?id=' + encodeURIComponent(id) + '&tab=kol&batch=' + n;
+        location.href = 'campaign.html?id=' + encodeURIComponent(id) + '&tab=selection&batch=' + n;
       }
     });
   });
 
-  /* The batch's ask is what is still outstanding, so the campaign's ask is
-     that plus whatever is already filled. */
-  function mergeAsk(c, ask) {
-    var filled = window.campaignModel.slotStatus(c), out = {};
-    Object.keys(ask).forEach(function (p) {
-      Object.keys(ask[p]).forEach(function (t) {
-        out[p] = out[p] || {};
-        out[p][t] = ask[p][t] + (((filled[p] || {})[t] || {}).filled || 0);
-      });
-    });
-    /* Bands already met keep their figure rather than disappearing. */
-    Object.keys(filled).forEach(function (p) {
-      Object.keys(filled[p]).forEach(function (t) {
-        if (out[p] && out[p][t] != null) return;
-        if (!filled[p][t].want) return;
-        out[p] = out[p] || {};
-        out[p][t] = filled[p][t].want;
-      });
-    });
-    return out;
-  }
+  function mergeAsk(c, ask) { return window.campaignModel.mergeAsk(c, ask); }
   document.getElementById('infSelClear').addEventListener('click', function(){
     selected.clear();
     mainEl.querySelectorAll('.is-selected').forEach(function(el){ el.classList.remove('is-selected'); });

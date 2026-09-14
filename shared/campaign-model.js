@@ -101,6 +101,10 @@
      `unavailable` releases it, which is what reopens the slot. */
   function occupies(r) { return r.state === 'approved' || r.state === 'confirmed'; }
 
+  /* The band a fill counts against: its own tier, unless it was taken as a
+     stand-in for another — a Micro counted toward the Mid ask. */
+  function groupTier(r) { return r.substitutedFor || r.tier; }
+
   /* platform -> tier -> {want, filled, open, over}. Tiers present on the
      roster but absent from the ask still appear, with want 0, so an
      unasked-for fill is visible rather than silently dropped. */
@@ -113,7 +117,7 @@
     }
     slotsOf(c).forEach(function (s) { cell(s.platform, s.tier).want = s.want; });
     ((c && c.roster) || []).filter(occupies).forEach(function (r) {
-      cell(r.platform, r.tier).filled += 1;
+      cell(r.platform, groupTier(r)).filled += 1;
     });
     Object.keys(out).forEach(function (p) {
       Object.keys(out[p]).forEach(function (t) {
@@ -164,6 +168,71 @@
     return out;
   }
 
+
+  /* The batch's ask is what is still outstanding, so the campaign's ask is
+     that plus whatever is already filled. Bands already met keep their
+     figure rather than disappearing. */
+  function mergeAsk(c, ask) {
+    var filled = slotStatus(c), out = {};
+    Object.keys(ask || {}).forEach(function (p) {
+      Object.keys(ask[p]).forEach(function (t) {
+        out[p] = out[p] || {};
+        out[p][t] = (Number(ask[p][t]) || 0) + (((filled[p] || {})[t] || {}).filled || 0);
+      });
+    });
+    Object.keys(filled).forEach(function (p) {
+      Object.keys(filled[p]).forEach(function (t) {
+        if (out[p] && out[p][t] != null) return;
+        if (!filled[p][t].want) return;
+        out[p] = out[p] || {};
+        out[p][t] = filled[p][t].want;
+      });
+    });
+    return out;
+  }
+
+  /* Two asks are the same when they hold the same slots, whatever order
+     the keys came in — a rebuilt map must not read as an edit. */
+  function sameAsk(a, b) {
+    var key = function (req) {
+      return slotsOf({requirement: req || {}}).map(function (x) { return x.platform + '/' + x.tier + '=' + x.want; }).sort().join(',');
+    };
+    return key(a) === key(b);
+  }
+
+  /* ── The board. One group per asked band, in ask order, then any band the
+     roster occupies that nobody asked for (want 0), so an unasked-for fill
+     is visible rather than lost. Fills sort confirmed, approved, then
+     unavailable. `awaiting` counts creators on a sent batch who sit in this
+     band and have no answer yet; it needs `people` to know their tier. */
+  var STATE_ORDER = {confirmed: 0, approved: 1, unavailable: 2};
+  function groupsOf(c, people) {
+    people = people || {};
+    var st = slotStatus(c), roster = (c && c.roster) || [], out = [], seen = {};
+    function push(platform, tier, want) {
+      var key = platform + '/' + tier;
+      if (seen[key]) return; seen[key] = true;
+      var x = (st[platform] && st[platform][tier]) || {want: want, filled: 0, open: want, over: 0};
+      var fills = roster.filter(function (r) { return r.platform === platform && groupTier(r) === tier; })
+        .sort(function (a, b) { return (STATE_ORDER[a.state] || 0) - (STATE_ORDER[b.state] || 0); });
+      var awaiting = 0;
+      if (Object.keys(people).length) {
+        ((c && c.batches) || []).forEach(function (b) {
+          (b.picks || []).forEach(function (p) {
+            if (!p.channels || p.channels[platform] !== 'none') return;
+            var ch = channelsOf(people[p.inf]).filter(function (y) { return y.platform === platform; })[0];
+            var t = ch ? window.tiers.tierOf(ch.followers) : null;
+            if (t && t.key === tier) awaiting += 1;
+          });
+        });
+      }
+      out.push({platform: platform, tier: tier, want: x.want, filled: x.filled, open: x.open, over: x.over,
+                fills: fills, awaiting: awaiting});
+    }
+    slotsOf(c).forEach(function (s) { push(s.platform, s.tier, s.want); });
+    roster.forEach(function (r) { if (r.platform && groupTier(r)) push(r.platform, groupTier(r), 0); });
+    return out;
+  }
 
   /* ── Deliverables. A record that still holds {done, total} keeps reading
      from those two numbers until someone adds a deliverable; once it is a
@@ -285,6 +354,7 @@
     pickStatus: pickStatus,
     slotsOf: slotsOf, askFor: askFor, derivedPax: derivedPax, slotStatus: slotStatus,
     shortfallOf: shortfallOf, coverageOf: coverageOf,
-    deliverableCounts: deliverableCounts, confirmedCreators: confirmedCreators, nextUp: nextUp
+    deliverableCounts: deliverableCounts, confirmedCreators: confirmedCreators, nextUp: nextUp,
+    groupTier: groupTier, mergeAsk: mergeAsk, sameAsk: sameAsk, groupsOf: groupsOf
   };
 })();

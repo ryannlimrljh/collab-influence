@@ -264,3 +264,18 @@ test('a created campaign starts with its creation line', () => {
   const id2 = S.add({name: 'Won', stage: 'sourcing'});
   assert.equal(S.get(id2).activity[0].text, 'Created');
 });
+
+test('setSubstitution moves where a fill is counted and logs it', () => {
+  const {campaignStore: S} = fresh();
+  const id = S.createLead({name: 'Sub', requirement: {tiktok: {mid: 1}}});
+  S.addToRoster(id, [{inf: 'inf-002', platform: 'tiktok', tier: 'micro'}], 'team', null);
+  S.setSubstitution(id, 'inf-002', 'tiktok', 'mid');
+  let c = S.get(id);
+  assert.equal(c.roster[0].substitutedFor, 'mid');
+  assert.equal(c.roster[0].tier, 'micro', 'the real tier stays');
+  assert.match(c.activity[c.activity.length - 1].text, /Counted .* on TikTok toward Mid/);
+  S.setSubstitution(id, 'inf-002', 'tiktok', null);
+  c = S.get(id);
+  assert.equal(c.roster[0].substitutedFor, null);
+  assert.match(c.activity[c.activity.length - 1].text, /Stopped counting/);
+});
