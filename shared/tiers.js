@@ -21,16 +21,21 @@
   ];
 
   function tierOf(n) {
-    if (n == null || isNaN(Number(n))) return null;
-    for (var i = 0; i < TIERS.length; i++) if (Number(n) < TIERS[i].max) return TIERS[i];
-    return null;
+    if (n == null) return null;
+    var v = Number(n);
+    if (isNaN(v)) return null;
+    for (var i = 0; i < TIERS.length; i++) if (v < TIERS[i].max) return TIERS[i];
+    /* Only Infinity reaches here, since the last band's max is Infinity and
+       the comparison is strict. The three page-local copies returned null for
+       it; returning the top band is the answer everyone actually wanted. */
+    return TIERS[TIERS.length - 1];
   }
   function tierByKey(key) {
     for (var i = 0; i < TIERS.length; i++) if (TIERS[i].key === key) return TIERS[i];
     return null;
   }
 
-  window.TIERS = TIERS;
-  window.tierOf = tierOf;
-  window.tierByKey = tierByKey;
+  /* One namespaced object, the way campaignStore, influencerStore,
+     campaignForm and collabBrand all export. */
+  window.tiers = {TIERS: TIERS, tierOf: tierOf, tierByKey: tierByKey};
 })();
