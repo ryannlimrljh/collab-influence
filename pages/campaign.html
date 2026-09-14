@@ -742,7 +742,7 @@
 <script src="../shared/tiers.js?v=1"></script>
 <script src="../shared/campaign-model.js?v=8"></script>
 <script src="../shared/campaign-store.js?v=10"></script>
-<script src="../shared/campaign-form.js?v=10"></script>
+<script src="../shared/campaign-form.js?v=11"></script>
 <script src="../shared/send-sheet.js?v=9"></script>
 <script>
 (function () {
@@ -946,7 +946,7 @@
     var say = esc(n.sentence).replace('{date}', esc(n.date ? S.fmtDate(n.date) : 'earlier'));
     function btn(a, primary){
       if (!a) return '';
-      return '<button class="c-btn ' + (primary ? 'c-btn-primary' : 'c-btn-secondary') + ' c-btn-md" type="button" data-next="' + a.action + '">' + esc(a.label) + '</button>';
+      return '<button class="c-btn ' + (primary ? 'c-btn-secondary' : 'c-btn-ghost') + ' c-btn-md" type="button" data-next="' + a.action + '">' + esc(a.label) + '</button>';
     }
     el.classList.toggle('is-quiet', !n.primary);
     body.innerHTML = '<span class="eyebrow"><i class="ph-fill ph-sparkle"></i>Next up</span>' +
