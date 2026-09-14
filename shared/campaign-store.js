@@ -90,9 +90,38 @@
   function get(id) {
     return merged().filter(function (c) { return c.id === id; })[0] || null;
   }
-  function update(id, patch) {
+  /* ── Activity. Every meaningful write leaves one line on the record, so
+     the campaign page can show what happened without a second store. `by`
+     is the workspace user; the prototype has one. Notes come in through
+     addNote and share the stream. */
+  var BY = 'Digital Team';
+  var PLAT_LABEL = {tiktok: 'TikTok', instagram: 'Instagram', xhs: 'Xiaohongshu'};
+  function entry(type, text, ref) {
+    var e = {at: new Date().toISOString(), by: BY, type: type, text: text};
+    if (ref) e.ref = ref;
+    return e;
+  }
+  function nameOf(inf) { return (PEOPLE[inf] && PEOPLE[inf].name) || inf; }
+
+  /* `log` is an optional activity entry appended with the patch. A stage
+     change is logged here whichever caller made it, since three surfaces
+     can move a campaign and none of them should have to remember to. */
+  function update(id, patch, log) {
     var s = state();
-    s.edits[id] = Object.assign({}, s.edits[id] || {}, patch, {updatedAt: Date.now()});
+    var before = get(id);
+    var entries = [];
+    if (patch.stage && before && patch.stage !== before.stage) {
+      var st = stageOf(patch.stage);
+      entries.push(entry('stage', before.stage === 'lead' && patch.stage !== 'lead'
+        ? 'Marked as won, moved to ' + st.label : 'Moved to ' + st.label));
+    }
+    if (log) entries.push(log);
+    var next = Object.assign({}, patch, {updatedAt: Date.now()});
+    if (entries.length) {
+      var have = (s.edits[id] && s.edits[id].activity) || (before && before.activity) || [];
+      next.activity = have.concat(entries);
+    }
+    s.edits[id] = Object.assign({}, s.edits[id] || {}, next);
     save(s);
     return get(id);
   }
@@ -191,11 +220,18 @@
       rec.roster = rec.roster || [];
       rec.batches = rec.batches || [];
       rec.deliverables = rec.deliverables || {done: 0, total: 0};
+      rec.activity = (rec.activity || []).concat([entry('create',
+        rec.stage === 'lead' ? 'Created as a lead' : 'Created')]);
       s.added.push(rec);
       save(s);
       return rec.id;
     },
-    update: update,
+    update: function (id, patch) { return update(id, patch); },
+    addNote: function (id, text) {
+      text = String(text || '').trim();
+      if (!text) return get(id);
+      return update(id, {}, entry('note', text));
+    },
     remove: function (id) {
       var s = state();
       if (s.removed.indexOf(id) < 0) s.removed.push(id);
@@ -205,11 +241,13 @@
     /* The ask. pax and platforms are derived from it, not typed, so the
        list view keeps rendering without knowing about slots. */
     setRequirement: function (id, requirement) {
+      var before = get(id);
+      var had = before && window.campaignModel.slotsOf(before).length;
       return update(id, {
         requirement: requirement,
         pax: window.campaignModel.derivedPax({requirement: requirement}),
         platforms: Object.keys(requirement)
-      });
+      }, entry('edit', had ? 'Changed the ask' : 'Set the ask'));
     },
 
     /* Roster — one entry per creator per channel. */
@@ -236,12 +274,14 @@
        which releases the slot without deleting the history. */
     setRosterState: function (id, inf, platform, nextState) {
       var c = get(id); if (!c) return null;
+      var verb = nextState === 'confirmed' ? 'Confirmed ' : nextState === 'unavailable' ? 'Marked unavailable: ' : 'Reopened ';
       return update(id, {roster: (c.roster || []).map(function (r) {
         return (r.inf === inf && r.platform === platform)
           ? Object.assign({}, r, {state: nextState,
               confirmedAt: nextState === 'confirmed' ? today() : r.confirmedAt})
           : r;
-      })});
+      })}, entry('roster', verb + nameOf(inf) + ' on ' + (PLAT_LABEL[platform] || platform),
+        {inf: inf, platform: platform}));
     },
 
     /* One channel's answer on one pick. `selected` puts that channel on the
@@ -277,7 +317,11 @@
           return !(at(r) && r.source === 'client' && r.batch === n);
         });
       }
-      return update(id, {batches: batches, roster: roster});
+      var said = {selected: 'approved', kiv: 'marked KIV', rejected: 'rejected',
+        unavailable: 'marked unavailable', none: 'cleared the answer for'}[status] || status;
+      return update(id, {batches: batches, roster: roster},
+        entry('answer', 'Client ' + said + ' ' + nameOf(inf) + ' on ' + (PLAT_LABEL[platform] || platform),
+          {batch: n, inf: inf, platform: platform}));
     },
 
     /* The campaign page still offers one status control per creator, so this
@@ -346,7 +390,10 @@
         }),
         paxTargets: {}, notes: ''
       });
-      update(id, {batches: batches});
+      update(id, {batches: batches}, entry('batch',
+        'Sent batch ' + n + ' to ' + (opts.recipient ? opts.recipient : 'the client') +
+        ' · ' + (opts.infIds || []).length + (((opts.infIds || []).length === 1) ? ' creator' : ' creators'),
+        {batch: n}));
       return n;
     },
 

@@ -221,3 +221,46 @@ test('a channel-less pick is migrated once a page supplies the profiles', () => 
   const pick = win.campaignStore.get('c1').batches[0].picks[0];
   assert.deepEqual(pick.channels, {tiktok: 'none', instagram: 'none'});
 });
+
+
+test('a stage change writes one activity line, whoever makes it', () => {
+  const win = fresh();
+  win.CAMPAIGNS = [{id: 'c1', stage: 'lead', roster: [], batches: []}];
+  const S = win.campaignStore;
+  S.update('c1', {stage: 'sourcing'});
+  const c = S.get('c1');
+  assert.equal(c.activity.length, 1);
+  assert.equal(c.activity[0].type, 'stage');
+  assert.match(c.activity[0].text, /Marked as won/);
+  S.update('c1', {name: 'renamed'});
+  assert.equal(S.get('c1').activity.length, 1, 'a plain edit does not log');
+});
+
+test('batches, answers, confirmations and notes all land in the same stream', () => {
+  const win = fresh();
+  win.CAMPAIGNS = [{id: 'c1', stage: 'sourcing', roster: [], batches: []}];
+  const S = win.campaignStore;
+  const n = S.addBatch('c1', {infIds: ['inf-001'], recipient: 'amy@brand.com'});
+  S.setChannelStatus('c1', n, 'inf-001', 'tiktok', 'selected');
+  S.setRosterState('c1', 'inf-001', 'tiktok', 'confirmed');
+  S.addNote('c1', '  Client wants Malay-speaking creators.  ');
+  S.addNote('c1', '   ');
+  const types = S.get('c1').activity.map(e => e.type);
+  assert.deepEqual(types, ['batch', 'answer', 'roster', 'note']);
+  const a = S.get('c1').activity;
+  assert.match(a[0].text, /Sent batch 1 to amy@brand.com/);
+  assert.match(a[1].text, /Client approved .* on TikTok/);
+  assert.match(a[2].text, /Confirmed .* on TikTok/);
+  assert.equal(a[3].text, 'Client wants Malay-speaking creators.');
+  assert.ok(a.every(e => e.by === 'Digital Team' && e.at));
+});
+
+test('a created campaign starts with its creation line', () => {
+  const win = fresh();
+  win.CAMPAIGNS = [];
+  const S = win.campaignStore;
+  const id = S.createLead({name: 'Pitch'});
+  assert.equal(S.get(id).activity[0].text, 'Created as a lead');
+  const id2 = S.add({name: 'Won', stage: 'sourcing'});
+  assert.equal(S.get(id2).activity[0].text, 'Created');
+});

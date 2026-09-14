@@ -27,9 +27,9 @@
      to right through these, so the counts sit on a line rather than in
      a flat strip: the shape says "flow", not "six unrelated numbers".
      Each node is also the fastest filter on the page. */
-  .cmp-pipe{position:relative; display:grid; grid-template-columns:repeat(6, minmax(0, 1fr));
+  .cmp-pipe{position:relative; display:grid; grid-template-columns:repeat(7, minmax(0, 1fr));
     gap:var(--spacing-12); margin-bottom:var(--spacing-24);}
-  .cmp-pipe::before{content:''; position:absolute; left:8%; right:8%; top:50%;
+  .cmp-pipe::before{content:''; position:absolute; left:calc(100% / 7 + 6%); right:8%; top:50%;
     height:2px; background:var(--color-neutral-3); z-index:0; pointer-events:none;}
   .cmp-node{position:relative; z-index:1; display:flex; flex-direction:column; gap:2px;
     text-align:left; padding:var(--spacing-12) var(--spacing-16);
@@ -59,7 +59,29 @@
     font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-5);}
   .cmp-dot{width:6px; height:6px; border-radius:var(--radius-pill); flex:none;
     transition:box-shadow var(--duration-base) var(--ease-standard);}
-  @media (max-width:900px){ .cmp-pipe{grid-template-columns:repeat(3, minmax(0, 1fr));} .cmp-pipe::before{display:none;} }
+  @media (max-width:1100px){ .cmp-pipe{grid-template-columns:repeat(4, minmax(0, 1fr));} .cmp-pipe::before{display:none;} }
+  @media (max-width:640px){ .cmp-pipe{grid-template-columns:repeat(2, minmax(0, 1fr));} }
+
+  /* ── Lead is not a stage a campaign flows through, so it does not get
+     the track's treatment: a dashed edge, no shadow, a quiet count, and
+     a caption saying what it is. Still a filter. */
+  .cmp-node.is-ghost{border-style:dashed; box-shadow:none; background:transparent;}
+  .cmp-node.is-ghost .val{color:var(--color-neutral-5);}
+  .cmp-node.is-ghost .cap{font-size:10px; color:var(--color-neutral-5); margin-top:2px;}
+  .cmp-node.is-ghost.is-on{background:var(--color-obsidian); border-style:solid;}
+  .cmp-node.is-ghost.is-on .cap{color:rgba(255,255,255,.7);}
+  .cmp-node.is-ghost:hover{box-shadow:none; background:var(--color-neutral-2);}
+  .cmp-node.is-ghost.is-on:hover{background:var(--color-neutral-8);}
+  .cmp-col.is-ghost{background:transparent; border:2px dashed var(--color-neutral-3);}
+  .cmp-col.is-ghost .cmp-col-head{color:var(--color-neutral-5);}
+  .cmp-col.is-ghost.is-over{border-color:var(--color-neutral-4); background:var(--color-neutral-1);}
+  .cmp-col.is-refused{border-color:var(--color-red); background:rgba(253,51,67,.04);}
+  .cmp-lead{display:inline-flex; align-items:center; height:20px; padding:0 8px; margin-left:8px;
+    border-radius:var(--radius-pill); border:1px dashed var(--color-neutral-4);
+    font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow);
+    color:var(--color-neutral-5); vertical-align:middle; flex:none;}
+  .cmp-card-top .cmp-name{display:flex; align-items:center; min-width:0;}
+  .cmp-card-top .cmp-name > span:first-child{min-width:0; overflow:hidden; text-overflow:ellipsis;}
 
   /* ── View toggle — board / list, same control the roster page uses. */
   .cmp-viewseg{display:flex; align-self:center; flex:none; margin-left:auto;
@@ -489,13 +511,13 @@
 <script src="../shared/shell.js?v=0.9.46"></script>
 <script src="../shared/campaigns-data.js?v=3"></script>
 <script src="../shared/tiers.js?v=1"></script>
-<script src="../shared/campaign-store.js?v=6"></script>
+<script src="../shared/campaign-store.js?v=7"></script>
 <script src="../shared/campaign-model.js?v=3"></script>
-<script src="../shared/campaign-form.js?v=3"></script>
+<script src="../shared/campaign-form.js?v=4"></script>
 <script>
 (function () {
   'use strict';
-  var S = window.campaignStore;
+  var S = window.campaignStore, M = window.campaignModel;
   var E = function (id) { return document.getElementById(id); };
   function esc(s){
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -671,9 +693,11 @@
   function renderPipe(){
     var counts = stageCounts();
     E('cmpPipe').innerHTML = S.STAGES.map(function(s){
-      return '<button type="button" class="cmp-node' + (stageFilter === s.key ? ' is-on' : '') + '" data-stage="' + s.key + '" aria-pressed="' + (stageFilter === s.key) + '">' +
+      var ghost = s.key === 'lead';
+      return '<button type="button" class="cmp-node' + (ghost ? ' is-ghost' : '') + (stageFilter === s.key ? ' is-on' : '') + '" data-stage="' + s.key + '" aria-pressed="' + (stageFilter === s.key) + '">' +
         '<span class="val' + (counts[s.key] ? '' : ' is-zero') + '">' + counts[s.key] + '</span>' +
-        '<span class="lbl"><span class="cmp-dot" style="background:' + s.dot + '"></span>' + s.short + '</span></button>';
+        '<span class="lbl"><span class="cmp-dot" style="background:' + s.dot + '"></span>' + s.short + '</span>' +
+        (ghost ? '<span class="cap">not yet won</span>' : '') + '</button>';
     }).join('');
     E('cmpChips').innerHTML = '<button type="button" class="c-chip c-chip-filter' + (!stageFilter ? ' is-active' : '') + '" data-stage="">All</button>' +
       S.STAGES.map(function(s){
@@ -688,8 +712,40 @@
   function daysBetween(a, b){
     return Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 864e5);
   }
+  /* The ask, rolled up: how many slots, how many filled (approved or
+     confirmed), how many still open. Null when there is no ask. */
+  function slotSummary(c){
+    var slots = M.slotsOf(c);
+    if (!slots.length) return null;
+    /* This page does not load the influencer file, so a roster still in
+       the old creator-level shape cannot be migrated here; counting it
+       would read as nobody filled. Fall back to pax for those. */
+    if ((c.roster || []).some(function(r){ return !r.platform; })) return null;
+    var st = M.slotStatus(c), want = 0, filled = 0, open = 0;
+    slots.forEach(function(sl){
+      var x = st[sl.platform][sl.tier];
+      want += sl.want; filled += Math.min(x.filled, sl.want); open += x.open;
+    });
+    return {want: want, filled: filled, open: open};
+  }
+  function awaitingClient(c){
+    var b = (c.batches || [])[ (c.batches || []).length - 1 ];
+    if (!b) return false;
+    return (b.picks || []).every(function(p){ return M.pickStatus(p) === 'none'; });
+  }
   function cue(c){
     if (c.stage === 'completed') return {cls:'done', icon:'ph-check-circle', text:'Wrapped'};
+    /* Before the run, the ask is the story: what is still open, or that
+       the client has the list. */
+    if (c.stage === 'lead' || c.stage === 'sourcing') {
+      var sum = slotSummary(c);
+      if (sum) {
+        if (!sum.open) return {cls:'live', icon:'ph-check-circle', text:'Line-up complete'};
+        if (awaitingClient(c)) return {cls:'', icon:'ph-paper-plane-tilt', text:'Awaiting client'};
+        return {cls:'warn', icon:'ph-user-plus', text: sum.open + (sum.open === 1 ? ' open slot' : ' open slots')};
+      }
+      if (c.stage === 'lead') return {cls:'', icon:'ph-lightbulb', text: (c.batches || []).length ? 'Awaiting client' : 'No ask yet'};
+    }
     if (c.start && c.start > TODAY) {
       var d = daysBetween(TODAY, c.start);
       return {cls:'', icon:'ph-calendar-blank', text: d === 1 ? 'Starts tomorrow' : 'Starts in ' + d + ' days'};
@@ -706,11 +762,15 @@
     var q = cue(c);
     return '<div class="cmp-card" draggable="true" tabindex="0" role="button" data-id="' + c.id + '">' +
       '<div class="cmp-card-top"><span class="cmp-logo" data-logo-for="' + c.id + '"><span class="ini">' + esc(S.initials(c.brand || c.name)) + '</span><img alt="" hidden /></span>' +
-        '<span class="cmp-txt"><span class="cmp-name" title="' + esc(c.name) + '"><span>' + esc(c.name) + '</span></span>' +
+        '<span class="cmp-txt"><span class="cmp-name" title="' + esc(c.name) + '"><span>' + esc(c.name) + '</span>' + (c.stage === 'lead' ? '<span class="cmp-lead">Lead</span>' : '') + '</span>' +
         '<span class="cmp-sub">' + esc([c.brand, c.agency].filter(Boolean).join(' · ') || 'No brand yet') + '</span></span></div>' +
       '<div class="cmp-card-dates"><i class="ph ph-calendar-blank"></i>' + esc(S.fmtRange(c.start, c.end)) + '</div>' +
       '<div class="cmp-card-stats">' +
-        '<div class="cmp-stat"><span class="k">Pax</span><span class="v' + (c.pax == null ? ' dash' : '') + '">' + (c.pax == null ? '—' : S.fmtNum(c.pax)) + '</span></div>' +
+        (function(){
+          var sum = slotSummary(c);
+          if (sum) return '<div class="cmp-stat"><span class="k">Slots</span><span class="v">' + sum.filled + ' <span style="color:var(--color-neutral-5); font-weight:400">of ' + sum.want + '</span></span></div>';
+          return '<div class="cmp-stat"><span class="k">Pax</span><span class="v' + (c.pax == null ? ' dash' : '') + '">' + (c.pax == null ? '—' : S.fmtNum(c.pax)) + '</span></div>';
+        })() +
         '<div class="cmp-stat"><span class="k">Quote</span><span class="v' + (c.quote == null ? ' dash' : '') + '">' + (c.quote == null ? '—' : S.fmtRM(c.quote)) + '</span></div>' +
       '</div>' +
       '<div class="cmp-card-foot">' +
@@ -724,7 +784,7 @@
     var visible = all.filter(function(c){ return !query || matches(Object.assign({}, c, {stage: stageFilter || c.stage})); });
     E('cmpBoard').innerHTML = S.STAGES.map(function(s){
       var cards = visible.filter(function(c){ return c.stage === s.key; });
-      return '<div class="cmp-col' + (stageFilter && stageFilter !== s.key ? ' is-dim' : '') + '" data-col="' + s.key + '">' +
+      return '<div class="cmp-col' + (s.key === 'lead' ? ' is-ghost' : '') + (stageFilter && stageFilter !== s.key ? ' is-dim' : '') + '" data-col="' + s.key + '">' +
         '<div class="cmp-col-head"><span class="cmp-dot" style="background:' + s.dot + '"></span>' + s.short + '<span class="n">' + cards.length + (query ? '/' + counts[s.key] : '') + '</span></div>' +
         (cards.length ? cards.map(cardHtml).join('') : '<div class="cmp-col-empty">' + (query ? 'No match here' : 'Drop a campaign here') + '</div>') +
       '</div>';
@@ -754,7 +814,7 @@
     return '<tr data-id="' + c.id + '">' +
       '<td><span class="cmp-cell-name">' +
         '<span class="cmp-logo" data-logo-for="' + c.id + '"><span class="ini">' + esc(S.initials(c.brand || c.name)) + '</span><img alt="" hidden /></span>' +
-        '<span class="cmp-txt"><span class="cmp-name" title="' + esc(c.name) + '"><span>' + esc(c.name) + '</span></span>' +
+        '<span class="cmp-txt"><span class="cmp-name" title="' + esc(c.name) + '"><span>' + esc(c.name) + '</span>' + (c.stage === 'lead' ? '<span class="cmp-lead">Lead</span>' : '') + '</span>' +
         '<span class="cmp-sub">' + esc([c.brand, c.agency].filter(Boolean).join(' · ') || '—') + '</span></span></span></td>' +
       '<td>' + stageBadge(c) + '</td>' +
       '<td class="txt">' + esc(S.fmtRange(c.start, c.end)) + '</td>' +
@@ -838,7 +898,7 @@
     menuAnchor = null;
   }
   function stageMenuHtml(c){
-    return S.STAGES.map(function(s){
+    return S.STAGES.filter(function(s){ return s.key !== 'lead' || c.stage === 'lead'; }).map(function(s){
       var on = s.key === c.stage;
       return '<button type="button" class="cmp-menu-item" role="menuitemradio" aria-checked="' + on + '" data-set-stage="' + s.key + '" data-id="' + c.id + '">' +
         '<span class="cmp-dot" style="background:' + s.dot + '"></span>' + s.label + (on ? '<i class="ph ph-check chk"></i>' : '') + '</button>';
@@ -956,9 +1016,16 @@
     var c = byId(dragId), to = col.dataset.col;
     dragId = null;
     if (!c || c.stage === to) { col.classList.remove('is-over'); return; }
+    /* A campaign cannot be un-won. Dragging a lead out is how it is won by hand. */
+    if (to === 'lead' && c.stage !== 'lead') {
+      col.classList.remove('is-over'); col.classList.add('is-refused');
+      setTimeout(function(){ col.classList.remove('is-refused'); }, 600);
+      toast(c.name + ' is already won — a campaign cannot go back to Lead.', 'danger');
+      return;
+    }
     S.update(c.id, {stage: to});
     render(c.id);
-    toast(c.name + ' moved to ' + S.stageOf(to).label + '.');
+    toast(c.stage === 'lead' ? c.name + ' marked as won, moved to ' + S.stageOf(to).label + '.' : c.name + ' moved to ' + S.stageOf(to).label + '.');
   });
   document.querySelector('.cmp-viewseg').addEventListener('click', function(e){
     var b = e.target.closest('[data-view]'); if (b && b.dataset.view !== view) setView(b.dataset.view);
@@ -977,7 +1044,7 @@
         return;
       }
       render(id);
-      toast(fields.name + ' created.');
+      toast(fields.name + (fields.stage === 'lead' ? ' created as a lead.' : ' created.'));
     }});
   }
   E('cmpAddBtn').addEventListener('click', openAdd);
