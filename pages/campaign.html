@@ -24,8 +24,8 @@
   .cd-crumb{flex:none; text-decoration:none; margin-left:calc(var(--spacing-12) * -1); margin-top:4px;}
   /* The DLS page header every Collabrium page opens with, plus the brand
      mark the media planner puts beside its title, resolved from the name. */
-  .c-shell .c-pageheader{padding-top:var(--spacing-40);}
-  .cd-divider{border:none; border-top:1px solid var(--color-neutral-3); margin:var(--spacing-20) 0 var(--spacing-24);}
+  .c-shell .c-pageheader{padding-top:var(--spacing-40); margin-bottom:0;}
+  .cd-divider{border:none; border-top:1px solid var(--color-neutral-3); margin:var(--spacing-16) 0 var(--spacing-20);}
   .cd-brandmark{flex:none; width:40px; height:40px; margin-top:2px; display:flex; align-items:center; justify-content:center;
     background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); overflow:hidden;}
   .cd-brandmark[hidden]{display:none;}
@@ -42,9 +42,9 @@
   /* ── Hero — the numbers that matter as tiles, the facts as one strip,
      and Next up as a dark card the eye lands on first. Tiles are buttons
      that open the tab they summarise. */
-  .cd-hero{display:grid; grid-template-columns:minmax(0, 1fr) 380px; gap:var(--spacing-16);
+  .cd-hero{display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:var(--spacing-16);
     padding:0 0 var(--spacing-24); align-items:stretch;}
-  .cd-hero-main{display:flex; flex-direction:column; gap:var(--spacing-16); min-width:0;}
+  .cd-hero-main{grid-column:span 4; display:flex; flex-direction:column; gap:var(--spacing-16); min-width:0;}
   .cd-kpis{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--spacing-12); flex:1;}
   .cd-kpi{display:flex; flex-direction:column; justify-content:center; gap:6px; text-align:left; min-width:0;
     padding:var(--spacing-16) var(--spacing-20); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg);
@@ -67,55 +67,65 @@
   .cd-ring-wrap svg{width:44px; height:44px; transform:rotate(-90deg);}
   .cd-ring-wrap .track{stroke:var(--color-neutral-3);}
   .cd-ring-wrap .fill{stroke:var(--color-green); stroke-linecap:round; transition:stroke-dashoffset .6s var(--ease-settle);}
-  .cd-next{background:var(--color-obsidian); color:var(--color-neutral-1); border-radius:var(--radius-lg);
-    padding:var(--spacing-20); display:flex; flex-direction:column; gap:var(--spacing-12); min-width:0; box-shadow:var(--shadow-2);}
+  .cd-next{grid-column:span 2; position:relative; z-index:0; background:var(--color-neutral-1); color:var(--color-neutral-9);
+    border:1px solid transparent; border-radius:var(--radius-lg); overflow:hidden;
+    padding:var(--spacing-20); display:flex; flex-direction:column; gap:var(--spacing-12); min-width:0;}
+  .cd-next::before, .cd-next::after{content:''; position:absolute; inset:0; z-index:0; pointer-events:none; border-radius:inherit;
+    background-image:linear-gradient(90deg,var(--color-fire-pastel) 0%,var(--color-wood-pastel) 20%,var(--color-earth-pastel) 40%,var(--color-water-pastel) 60%,var(--color-gold-pastel) 80%,var(--color-fire-pastel) 100%);
+    background-size:200% 100%; animation:c-prompt-bar-glow-move 4s linear infinite;}
+  .cd-next::before{opacity:.14;}
+  .cd-next::after{z-index:2; padding:1px; -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude;}
+  .cd-next > *{position:relative; z-index:1;}
+  @media (prefers-reduced-motion:reduce){ .cd-next::before, .cd-next::after{animation:none;} }
   .cd-next-body{display:flex; flex-direction:column; gap:var(--spacing-12); flex:1;}
   .cd-next .eyebrow{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; text-transform:uppercase;
-    letter-spacing:var(--tracking-eyebrow); color:rgba(255,255,255,.6);}
-  .cd-next .eyebrow i{font-size:14px; color:var(--color-neutral-1);}
-  .cd-next .say{flex:1; font-size:var(--text-h4-size); line-height:1.35; font-weight:800; color:var(--color-neutral-1); overflow-wrap:anywhere;}
-  .cd-next.is-quiet .say{font-weight:600; color:rgba(255,255,255,.75);}
+    letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-6);}
+  .cd-next .eyebrow i{font-size:14px; color:var(--color-neutral-9);}
+  .cd-next .say{flex:1; font-size:var(--text-h4-size); line-height:1.35; font-weight:800; color:var(--color-neutral-9); overflow-wrap:anywhere;}
+  .cd-next.is-quiet .say{font-weight:600; color:var(--color-neutral-6);}
   .cd-next .acts{display:flex; flex-wrap:wrap; gap:var(--spacing-8); margin-top:auto;}
-  .cd-next .c-btn-primary{background:var(--color-neutral-1); border-color:var(--color-neutral-1); color:var(--color-neutral-9);}
-  .cd-next .c-btn-primary:hover{background:var(--color-neutral-2); border-color:var(--color-neutral-2);}
-  .cd-next .c-btn-secondary{background:transparent; border-color:rgba(255,255,255,.35); color:var(--color-neutral-1);}
-  .cd-next .c-btn-secondary:hover{background:rgba(255,255,255,.12); border-color:rgba(255,255,255,.5);}
-  .cd-next .c-btn:focus-visible{outline:2px solid var(--color-neutral-1); outline-offset:2px;}
-  .cd-next .cd-sk{background:rgba(255,255,255,.14);}
-  @media (max-width:1000px){ .cd-hero{grid-template-columns:1fr;} .cd-next{order:-1;} }
+  @media (max-width:1000px){ .cd-hero-main, .cd-next{grid-column:span 6;} .cd-next{order:-1;} }
   @media (max-width:420px){ .cd-kpis{grid-template-columns:1fr;} }
 
-  /* ── The ask, on Overview: one chip per slot, coloured by how it stands. */
-  .cd-ask{display:flex; flex-wrap:wrap; align-items:center; gap:var(--spacing-8);}
-  .cd-slot{display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 12px 0 10px;
+  /* ── The ask, on Overview: a row per channel, a chip per tier coloured
+     by how it stands, the channel's own total at the end. */
+  .cd-askrows{display:flex; flex-direction:column;}
+  .cd-askrow{display:flex; align-items:center; gap:var(--spacing-12); padding:8px 0; border-bottom:1px solid var(--color-neutral-2); min-width:0;}
+  .cd-askrow:last-child{border-bottom:0;}
+  .cd-askrow .nm{display:inline-flex; align-items:center; gap:6px; font-weight:700; color:var(--color-neutral-9); min-width:112px; flex:none;}
+  .cd-askrow .nm i{font-size:var(--icon-sm); color:var(--color-neutral-6);}
+  .cd-askrow .pills{flex:1; display:flex; flex-wrap:wrap; gap:6px; min-width:0;}
+  .cd-askrow .tot{flex:none; font-size:var(--text-caption-size); color:var(--color-neutral-5); font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .cd-askrow .tot b{font-size:var(--text-body1-size); font-weight:800; color:var(--color-neutral-9);}
+  .cd-slot{display:inline-flex; align-items:center; gap:5px; height:26px; padding:0 10px;
     border-radius:var(--radius-pill); border:1px solid var(--color-neutral-3); background:var(--color-neutral-1);
     font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-9); white-space:nowrap;}
-  .cd-slot i{font-size:var(--icon-sm); color:var(--color-neutral-5);}
-  .cd-slot .n{font-variant-numeric:tabular-nums; font-weight:600; color:var(--color-neutral-5); margin-left:2px;}
+  .cd-slot .cmp-dot{width:5px; height:5px;}
+  .cd-slot .n{font-variant-numeric:tabular-nums; font-weight:600; color:var(--color-neutral-5);}
   .cd-slot.is-met{border-color:color-mix(in srgb, var(--color-green) 40%, transparent); background:var(--color-earth-bg);}
-  .cd-slot.is-met i, .cd-slot.is-met .n{color:var(--color-green);}
+  .cd-slot.is-met .n{color:var(--color-green);}
   .cd-slot.is-over{border-color:color-mix(in srgb, var(--color-amber) 50%, transparent); background:color-mix(in srgb, var(--color-amber) 12%, transparent);}
-  .cd-slot.is-over i, .cd-slot.is-over .n{color:var(--color-amber);}
-  .cd-ask .c-btn{margin-left:var(--spacing-4);}
-  .cd-ask .none{font-size:var(--text-body2-size); color:var(--color-neutral-5);}
-  @media (max-width:1100px){ .cd-step .lbl{display:none;} .cd-step.is-now .lbl{display:inline;} }
+  .cd-slot.is-over .n{color:var(--color-amber);}
+  .cd-ask-none{font-size:var(--text-body2-size); color:var(--color-neutral-5); display:flex; align-items:center; gap:var(--spacing-12); flex-wrap:wrap;}
+  @media (max-width:640px){ .cd-askrow{flex-wrap:wrap;} .cd-askrow .nm{min-width:0;} .cd-askrow .tot{margin-left:auto;} .cd-askrow .pills{flex-basis:100%;} }
 
   /* ── Run-date timeline — the flight against today, at the foot of the
      Next up card, in the card's own light-on-dark palette. */
-  .cd-timeline{margin-top:var(--spacing-4); padding-top:var(--spacing-12); border-top:1px solid rgba(255,255,255,.14);}
+  .cd-timeline{margin-top:var(--spacing-4); padding-top:var(--spacing-12); border-top:1px solid var(--color-neutral-3);}
   .cd-timeline[hidden]{display:none;}
   .cd-timeline .row{display:flex; align-items:baseline; justify-content:space-between; gap:var(--spacing-12);
-    font-size:var(--text-caption-size); color:rgba(255,255,255,.65); margin-bottom:8px;}
-  .cd-timeline .row b{color:var(--color-neutral-1); font-weight:700;}
-  .cd-tl-track{position:relative; height:6px; border-radius:var(--radius-pill); background:rgba(255,255,255,.18);}
+    font-size:var(--text-caption-size); color:var(--color-neutral-5); margin-bottom:8px;}
+  .cd-timeline .row b{color:var(--color-neutral-9); font-weight:700;}
+  .cd-tl-track{position:relative; height:6px; border-radius:var(--radius-pill); background:var(--color-neutral-3);}
   .cd-tl-fill{position:absolute; left:0; top:0; bottom:0; border-radius:var(--radius-pill); background:var(--color-green);
     transition:width .6s var(--ease-settle);}
-  .cd-tl-fill.is-over{background:rgba(255,255,255,.5);}
-  .cd-tl-today{position:absolute; top:-4px; width:2px; height:14px; background:var(--color-neutral-1); border-radius:1px;
+  .cd-tl-fill.is-over{background:var(--color-neutral-5);}
+  .cd-tl-today{position:absolute; top:-4px; width:2px; height:14px; background:var(--color-obsidian); border-radius:1px;
     transform:translateX(-1px);}
   .cd-tl-today::after{content:'Today'; position:absolute; top:16px; left:50%; transform:translateX(-50%);
-    font-size:10px; font-weight:700; color:var(--color-neutral-1); white-space:nowrap;}
-  .cd-timeline .ends{display:flex; justify-content:space-between; font-size:10px; color:rgba(255,255,255,.45);
+    font-size:10px; font-weight:700; color:var(--color-neutral-9); white-space:nowrap;}
+  .cd-timeline .ends{display:flex; justify-content:space-between; font-size:10px; color:var(--color-neutral-4);
     margin-top:var(--spacing-16); font-variant-numeric:tabular-nums;}
 
   /* ── Answer bar — how a batch is going, at a glance. */
@@ -184,7 +194,7 @@
   .cd-split .who small{font-weight:600; color:var(--color-neutral-5);}
   .cd-about p{margin:0; font-size:var(--text-body2-size); line-height:1.55; color:var(--color-neutral-7);}
   .cd-about .lbl{font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-5); margin:var(--spacing-8) 0 2px;}
-  .cd-card .cd-ask + .cd-bar{margin-top:auto;}
+  .cd-card .cd-askrows + .cd-bar{margin-top:auto;}
   @media (max-width:900px){ .cd-card.span-2, .cd-card.span-4{grid-column:span 3;} }
   @media (max-width:640px){ .cd-card.span-2, .cd-card.span-3, .cd-card.span-4{grid-column:span 6;} }
 
@@ -896,7 +906,7 @@
       return '<button class="c-btn ' + (primary ? 'c-btn-primary' : 'c-btn-secondary') + ' c-btn-md" type="button" data-next="' + a.action + '">' + esc(a.label) + '</button>';
     }
     el.classList.toggle('is-quiet', !n.primary);
-    body.innerHTML = '<span class="eyebrow"><i class="ph-fill ph-arrow-bend-down-right"></i>Next up</span>' +
+    body.innerHTML = '<span class="eyebrow"><i class="ph-fill ph-sparkle"></i>Next up</span>' +
       '<span class="say">' + say + '</span>' +
       (n.primary || n.secondary ? '<span class="acts">' + btn(n.primary, true) + btn(n.secondary, false) + '</span>' : '');
   }
@@ -963,30 +973,26 @@
   }
   function pct(v){ return v == null ? null : v + '%'; }
   function rm(v){ return v == null ? null : S.fmtRM(v); }
-  function askRow(){
+  function askRows(){
     var slots = M.slotsOf(c), st = M.slotStatus(c);
     var legacy = (c.roster || []).some(function(r){ return !r.platform; });
-    var edit = '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-edit-ask><i class="ph ph-pencil-simple"></i> ' + (slots.length ? 'Edit ask' : 'Set the ask') + '</button>';
-    if (!slots.length) return '<div class="cd-ask"><span class="none">No ask yet — set what you need from the client.</span>' + edit + '</div>';
-    return '<div class="cd-ask">' + slots.map(function(sl){
-      var x = (st[sl.platform] && st[sl.platform][sl.tier]) || {filled: 0};
-      var filled = legacy ? null : x.filled;
-      var tone = filled == null ? '' : filled > sl.want ? ' is-over' : filled >= sl.want ? ' is-met' : '';
-      var tier = window.tiers.tierByKey(sl.tier);
-      var tierName = tier ? tier.name : sl.tier.charAt(0).toUpperCase() + sl.tier.slice(1);
-      return '<span class="cd-slot' + tone + '" title="' + esc(PLAT_LABEL[sl.platform] || sl.platform) + ' · ' + esc(tierName) + '">' +
-        (PLAT_ICON[sl.platform] || '') + esc(tierName) +
-        '<span class="n">' + (filled == null ? sl.want : filled + ' / ' + sl.want) + '</span></span>';
-    }).join('') + edit + '</div>';
-  }
-  function line(k, v, extra){
-    return '<div class="cd-line"><span class="k">' + k + '</span><span class="v' + (v == null ? ' dash' : '') + '">' + (v == null ? '—' : v) + (extra || '') + '</span></div>';
-  }
-  function personRow(role, name){
-    return '<div class="cd-person"><span class="cd-ini">' + (name ? esc(S.initials(name)) : '·') + '</span><span class="role">' + role + '</span><span class="nm' + (name ? '' : ' dash') + '">' + (name ? esc(name) : 'Unassigned') + '</span></div>';
-  }
-  function card(cls, chip, icon, title, body, right){
-    return '<div class="cd-card ' + cls + '"><div class="cd-card-h"><span class="cd-chip ' + chip + '"><i class="ph ' + icon + '"></i></span>' + title + (right ? '<span class="r">' + right + '</span>' : '') + '</div>' + body + '</div>';
+    if (!slots.length) return '<div class="cd-ask-none">No ask yet — set what you need from the client.<button class="c-btn c-btn-primary c-btn-sm" type="button" data-edit-ask><i class="ph ph-target"></i> Set the ask</button></div>';
+    var byPlat = {};
+    slots.forEach(function(sl){ (byPlat[sl.platform] = byPlat[sl.platform] || []).push(sl); });
+    return '<div class="cd-askrows">' + Object.keys(byPlat).map(function(pk){
+      var want = 0, filled = 0;
+      var pills = byPlat[pk].map(function(sl){
+        var x = (st[pk] && st[pk][sl.tier]) || {filled: 0};
+        var f = legacy ? null : x.filled;
+        want += sl.want; filled += f || 0;
+        var tone = f == null ? '' : f > sl.want ? ' is-over' : f >= sl.want ? ' is-met' : '';
+        var t = window.tiers.tierByKey(sl.tier), name = t ? t.name : sl.tier;
+        return '<span class="cd-slot' + tone + '" title="' + esc(PLAT_LABEL[pk] || pk) + ' · ' + esc(name) + '"><span class="cmp-dot" style="background:' + (t ? t.dot : 'var(--color-neutral-4)') + '"></span>' + esc(name) +
+          '<span class="n">' + (f == null ? sl.want : f + ' / ' + sl.want) + '</span></span>';
+      }).join('');
+      return '<div class="cd-askrow"><span class="nm">' + (PLAT_ICON[pk] || '') + esc(PLAT_LABEL[pk] || pk) + '</span><span class="pills">' + pills + '</span>' +
+        '<span class="tot">' + (legacy ? '<b>' + want + '</b> slots' : '<b>' + filled + '</b> / ' + want) + '</span></div>';
+    }).join('') + '</div>';
   }
   function askSummary(){
     var groups = M.groupsOf(c, byInf).filter(function(g){ return g.want > 0; });
@@ -999,6 +1005,15 @@
       '<span><span class="cmp-dot" style="background:var(--color-green)"></span>' + confirmed + ' filled</span>' +
       '<span><span class="cmp-dot" style="background:var(--color-amber)"></span>' + approved + ' pending</span>' +
       '<span><span class="cmp-dot" style="background:var(--color-neutral-4)"></span>' + open + ' open</span></div>';
+  }
+  function line(k, v, extra){
+    return '<div class="cd-line"><span class="k">' + k + '</span><span class="v' + (v == null ? ' dash' : '') + '">' + (v == null ? '—' : v) + (extra || '') + '</span></div>';
+  }
+  function personRow(role, name){
+    return '<div class="cd-person"><span class="cd-ini">' + (name ? esc(S.initials(name)) : '·') + '</span><span class="role">' + role + '</span><span class="nm' + (name ? '' : ' dash') + '">' + (name ? esc(name) : 'Unassigned') + '</span></div>';
+  }
+  function card(cls, chip, icon, title, body, right){
+    return '<div class="cd-card ' + cls + '"><div class="cd-card-h"><span class="cd-chip ' + chip + '"><i class="ph ' + icon + '"></i></span>' + title + (right ? '<span class="r">' + right + '</span>' : '') + '</div>' + body + '</div>';
   }
   function renderOverview(){
     var m = S.money(c);
@@ -1028,7 +1043,8 @@
           (c.remarks ? '<div class="lbl">Remarks</div><p>' + esc(c.remarks) + '</p>' : ''))
       : '';
     E('pan-overview').innerHTML = '<div class="cd-ov">' +
-      card('span-4', 'water', 'ph-target', 'The ask', askRow() + askSummary(), goSel) +
+      card('span-4', 'water', 'ph-target', 'The ask', askRows() + askSummary(),
+        (M.slotsOf(c).length ? '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-edit-ask><i class="ph ph-pencil-simple"></i> Edit ask</button>' : '') + goSel) +
       card('span-2', 'earth', 'ph-currency-dollar', 'Financials', fin) +
       card('span-2', 'water', 'ph-users', 'Roster', ros) +
       card('span-2', 'purple', 'ph-user', 'Ownership', own) +
