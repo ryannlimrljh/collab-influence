@@ -178,6 +178,14 @@ influencer map, which the campaigns *list* does not load, so legacy rosters
 pass through it unmigrated and the list falls back to Pax where it would
 otherwise show slots.
 
+**Brand logos.** `shared/shell.js` resolves a logo from the brand name: a
+curated map of Malaysian brands first, then, when a key is present, an
+Exa search for the brand's official site, then favicon guesses. The key
+lives in `shared/keys.local.js` (gitignored) as `COLLAB_KEYS.exa`; copy
+`shared/keys.example.js` to create it. Without it the curated map and the
+guesses still work, and the console shows one harmless 404 for the file.
+Resolved domains and winning logo URLs are cached in `localStorage`.
+
 **Cache-busting is manual.** Every shared script is loaded with `?v=N`; when
 you change one, bump its number on every page that loads it, or the browser
 keeps the old file and you will chase a bug that is not there.

@@ -65,28 +65,6 @@
 .cf-lead .t{font-size:var(--text-body2-size); font-weight:700; color:var(--color-neutral-9);}\
 .cf-lead .s{display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5); margin-top:2px;}\
 .cf-intro{margin:0 0 var(--spacing-16); font-size:var(--text-body2-size); color:var(--color-neutral-5);}\
-.cf-plats{display:flex; flex-wrap:wrap; gap:var(--spacing-8); margin-bottom:var(--spacing-16);}\
-.cf-plats .c-chip-filter{gap:6px;}\
-.cf-plats .c-chip-filter i{font-size:var(--icon-sm);}\
-.cf-askrow{display:grid; grid-template-columns:120px 1fr; gap:var(--spacing-12); align-items:center; padding:var(--spacing-12) 0; border-top:1px solid var(--color-neutral-2);}\
-.cf-askrow:first-of-type{border-top:0;}\
-.cf-askrow .pl{display:inline-flex; align-items:center; gap:8px; font-size:var(--text-body2-size); font-weight:700; color:var(--color-neutral-9);}\
-.cf-askrow .pl i{font-size:var(--icon-sm);}\
-.cf-tiers{display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:6px;}\
-.cf-stp{display:flex; flex-direction:column; align-items:center; gap:4px;}\
-.cf-stp .k{display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5); white-space:nowrap;}\
-.cf-stp .k .cmp-dot{width:5px; height:5px; border-radius:99px;}\
-.cf-stp .c{display:inline-flex; align-items:center; border:1px solid var(--color-neutral-3); border-radius:var(--radius-pill); overflow:hidden; background:var(--color-neutral-1);}\
-.cf-stp .c.is-set{border-color:var(--color-obsidian);}\
-.cf-stp button{width:26px; height:30px; border:0; background:transparent; font:inherit; font-size:14px; color:var(--color-neutral-5); cursor:pointer;}\
-.cf-stp button:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}\
-.cf-stp button:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:-2px;}\
-.cf-stp input{width:28px; height:30px; border:0; text-align:center; font:inherit; font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-9); background:transparent; -moz-appearance:textfield;}\
-.cf-stp input::-webkit-outer-spin-button, .cf-stp input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}\
-.cf-stp input:focus{outline:none;}\
-.cf-asksum{display:flex; align-items:baseline; justify-content:space-between; gap:var(--spacing-12); margin-top:var(--spacing-16); padding-top:var(--spacing-12); border-top:1px solid var(--color-neutral-3); font-size:var(--text-body2-size); color:var(--color-neutral-5);}\
-.cf-asksum b{color:var(--color-neutral-9); font-weight:800; font-size:var(--text-h5-size);}\
-.cf-askempty{padding:var(--spacing-24); text-align:center; font-size:var(--text-body2-size); color:var(--color-neutral-5); border:1px dashed var(--color-neutral-3); border-radius:var(--radius-md);}\
 .cf-foot{display:flex; align-items:center; gap:var(--spacing-8); padding:var(--spacing-16) var(--spacing-24); border-top:1px solid var(--color-neutral-3); background:var(--color-neutral-1);}\
 .cf-foot .grow{flex:1;}\
 .cf-foot .cf-skip{font-size:var(--text-caption-size); color:var(--color-neutral-5); background:transparent; border:0; font-family:inherit; cursor:pointer; text-decoration:underline; text-underline-offset:3px;}\
@@ -99,7 +77,44 @@
 .cf-brandmark[hidden]{display:none;}\
 .cf-brandmark img{width:20px; height:20px; object-fit:contain;}\
 @keyframes cf-pop{from{opacity:0; transform:translateY(-50%) scale(.8);} to{opacity:1; transform:translateY(-50%) scale(1);}}\
-@media (max-width:640px){ .cf-grid{grid-template-columns:1fr;} .cf-askrow{grid-template-columns:1fr;} .cf-tiers{grid-template-columns:repeat(4, minmax(0, 1fr));} .cf-stepbtn .lbl{display:none;} .cf-stepbtn.is-on .lbl{display:inline;} }';
+.cf-lines{border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); overflow:hidden; background:var(--color-neutral-1);}\
+.cf-line-h, .cf-line{display:grid; grid-template-columns:1.1fr 1.5fr 112px 36px; gap:var(--spacing-8); align-items:center; padding:8px var(--spacing-12);}\
+.cf-line-h{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5); background:var(--color-neutral-2); border-bottom:1px solid var(--color-neutral-3);}\
+.cf-line{border-bottom:1px solid var(--color-neutral-2); animation:cf-row 220ms var(--ease-settle) both;}\
+@keyframes cf-row{from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:none;}}\
+.cf-line select, .cf-line input{height:36px; width:100%; box-sizing:border-box; border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); font:inherit; font-size:var(--text-body2-size); color:var(--color-neutral-9); padding:0 10px; background:var(--color-neutral-1);}\
+.cf-line select{appearance:none; -webkit-appearance:none; padding-right:26px; background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'6\' viewBox=\'0 0 10 6\'%3E%3Cpath d=\'M1 1l4 4 4-4\' fill=\'none\' stroke=\'%23777\' stroke-width=\'1.5\'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center;}\
+.cf-line select.is-empty{color:var(--color-neutral-5);}\
+.cf-line input{text-align:center; font-weight:800; -moz-appearance:textfield;}\
+.cf-line input::-webkit-outer-spin-button, .cf-line input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}\
+.cf-line select:focus, .cf-line input:focus{outline:none; border-color:var(--color-obsidian); box-shadow:var(--shadow-focus);}\
+.cf-line .rm{width:32px; height:32px; border:0; background:transparent; border-radius:var(--radius-sm); color:var(--color-neutral-5); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; font-size:15px;}\
+.cf-line .rm:hover{background:rgba(253,51,67,.08); color:var(--color-red);}\
+.cf-line-foot{display:flex; flex-wrap:wrap; align-items:center; gap:var(--spacing-8); padding:10px var(--spacing-12); background:var(--color-neutral-2); border-top:1px solid var(--color-neutral-3);}\
+.cf-line-foot .hint{margin-left:auto; font-size:var(--text-caption-size); color:var(--color-neutral-5);}\
+.cf-line-foot .hint kbd{font:inherit; padding:0 5px; border:1px solid var(--color-neutral-3); border-radius:4px; background:var(--color-neutral-1);}\
+.cf-asksum{margin-top:var(--spacing-16); display:flex; flex-direction:column; gap:var(--spacing-8);}\
+.cf-asksum .tot{display:flex; align-items:baseline; gap:6px; font-size:var(--text-body2-size); color:var(--color-neutral-5);}\
+.cf-asksum .tot b{font-size:var(--text-h4-size); font-weight:800; color:var(--color-neutral-9);}\
+.cf-asksum .ch{display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; padding:8px 12px; border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); background:var(--color-neutral-1);}\
+.cf-asksum .ch .nm{display:inline-flex; align-items:center; gap:6px; font-weight:700; color:var(--color-neutral-9); min-width:118px;}\
+.cf-asksum .ch .nm i{font-size:var(--icon-sm);}\
+.cf-asksum .pill{display:inline-flex; align-items:center; gap:4px; height:22px; padding:0 8px; border-radius:var(--radius-pill); background:var(--color-neutral-2); font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-9);}\
+.cf-asksum .pill .cmp-dot{width:5px; height:5px; border-radius:99px;}\
+.cf-asksum .ch .n{margin-left:auto; font-weight:800; color:var(--color-neutral-9); font-variant-numeric:tabular-nums;}\
+.cf-asksum .none{font-size:var(--text-body2-size); color:var(--color-neutral-5);}\
+.cf-dp{position:relative;}\
+.cf-dp .c-dp-trigger{width:100%; cursor:pointer; text-align:left; transition:border-color var(--duration-fast) var(--ease-standard);}\
+.cf-dp .c-dp-trigger:hover{border-color:var(--color-neutral-4);}\
+.cf-dp .c-dp-trigger:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}\
+.cf-dp .c-dp-trigger [data-dp-label].is-placeholder{color:var(--color-neutral-5);}\
+.cf-dp .c-dp-trigger [data-dp-label]{flex:1;}\
+.cf-dp-native{position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; border:0; padding:0; margin:0;}\
+.cf-dp-panel{position:absolute; left:0; top:calc(100% + 4px); z-index:6;}\
+.cf-dp-panel.is-up{top:auto; bottom:calc(100% + 4px);}\
+.cf-dp-panel[hidden]{display:none;}\
+.cf-dp .c-icon-btn{width:32px; height:32px;}\
+@media (max-width:640px){ .cf-grid{grid-template-columns:1fr;} .cf-line-h, .cf-line{grid-template-columns:1fr 1fr 80px 32px;} .cf-stepbtn .lbl{display:none;} .cf-stepbtn.is-on .lbl{display:inline;} }';
 
   var HTML = '\
 <div class="c-cbrief-scrim" id="cfScrim">\
@@ -125,10 +140,15 @@
             <select id="cf-pic"></select></div>\
           <div class="c-field"><label>Campaign type</label>\
             <div class="cf-checks" id="cfTypes"></div></div>\
-          <div class="c-field" id="cfFieldStart"><label for="cf-start">Start date</label>\
-            <input id="cf-start" type="date" /></div>\
-          <div class="c-field" id="cfFieldEnd"><label for="cf-end">End date</label>\
-            <input id="cf-end" type="date" /><span class="c-helper" hidden id="cfEndHelp">The end date is before the start.</span></div>\
+          <div class="c-field cf-dp" id="cfFieldStart"><label for="dpTrig-cf-start">Start date</label>\
+            <button type="button" class="c-dp-trigger" id="dpTrig-cf-start" aria-haspopup="dialog" aria-expanded="false"><i class="ph-fill ph-calendar"></i><span data-dp-label class="is-placeholder">Pick a date</span></button>\
+            <input id="cf-start" type="date" class="cf-dp-native" tabindex="-1" aria-hidden="true" />\
+            <div class="c-dp-panel cf-dp-panel" id="dpPanel-cf-start" hidden role="dialog" aria-label="Start date calendar"></div></div>\
+          <div class="c-field cf-dp" id="cfFieldEnd"><label for="dpTrig-cf-end">End date</label>\
+            <button type="button" class="c-dp-trigger" id="dpTrig-cf-end" aria-haspopup="dialog" aria-expanded="false"><i class="ph-fill ph-calendar"></i><span data-dp-label class="is-placeholder">Pick a date</span></button>\
+            <input id="cf-end" type="date" class="cf-dp-native" tabindex="-1" aria-hidden="true" />\
+            <div class="c-dp-panel cf-dp-panel" id="dpPanel-cf-end" hidden role="dialog" aria-label="End date calendar"></div>\
+            <span class="c-helper" hidden id="cfEndHelp">The end date is before the start.</span></div>\
           <div class="c-field span2"><label for="cf-desc">Description<span class="opt">(optional)</span></label>\
             <textarea id="cf-desc" rows="2" placeholder="What the campaign is for, in a line or two"></textarea></div>\
           <label class="cf-lead" id="cfLead">\
@@ -138,8 +158,7 @@
         </div>\
       </section>\
       <section class="cf-step" data-step="2" role="tabpanel">\
-        <p class="cf-intro">What do you need from the client? Turn on the channels, then set how many creators of each tier. Pax and platforms follow from this.</p>\
-        <div class="cf-plats" id="cfPlats" role="group" aria-label="Channels"></div>\
+        <p class="cf-intro">What do you need from the client? One line per channel and tier, with how many creators. Pax and platforms follow from this.</p>\
         <div id="cfAsk"></div>\
         <div class="cf-asksum" id="cfAskSum"></div>\
       </section>\
@@ -188,7 +207,8 @@
   var scrim = F('cfScrim');
   var onSave = null, editing = null, wasLead = false;
   var step = 1, isLead = false, color = 'obsidian';
-  var plats = [];            /* channels turned on, in order */
+  var plats = [];            /* channels with an ask, derived from the lines */
+  var lines = [];            /* the ask as typed: [{plat, tier, n}] */
   var ask = {};              /* platform -> tier -> count */
 
   function esc(s) {
@@ -254,50 +274,87 @@
     if (step === 1) setTimeout(function () { F('cf-name').focus(); }, 60);
   }
 
-  /* ── Step 2: the ask. */
-  function renderAsk() {
-    F('cfPlats').innerHTML = S.PLATFORMS.map(function (p) {
-      var on = plats.indexOf(p.key) > -1;
-      return '<button type="button" class="c-chip c-chip-filter' + (on ? ' is-active' : '') + '" data-plat="' + p.key + '" aria-pressed="' + on + '">' + PLAT_ICON[p.key] + p.label + '</button>';
-    }).join('');
-    F('cfAsk').innerHTML = plats.length ? plats.map(function (pk) {
-      var row = ask[pk] || {};
-      return '<div class="cf-askrow"><span class="pl">' + PLAT_ICON[pk] + PLAT_LABEL[pk] + '</span><div class="cf-tiers">' +
-        T.TIERS.map(function (t) {
-          var v = Number(row[t.key]) || 0;
-          return '<div class="cf-stp"><span class="k"><span class="cmp-dot" style="background:' + t.dot + '"></span>' + t.name + '</span>' +
-            '<span class="c' + (v ? ' is-set' : '') + '"><button type="button" data-dec="' + pk + '/' + t.key + '" aria-label="Fewer ' + t.name + ' on ' + PLAT_LABEL[pk] + '">−</button>' +
-            '<input type="number" min="0" inputmode="numeric" value="' + v + '" data-ask="' + pk + '/' + t.key + '" aria-label="' + t.name + ' on ' + PLAT_LABEL[pk] + '" />' +
-            '<button type="button" data-inc="' + pk + '/' + t.key + '" aria-label="More ' + t.name + ' on ' + PLAT_LABEL[pk] + '">+</button></span></div>';
-        }).join('') + '</div></div>';
-    }).join('') : '<div class="cf-askempty">Turn on a channel above to set the ask. You can also skip this and set it later from the campaign page.</div>';
-    var slots = M.slotsOf({requirement: cleanAsk()});
-    var total = slots.reduce(function (a, s) { return a + s.want; }, 0);
-    var chans = {}; slots.forEach(function (s) { chans[s.platform] = 1; });
-    var n = Object.keys(chans).length;
-    F('cfAskSum').innerHTML = total
-      ? '<span><b>' + total + '</b> ' + (total === 1 ? 'slot' : 'slots') + ' across <b>' + n + '</b> ' + (n === 1 ? 'channel' : 'channels') + '</span><span>' +
-        slots.map(function (s) { return PLAT_LABEL[s.platform] + ' ' + T.tierByKey(s.tier).name + ' ×' + s.want; }).join(' · ') + '</span>'
-      : '<span>No slots yet</span><span>Pax will read as — until you set the ask.</span>';
-    F('cfSkip').hidden = !(step === 2 && step !== stepCount() && !total);
+  /* ── Step 2: the ask, as lines. Each line is one channel × tier with a
+     count; the requirement is the lines rolled up. Typing is the whole
+     interaction, so a long ask is a column of numbers, not a grid. */
+  function bracket(t) {
+    var i = T.TIERS.indexOf(t);
+    var lo = t.min != null ? t.min : (i > 0 ? T.TIERS[i - 1].max : null), hi = t.max;
+    if (hi != null && !isFinite(hi)) hi = null;
+    var f = function (n) { return n >= 1e6 ? (n / 1e6).toFixed(n % 1e6 ? 1 : 0).replace(/\.0$/, '') + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'K' : String(n); };
+    if (lo == null && hi == null) return '';
+    if (lo == null) return 'under ' + f(hi);
+    if (hi == null) return f(lo) + '+';
+    return f(lo) + '–' + f(hi);
   }
-  /* Only channels that are on, only tiers above zero. */
-  function cleanAsk() {
+  function usedTiers(plat, exceptIdx) {
     var out = {};
-    plats.forEach(function (pk) {
-      var row = ask[pk] || {};
-      T.TIERS.forEach(function (t) {
-        var v = Math.max(0, Math.floor(Number(row[t.key]) || 0));
-        if (v) { out[pk] = out[pk] || {}; out[pk][t.key] = v; }
-      });
-    });
+    lines.forEach(function (l, i) { if (i !== exceptIdx && l.plat === plat && l.tier) out[l.tier] = true; });
     return out;
   }
-  function bump(key, delta) {
-    var parts = key.split('/'), pk = parts[0], tk = parts[1];
-    ask[pk] = ask[pk] || {};
-    ask[pk][tk] = Math.max(0, (Number(ask[pk][tk]) || 0) + delta);
+  function nextTier(plat) {
+    var used = usedTiers(plat, -1);
+    var t = T.TIERS.filter(function (x) { return !used[x.key]; })[0];
+    return t ? t.key : '';
+  }
+  function lineHtml(l, i) {
+    var used = usedTiers(l.plat, i);
+    return '<div class="cf-line" data-i="' + i + '">' +
+      '<select data-line="plat" aria-label="Channel">' + S.PLATFORMS.map(function (p) {
+        return '<option value="' + p.key + '"' + (p.key === l.plat ? ' selected' : '') + '>' + p.label + '</option>'; }).join('') + '</select>' +
+      '<select data-line="tier" class="' + (l.tier ? '' : 'is-empty') + '" aria-label="Tier"><option value=""' + (l.tier ? '' : ' selected') + '>Pick a tier</option>' + T.TIERS.map(function (t) {
+        var b = bracket(t);
+        return '<option value="' + t.key + '"' + (t.key === l.tier ? ' selected' : '') + (used[t.key] ? ' disabled' : '') + '>' + t.name + (b ? ' · ' + b : '') + (used[t.key] ? ' (added)' : '') + '</option>'; }).join('') + '</select>' +
+      '<input type="number" min="0" inputmode="numeric" data-line="n" value="' + (l.n == null || l.n === '' ? '' : l.n) + '" placeholder="0" aria-label="How many creators" />' +
+      '<button type="button" class="rm" data-line-rm aria-label="Remove line"><i class="ph ph-x"></i></button></div>';
+  }
+  function renderAsk() {
+    if (!lines.length) lines.push({plat: S.PLATFORMS[0].key, tier: '', n: ''});
+    var mirrorable = lines.filter(function (l) { return l.tier && Number(l.n) > 0; }).length > 0 && S.PLATFORMS.length > 1;
+    F('cfAsk').innerHTML = '<div class="cf-lines"><div class="cf-line-h"><span>Channel</span><span>Tier</span><span>Creators</span><span></span></div>' +
+      lines.map(lineHtml).join('') +
+      '<div class="cf-line-foot"><button class="c-btn c-btn-secondary c-btn-sm" type="button" data-line-add><i class="ph ph-plus"></i> Add line</button>' +
+      (mirrorable ? '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-line-mirror title="Copy the first channel\'s lines to the other channels"><i class="ph ph-copy"></i> Same ask on every channel</button>' : '') +
+      '<span class="hint"><kbd>↵</kbd> in a count adds the next line</span></div></div>';
+    renderAskSum();
+  }
+  function renderAskSum() {
+    var req = cleanAsk();
+    var slots = M.slotsOf({requirement: req});
+    var total = slots.reduce(function (a, s) { return a + s.want; }, 0);
+    var chans = Object.keys(req);
+    F('cfAskSum').innerHTML = total
+      ? '<div class="tot"><b>' + total + '</b> ' + (total === 1 ? 'slot' : 'slots') + ' across <b>' + chans.length + '</b> ' + (chans.length === 1 ? 'channel' : 'channels') + '</div>' +
+        chans.map(function (pk) {
+          var n = 0, pills = T.TIERS.filter(function (t) { return req[pk][t.key]; }).map(function (t) {
+            n += req[pk][t.key];
+            return '<span class="pill"><span class="cmp-dot" style="background:' + t.dot + '"></span>' + t.name + ' ×' + req[pk][t.key] + '</span>';
+          }).join('');
+          return '<div class="ch"><span class="nm">' + PLAT_ICON[pk] + PLAT_LABEL[pk] + '</span>' + pills + '<span class="n">' + n + '</span></div>';
+        }).join('')
+      : '<div class="none">No slots yet — pax reads as — until you set the ask.</div>';
+    F('cfSkip').hidden = !(step === 2 && step !== stepCount() && !total);
+  }
+  /* Lines rolled up: only rows with a tier and a count above zero. */
+  function cleanAsk() {
+    var out = {};
+    lines.forEach(function (l) {
+      var v = Math.max(0, Math.floor(Number(l.n) || 0));
+      if (!l.plat || !l.tier || !v) return;
+      out[l.plat] = out[l.plat] || {};
+      out[l.plat][l.tier] = (out[l.plat][l.tier] || 0) + v;
+    });
+    plats = Object.keys(out);
+    return out;
+  }
+  function addLine(afterIdx, plat) {
+    var pk = plat || (lines[afterIdx] ? lines[afterIdx].plat : S.PLATFORMS[0].key);
+    var l = {plat: pk, tier: nextTier(pk), n: ''};
+    if (afterIdx == null || afterIdx >= lines.length - 1) lines.push(l); else lines.splice(afterIdx + 1, 0, l);
     renderAsk();
+    var idx = lines.indexOf(l);
+    var row = F('cfAsk').querySelector('.cf-line[data-i="' + idx + '"]');
+    if (row) (row.querySelector(l.tier ? '[data-line="n"]' : '[data-line="tier"]')).focus();
   }
 
   /* ── Lead switch. */
@@ -347,6 +404,7 @@
     /* The ask: channels come from the requirement, or from the legacy
        platforms list so an old record still shows its channels turned on. */
     ask = JSON.parse(JSON.stringify(r.requirement || {}));
+    lines = M.slotsOf({requirement: ask}).map(function (s) { return {plat: s.platform, tier: s.tier, n: s.want}; });
     plats = Object.keys(ask);
     (r.platforms || []).forEach(function (p) { if (plats.indexOf(p) < 0 && PLAT_LABEL[p]) plats.push(p); });
     wasLead = r.stage === 'lead';
@@ -354,6 +412,7 @@
     syncOverseer();
     F('cfFieldName').classList.remove('c-field-error'); F('cfNameHelp').hidden = true;
     F('cfFieldEnd').classList.remove('c-field-error'); F('cfEndHelp').hidden = true;
+    dpSync();
     renderAsk();
   }
   function read() {
@@ -431,14 +490,21 @@
     }
     var go = e.target.closest('[data-go]');
     if (go) { goto(Number(go.dataset.go)); return; }
-    var pl = e.target.closest('[data-plat]');
-    if (pl) {
-      var k = pl.dataset.plat, i = plats.indexOf(k);
-      if (i > -1) plats.splice(i, 1); else plats.push(k);
+    if (e.target.closest('[data-line-add]')) { addLine(lines.length - 1); return; }
+    var rm = e.target.closest('[data-line-rm]');
+    if (rm) { lines.splice(Number(rm.closest('.cf-line').dataset.i), 1); renderAsk(); return; }
+    if (e.target.closest('[data-line-mirror]')) {
+      var first = lines.filter(function (l) { return l.tier && Number(l.n) > 0; })[0];
+      if (!first) return;
+      var src = lines.filter(function (l) { return l.plat === first.plat && l.tier && Number(l.n) > 0; });
+      S.PLATFORMS.forEach(function (p) {
+        if (p.key === first.plat) return;
+        src.forEach(function (l) {
+          if (!lines.some(function (x) { return x.plat === p.key && x.tier === l.tier; })) lines.push({plat: p.key, tier: l.tier, n: l.n});
+        });
+      });
       renderAsk(); return;
     }
-    var inc = e.target.closest('[data-inc]'); if (inc) { bump(inc.dataset.inc, 1); return; }
-    var dec = e.target.closest('[data-dec]'); if (dec) { bump(dec.dataset.dec, -1); return; }
   });
   /* The lead switch is a label wrapping a switch; stop the label's default
      so one click does not toggle twice. */
@@ -446,17 +512,105 @@
   F('cfLeadSwitch').addEventListener('keydown', function (e) {
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setLead(!isLead); }
   });
+  /* Counts update the summary as you type, without re-rendering the row
+     you are typing in; a channel or tier change redraws so the disabled
+     tier options stay honest. */
   F('cfAsk').addEventListener('input', function (e) {
-    var inp = e.target.closest('[data-ask]'); if (!inp) return;
-    var parts = inp.dataset.ask.split('/');
-    ask[parts[0]] = ask[parts[0]] || {};
-    ask[parts[0]][parts[1]] = Math.max(0, Math.floor(Number(inp.value) || 0));
-    var slots = M.slotsOf({requirement: cleanAsk()});
-    var total = slots.reduce(function (a, s) { return a + s.want; }, 0);
-    inp.closest('.c').classList.toggle('is-set', !!(Number(inp.value) || 0));
-    F('cfSkip').hidden = !(step === 2 && step !== stepCount() && !total);
+    var t = e.target; if (t.dataset.line !== 'n') return;
+    var l = lines[Number(t.closest('.cf-line').dataset.i)]; if (!l) return;
+    l.n = t.value;
+    renderAskSum();
   });
-  F('cfAsk').addEventListener('change', renderAsk);
+  F('cfAsk').addEventListener('change', function (e) {
+    var t = e.target, row = t.closest('.cf-line'); if (!row || !t.dataset.line) return;
+    var l = lines[Number(row.dataset.i)]; if (!l) return;
+    if (t.dataset.line === 'plat') { l.plat = t.value; if (l.tier && usedTiers(l.plat, Number(row.dataset.i))[l.tier]) l.tier = nextTier(l.plat); renderAsk(); }
+    else if (t.dataset.line === 'tier') { l.tier = t.value; renderAsk(); var n = F('cfAsk').querySelector('.cf-line[data-i="' + row.dataset.i + '"] [data-line="n"]'); if (n && !l.n) n.focus(); }
+  });
+  F('cfAsk').addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' || e.target.dataset.line !== 'n') return;
+    e.preventDefault();
+    addLine(Number(e.target.closest('.cf-line').dataset.i));
+  });
+
+  /* ── DLS date picker — the c-dp trigger/panel recipe wired to hidden
+     native inputs, so every reader of F('cf-start').value keeps working.
+     Both panels shade the start-to-end range. Same recipe as the media
+     planner. */
+  var dpSyncs = [];
+  function dpSync() { dpSyncs.forEach(function (f) { f(); }); }
+  function initDatePicker(fieldId, opts) {
+    var input = F(fieldId), trig = F('dpTrig-' + fieldId), panel = F('dpPanel-' + fieldId);
+    var labelSpan = trig.querySelector('[data-dp-label]');
+    var view = null;
+    function parseISO(v) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; }
+    function iso(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+    function fmtDay(d) { return d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'}); }
+    function sameDay(a, b) { return a && b && a.getTime() === b.getTime(); }
+    function render() {
+      var sel = parseISO(input.value);
+      var base = view || sel || new Date();
+      view = new Date(base.getFullYear(), base.getMonth(), 1);
+      var start = parseISO(F('cf-start').value), end = parseISO(F('cf-end').value);
+      var minD = opts && opts.minFrom ? parseISO(F(opts.minFrom).value) : null;
+      var now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      var html = '<div class="c-dp-header">' +
+        '<button class="c-icon-btn" type="button" data-nav="-1" aria-label="Previous month"><i class="ph ph-caret-left"></i></button>' +
+        '<h5>' + view.toLocaleDateString('en-GB', {month: 'long', year: 'numeric'}) + '</h5>' +
+        '<button class="c-icon-btn" type="button" data-nav="1" aria-label="Next month"><i class="ph ph-caret-right"></i></button></div><div class="c-dp-grid">' +
+        ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map(function (w) { return '<span class="c-dp-weekday">' + w + '</span>'; }).join('');
+      var lead = (new Date(view.getFullYear(), view.getMonth(), 1).getDay() + 6) % 7;
+      var days = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
+      for (var i = 0; i < lead; i++) html += '<span></span>';
+      for (var d = 1; d <= days; d++) {
+        var cur = new Date(view.getFullYear(), view.getMonth(), d), cls = 'c-dp-day';
+        var disabled = minD && cur < minD;
+        if (disabled) cls += ' disabled';
+        if (sameDay(cur, today)) cls += ' today';
+        if (start && end && end > start) {
+          if (sameDay(cur, start)) cls += ' range-start';
+          else if (sameDay(cur, end)) cls += ' range-end';
+          else if (cur > start && cur < end) cls += ' range';
+        } else if (sameDay(cur, sel)) cls += ' selected';
+        html += '<button type="button" class="' + cls + '"' + (disabled ? ' disabled' : ' data-iso="' + iso(cur) + '"') + '>' + d + '</button>';
+      }
+      panel.innerHTML = html + '</div>';
+    }
+    function open() {
+      view = parseISO(input.value) || (opts && opts.minFrom ? parseISO(F(opts.minFrom).value) : null) || new Date();
+      render();
+      panel.hidden = false;
+      /* Open upward when the sheet's scroll box has no room below. */
+      var body = trig.closest('.cf-body'), tb = trig.getBoundingClientRect(), bb = body ? body.getBoundingClientRect() : {bottom: window.innerHeight};
+      panel.classList.toggle('is-up', tb.bottom + 340 > bb.bottom && tb.top - bb.top > 340);
+      trig.setAttribute('aria-expanded', 'true');
+    }
+    function close() { panel.hidden = true; trig.setAttribute('aria-expanded', 'false'); }
+    trig.addEventListener('click', function () { if (panel.hidden) open(); else close(); });
+    panel.addEventListener('click', function (e) {
+      var nav = e.target.closest('[data-nav]');
+      if (nav) { view = new Date(view.getFullYear(), view.getMonth() + Number(nav.dataset.nav), 1); render(); return; }
+      var day = e.target.closest('.c-dp-day[data-iso]'); if (!day) return;
+      input.value = day.dataset.iso;
+      input.dispatchEvent(new Event('input', {bubbles: true}));
+      input.dispatchEvent(new Event('change', {bubbles: true}));
+      close(); dpSync();
+      /* Picking a start rolls into picking the end. */
+      if (fieldId === 'cf-start' && !F('cf-end').value) setTimeout(function () { F('dpTrig-cf-end').click(); }, 80);
+    });
+    document.addEventListener('click', function (e) {
+      if (!panel.hidden && !e.target.closest('#' + trig.id) && !e.target.closest('#' + panel.id)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { e.stopPropagation(); close(); } });
+    dpSyncs.push(function () {
+      var d = parseISO(input.value);
+      labelSpan.textContent = d ? fmtDay(d) : 'Pick a date';
+      labelSpan.classList.toggle('is-placeholder', !d);
+      if (!panel.hidden) render();
+    });
+  }
+  initDatePicker('cf-start');
+  initDatePicker('cf-end', {minFrom: 'cf-start'});
   F('cf-overseer').addEventListener('change', syncOverseer);
   F('cf-picpct').addEventListener('input', function () { delete F('cf-ovpct').dataset.touched; syncOverseer(); });
   F('cf-ovpct').addEventListener('input', function () { F('cf-ovpct').dataset.touched = '1'; });

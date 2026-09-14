@@ -70,8 +70,64 @@
     }
     return null;
   }
+  /* ── Official-domain lookup through Exa, when a key is present. The
+     curated map answers first; anything else asks Exa for the brand's
+     official site, takes the registrable domain, and caches it. The key
+     lives in shared/keys.local.js (gitignored) as COLLAB_KEYS.exa. */
+  var DOMAIN_CACHE_KEY = 'collab-brand-domains';
+  function domainCache() {
+    try { return JSON.parse(localStorage.getItem(DOMAIN_CACHE_KEY)) || {}; } catch (e) { return {}; }
+  }
+  function domainCacheSet(slug, d) {
+    try { var c = domainCache(); c[slug] = d; localStorage.setItem(DOMAIN_CACHE_KEY, JSON.stringify(c)); } catch (e) {}
+  }
+  function exaKey() { return (window.COLLAB_KEYS && window.COLLAB_KEYS.exa) || ''; }
+  var SECOND_LEVEL = {com: 1, co: 1, org: 1, net: 1, gov: 1, edu: 1, ac: 1};
+  function registrable(url) {
+    var host;
+    try { host = new URL(url).hostname.toLowerCase(); } catch (e) { return null; }
+    var parts = host.split('.').filter(Boolean);
+    if (parts.length < 2) return null;
+    var n = parts.length >= 3 && SECOND_LEVEL[parts[parts.length - 2]] && parts[parts.length - 1].length === 2 ? 3 : 2;
+    return parts.slice(-n).join('.');
+  }
+  function resolveDomain(brand, cb) {
+    var known = knownDomain(brand);
+    if (known) return cb(known);
+    var slug = slugOf(brand);
+    if (!slug) return cb(null);
+    var cached = domainCache()[slug];
+    if (cached !== undefined) return cb(cached || null);
+    var key = exaKey();
+    if (!key || typeof fetch !== 'function') return cb(null);
+    var words = fold(brand).split(/[^a-z0-9]+/).filter(function (w) { return w.length > 2; });
+    fetch('https://api.exa.ai/search', {
+      method: 'POST',
+      headers: {'content-type': 'application/json', 'x-api-key': key},
+      body: JSON.stringify({query: brand + ' official website', numResults: 4, type: 'auto'})
+    }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      var results = (j && j.results) || [];
+      var pick = null;
+      /* Prefer a result whose domain carries a token of the brand name,
+         so "Pokemon Fest" does not resolve to a news site about it. */
+      results.some(function (x) {
+        var d = registrable(x.url); if (!d) return false;
+        if (words.some(function (w) { return d.indexOf(w) > -1; })) { pick = d; return true; }
+        return false;
+      });
+      if (!pick && results[0]) pick = registrable(results[0].url);
+      domainCacheSet(slug, pick || '');
+      cb(pick || null);
+    }).catch(function () { cb(null); });
+  }
+  function domainIcons(d) {
+    return ['https://www.google.com/s2/favicons?domain=' + d + '&sz=128',
+            'https://icons.duckduckgo.com/ip3/' + d + '.ico'];
+  }
+
   window.collabBrand = {
     domain: knownDomain,
+    resolveDomain: resolveDomain,
     known: function (brand) { return !!knownDomain(brand); },
     /* Best text to resolve from: the brand when it maps (or when there
        is nothing better), otherwise a plan name that hits the curated
@@ -121,20 +177,28 @@
       var slug = slugOf(brand);
       var cached = logoCache()[slug];
       if (cached === 'none') { fin(false); return; }
-      var list = cached ? [cached] : window.collabBrand.candidates(brand);
-      if (!list.length) { fin(false); return; }
-      var i = 0;
-      img.onerror = function () {
-        i += 1;
-        if (i < list.length) { img.src = list[i]; return; }
-        if (!cached) logoCacheSet(slug, 'none');
-        fin(false);
-      };
-      img.onload = function () {
-        if (!cached) logoCacheSet(slug, list[i]);
-        fin(true);
-      };
-      img.src = list[0];
+      function run(list) {
+        if (!list.length) { fin(false); return; }
+        var i = 0;
+        img.onerror = function () {
+          i += 1;
+          if (i < list.length) { img.src = list[i]; return; }
+          if (!cached) logoCacheSet(slug, 'none');
+          fin(false);
+        };
+        img.onload = function () {
+          if (!cached) logoCacheSet(slug, list[i]);
+          fin(true);
+        };
+        img.src = list[0];
+      }
+      if (cached) return run([cached]);
+      /* The official domain first (curated or Exa-resolved), then the
+         old guesswork chain as the backstop. */
+      resolveDomain(brand, function (d) {
+        var list = (d ? domainIcons(d) : []).concat(window.collabBrand.candidates(brand));
+        run(list.filter(function (u, k) { return list.indexOf(u) === k; }));
+      });
     }
   };
 
