@@ -881,7 +881,7 @@ Expected: PASS — 7 tests, 0 failures.
 
 - [ ] **Step 7: Run the whole suite**
 
-Run: `node --test tests/`
+Run: `node --test "tests/**/*.test.mjs"`
 Expected: PASS — 26 tests across 3 files, 0 failures.
 
 - [ ] **Step 8: Update the callers that used the old signatures**
@@ -1496,7 +1496,7 @@ git commit -m "share: channel filters and slot grouping, replacing platform tabs
 
 - [ ] **Step 1: Run the suite**
 
-Run: `node --test tests/`
+Run: `node --test "tests/**/*.test.mjs"`
 Expected: PASS — 29 tests across 4 files, 0 failures.
 
 - [ ] **Step 2: Walk every page for regressions**
