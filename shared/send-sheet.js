@@ -168,7 +168,7 @@
 
       host.innerHTML =
         '<div class="c-modal ss-modal" role="dialog" aria-modal="true" aria-labelledby="ssTitle">' +
-        '<div class="c-modal-head"><h4 id="ssTitle">Send to campaign</h4>' +
+        '<div class="c-modal-head"><h4 id="ssTitle">Create selection list for:</h4>' +
           '<button class="c-icon-btn" type="button" data-ss="close" aria-label="Close"><i class="ph ph-x"></i></button></div>' +
         '<div class="c-modal-body">' +
 
@@ -176,8 +176,7 @@
             (sum.candidates === 1 ? ' profile' : ' profiles') + ' · ' +
             sum.channels + ' channel accounts</p>' +
 
-          '<h5 class="ss-h">Destination</h5>' +
-          '<label class="ss-radio"><input type="radio" name="ssMode" value="existing"' +
+                    '<label class="ss-radio"><input type="radio" name="ssMode" value="existing"' +
             (state.mode === 'existing' ? ' checked' : '') + ' /> Existing campaign</label>' +
           (state.mode === 'existing'
             ? '<div class="c-field ss-indent"><select data-ss="campaign">' +
@@ -188,18 +187,18 @@
                   (x.stage === 'lead' ? ' (lead)' : '') + '</option>';
               }).join('') + '</select>' +
               (c && model().derivedPax(c)
-                ? '<p class="ss-hint">Still needs: ' + (askRows().length
+                ? '<p class="ss-hint">Still needs to fill: ' + (askRows().length
                     ? askRows().map(function (r) {
                         return esc(PLAT_LABEL[r.platform] || r.platform) + ' ' +
                           esc(window.tiers.tierByKey(r.tier).name) + ' ×' + r.want;
                       }).join(', ')
-                    : 'nothing — the ask is already filled') + '</p>'
-                : '<p class="ss-hint">This campaign has no ask set yet.</p>') +
+                    : 'nothing — this campaign is already filled') + '</p>'
+                : '<p class="ss-hint">This campaign has no pax set yet — type the numbers below.</p>') +
               '</div>'
             : '') +
 
           '<label class="ss-radio"><input type="radio" name="ssMode" value="lead"' +
-            (state.mode === 'lead' ? ' checked' : '') + ' /> New lead</label>' +
+            (state.mode === 'lead' ? ' checked' : '') + ' /> New campaign (lead)</label>' +
           (state.mode === 'lead'
             ? '<div class="ss-indent ss-row">' +
               '<div class="c-field"><label for="ssLeadName">Name</label>' +
@@ -211,7 +210,7 @@
               '</div><p class="ss-hint ss-indent">Creates a campaign at stage Lead. It stays out of the active counts until you move it to Sourcing.</p>'
             : '') +
 
-          '<h5 class="ss-h">The ask</h5>' +
+          '<h5 class="ss-h">Pax to select <span class="ss-opt">per platform and tier</span></h5>' +
           '<div class="ss-ask">' + (askRows().length
             ? askRows().map(function (r) {
                 return '<div class="ss-ask-row"><span>' +
@@ -222,15 +221,15 @@
                   esc(r.tier) + '" aria-label="' + esc(PLAT_LABEL[r.platform] + ' ' +
                   window.tiers.tierByKey(r.tier).name + ' wanted') + '" /></div>';
               }).join('')
-            : '<p class="ss-hint">No ask set. The client will see the list with no target to hit.</p>') +
+            : '<p class="ss-hint">No pax set, so the client sees the list with no number to hit. Add a campaign ask, or type numbers above.</p>') +
           '</div>' +
 
-          '<h5 class="ss-h">Coverage</h5>' +
+          '<h5 class="ss-h">Profiles you are sending <span class="ss-opt">against those numbers</span></h5>' +
           (cov.length
             ? '<table class="ss-cov"><tbody>' + cov.map(function (r) {
                 var cls = r.have === 0 ? 'is-none' : (r.gap > 0 ? 'is-short' : 'is-ok');
-                var note = r.have === 0 ? 'nothing to show'
-                         : (r.gap > 0 ? 'short ' + r.gap : 'covered');
+                var note = r.have === 0 ? 'none to pick from'
+                         : (r.gap > 0 ? 'short ' + r.gap : 'enough');
                 return '<tr class="' + cls + '"><td>' +
                   esc(PLAT_LABEL[r.platform] || r.platform) + ' · ' +
                   esc(window.tiers.tierByKey(r.tier).name) + '</td>' +
@@ -239,10 +238,11 @@
               }).join('') + '</tbody></table>' +
               (sum.shortBands
                 ? '<p class="ss-warn"><i class="ph-fill ph-warning"></i> ' + sum.shortBands +
-                  (sum.shortBands === 1 ? ' band is' : ' bands are') +
-                  ' short. You can still send — the client will see the target and fall short of it.</p>'
+                  (sum.shortBands === 1 ? ' band has' : ' bands have') +
+                  ' fewer profiles than the pax you asked for. You can still send — ' +
+                  'the client will see the number and not be able to reach it.</p>'
                 : '')
-            : '<p class="ss-hint">Nothing to check against until there is an ask.</p>') +
+            : '<p class="ss-hint">Set the pax above and this checks whether your picks can cover them.</p>') +
 
           '<h5 class="ss-h">Link</h5>' +
           '<div class="ss-row">' +
@@ -265,7 +265,7 @@
         '<div class="c-modal-foot">' +
           '<button class="c-btn c-btn-ghost c-btn-md" type="button" data-ss="cancel">Cancel</button>' +
           '<button class="c-btn c-btn-primary c-btn-md" type="button" data-ss="send">' +
-            '<i class="ph ph-paper-plane-tilt"></i> Create preview link</button>' +
+            '<i class="ph ph-paper-plane-tilt"></i> Create selection list</button>' +
         '</div></div>';
     }
 
