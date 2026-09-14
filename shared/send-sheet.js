@@ -251,7 +251,7 @@
           '<h5 class="ss-h">Pax to select <span class="ss-opt">per platform and tier</span></h5>' +
           (cov.length
             ? '<table class="ss-cov"><thead><tr><th></th>' +
-              '<th class="n">Client picks</th><th class="n">You are sending</th><th></th></tr></thead><tbody>' +
+              '<th class="n">Pax to pick</th><th class="n">Profiles sent</th><th></th></tr></thead><tbody>' +
               cov.map(function (r) {
                 /* A band you have not asked for says nothing — it is neither
                    covered nor short, you simply are not asking. */
@@ -264,8 +264,8 @@
                   esc(PLAT_LABEL[r.platform] || r.platform) + ' · ' + esc(tier.name) + '</td>' +
                   '<td class="n"><input type="number" min="0" inputmode="numeric" value="' + r.want +
                     '" data-ss="ask" data-plat="' + esc(r.platform) + '" data-tier="' + esc(r.tier) +
-                    '" aria-label="How many ' + esc(PLAT_LABEL[r.platform] + ' ' + tier.name) +
-                    ' profiles the client should pick" /></td>' +
+                    '" aria-label="Pax to pick, ' + esc(PLAT_LABEL[r.platform] + ' ' + tier.name) +
+                    '" /></td>' +
                   '<td class="n have">' + r.have + '</td>' +
                   '<td class="note">' + note + '</td></tr>';
               }).join('') + '</tbody></table>' +
