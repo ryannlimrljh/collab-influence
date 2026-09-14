@@ -248,6 +248,10 @@
     }
 
     function render() {
+      /* An open dropdown portals its panel onto document.body, so it must be
+         closed before innerHTML is rebuilt or the panel is left orphaned
+         there with nothing to close it. */
+      if (window.collabDropdown) window.collabDropdown.close();
       seedAsk();
       var cov = bandRows(state.ask, state.infIds, opts.people);
       var sum = summary(state.ask, state.infIds, opts.people);
@@ -381,6 +385,15 @@
           '<button class="c-btn c-btn-primary c-btn-md" type="button" data-ss="send">' +
             '<i class="ph ph-paper-plane-tilt"></i> Create selection list</button>' +
         '</div></div>';
+
+      /* The DLS dropdown replaces each native select in place, keeping the
+         select as the value holder — so the change handlers below go on
+         reading `data-ss` off it exactly as before. */
+      if (window.collabDropdown) {
+        host.querySelectorAll('select[data-ss]').forEach(function (sl) {
+          window.collabDropdown.enhance(sl, {placeholder: 'Pick one'});
+        });
+      }
     }
 
     function close() { host.remove(); }
