@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Collab:Influence · Select your line-up</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="../collabrium-dls/SVG/earth.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700;800;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+<link rel="stylesheet" href="../collabrium-dls/tokens.css?v=0.9.41c" />
+<link rel="stylesheet" href="../collabrium-dls/components.css?v=0.9.41c" />
+<style>
+  /* Page-local. Composes DLS tokens only — no new colours, radii or easing.
+
+     This page is the one surface a client sees, so it deliberately carries
+     none of the app shell: no sidebar, no nav, no way back into the
+     workspace. Everything here is about one question — which of these
+     creators do you want, and have you picked enough of each kind. */
+
+  html, body{margin:0; height:100%;}
+  body{font-family:var(--font-primary); color:var(--color-neutral-9);
+    background:var(--color-canvas-warm); -webkit-font-smoothing:antialiased;}
+
+  .sh-wrap{max-width:1120px; margin:0 auto; padding:var(--spacing-32) var(--spacing-24) var(--spacing-60);}
+
+  /* ── Masthead */
+  .sh-head{margin-bottom:var(--spacing-20);}
+  .sh-head h1{margin:0 0 var(--spacing-4); font-size:var(--text-h3-size);
+    font-weight:800; letter-spacing:0;}
+  .sh-head .sub{margin:0; color:var(--color-neutral-6); font-size:var(--text-caption-size);}
+  .sh-head .ask{margin:var(--spacing-12) 0 0; font-size:var(--text-body2-size);
+    color:var(--color-neutral-7);}
+
+  /* ── The progress contract.
+     Sticky because it is the instruction, not decoration: the client needs
+     to see what is still owed while they scroll. In production this number
+     was captured when the list was built and then never shown to anyone. */
+  .sh-contract{position:sticky; top:0; z-index:20;
+    background:var(--color-canvas-warm);
+    padding:var(--spacing-12) 0; margin-bottom:var(--spacing-16);
+    border-bottom:1px solid var(--color-neutral-3);}
+  .sh-chips{display:flex; flex-wrap:wrap; gap:var(--spacing-8); align-items:center;}
+  .sh-chip{display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+    padding:5px 11px; border-radius:var(--radius-pill);
+    border:1px solid var(--color-neutral-3); background:#fff;
+    font-size:var(--text-caption-size); color:var(--color-neutral-7);
+    transition:border-color 160ms var(--ease-standard), color 160ms var(--ease-standard);}
+  .sh-chip .dot{width:8px; height:8px; border-radius:var(--radius-pill); flex:none;}
+  .sh-chip b{font-weight:800; color:var(--color-neutral-9);}
+  /* Met and over are distinguished by their icon and wording too, never by
+     colour alone. */
+  .sh-chip.is-met{border-color:var(--color-green); color:var(--color-green);}
+  .sh-chip.is-met b{color:var(--color-green);}
+  .sh-chip.is-over{border-color:var(--color-amber); color:#8A5A00;}
+  .sh-chip.is-over b{color:#8A5A00;}
+  .sh-total{margin-left:auto; font-size:var(--text-caption-size); font-weight:800;
+    white-space:nowrap;}
+
+  /* ── Filters. Platform tabs became filters: tabs were what forced a
+     creator onto the page twice. */
+  .sh-filters{display:flex; gap:var(--spacing-12); align-items:center;
+    flex-wrap:wrap; margin-bottom:var(--spacing-20);}
+  .sh-search{position:relative; flex:1; min-width:220px;}
+  .sh-search i{position:absolute; left:12px; top:50%; transform:translateY(-50%);
+    color:var(--color-neutral-5);}
+  .sh-search input{width:100%; height:44px; box-sizing:border-box;
+    border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm);
+    padding:0 var(--spacing-12) 0 36px; background:#fff;
+    font-family:inherit; font-size:var(--text-body2-size); color:inherit;}
+  .sh-search input:focus{outline:none; border-color:var(--color-navy);
+    box-shadow:var(--shadow-focus);}
+  .sh-fgroup{display:flex; gap:6px; flex-wrap:wrap;}
+  .sh-fgroup button{min-height:44px; padding:0 var(--spacing-16);
+    border:1px solid var(--color-neutral-3); border-radius:var(--radius-pill);
+    background:#fff; font-family:inherit; font-size:var(--text-caption-size);
+    color:var(--color-neutral-7); cursor:pointer;
+    transition:background 160ms var(--ease-standard);}
+  .sh-fgroup button:hover{background:var(--color-neutral-2);}
+  .sh-fgroup button:focus-visible{outline:none; box-shadow:var(--shadow-focus);}
+  .sh-fgroup button[aria-pressed="true"]{background:var(--color-obsidian);
+    border-color:var(--color-obsidian); color:#fff; font-weight:700;}
+  .sh-toggle{display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+    font-size:var(--text-caption-size); color:var(--color-neutral-7);
+    min-height:44px;}
+
+  /* ── Groups and cards */
+  .sh-group-hd{display:flex; align-items:center; gap:8px;
+    margin:var(--spacing-24) 0 var(--spacing-12);
+    font-size:var(--text-caption-size); font-weight:800;
+    color:var(--color-neutral-7);}
+  .sh-group-hd .n{font-weight:400; color:var(--color-neutral-5);}
+  .sh-grid{display:grid; gap:var(--spacing-16);
+    grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));}
+
+  .sh-card{background:#fff; border:1px solid var(--color-neutral-3);
+    border-radius:var(--radius-lg); box-shadow:var(--shadow-1);
+    padding:var(--spacing-16);}
+  .sh-id{display:flex; gap:var(--spacing-12); align-items:flex-start;}
+  .sh-id img, .sh-id .ph-av{width:48px; height:48px; flex:none;
+    border-radius:var(--radius-pill); object-fit:cover;
+    background:var(--color-neutral-2); color:var(--color-neutral-6);
+    display:grid; place-items:center; font-weight:800;
+    font-size:var(--text-caption-size);}
+  .sh-id .nm{font-weight:800; line-height:1.25;}
+  .sh-id .mt{font-size:var(--text-footnote-size); color:var(--color-neutral-6);
+    margin-top:2px;}
+
+  /* One decision row per channel. This is the change that retires both the
+     duplicate cards and the "answering one answers all" disclaimer: the ask
+     is per channel, so the answer has to be too. */
+  .sh-ch{border-top:1px solid var(--color-neutral-2);
+    margin-top:var(--spacing-12); padding-top:var(--spacing-12);
+    display:flex; flex-direction:column; gap:var(--spacing-12);}
+  .sh-ch-hd{display:flex; align-items:center; gap:6px; margin-bottom:8px;
+    font-size:var(--text-caption-size);}
+  .sh-ch-hd .pl{font-weight:700; display:inline-flex; align-items:center; gap:5px;}
+  .sh-ch-hd .f{margin-left:auto; color:var(--color-neutral-6);
+    font-size:var(--text-footnote-size);}
+  .sh-tier{display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
+    padding:2px 8px; border-radius:var(--radius-pill);
+    background:var(--color-neutral-2); color:var(--color-neutral-7);
+    font-size:var(--text-footnote-size); font-weight:700;}
+  .sh-tier .dot{width:6px; height:6px; border-radius:var(--radius-pill); flex:none;}
+
+  /* 44px targets with 6px between them, and each answer is a word — the
+     active state is never carried by colour alone. */
+  .sh-btns{display:flex; gap:6px;}
+  .sh-btns button{flex:1; min-height:44px; cursor:pointer;
+    border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm);
+    background:#fff; font-family:inherit; font-size:var(--text-caption-size);
+    color:var(--color-neutral-7);
+    transition:background 160ms var(--ease-standard), border-color 160ms var(--ease-standard);}
+  .sh-btns button:hover{background:var(--color-neutral-2);}
+  .sh-btns button:focus-visible{outline:none; box-shadow:var(--shadow-focus);}
+  .sh-btns button[aria-pressed="true"]{font-weight:800;}
+  .sh-btns button[aria-pressed="true"][data-a="selected"]{
+    background:var(--color-earth-bg); border-color:var(--color-green); color:var(--color-green);}
+  .sh-btns button[aria-pressed="true"][data-a="kiv"]{
+    background:var(--color-gold-bg); border-color:var(--color-amber); color:#8A5A00;}
+  .sh-btns button[aria-pressed="true"][data-a="rejected"]{
+    background:var(--color-neutral-2); border-color:var(--color-neutral-5); color:var(--color-neutral-7);}
+
+  .sh-why{margin:var(--spacing-12) 0 0; padding-top:var(--spacing-12);
+    border-top:1px solid var(--color-neutral-2);
+    font-size:var(--text-footnote-size); color:var(--color-neutral-7); line-height:1.5;}
+  .sh-why b{color:var(--color-neutral-9); font-weight:800;}
+
+  .sh-empty{padding:var(--spacing-40) 0; text-align:center; color:var(--color-neutral-6);}
+
+  /* ── Gate for a link that no longer resolves */
+  .sh-gate{max-width:520px; margin:18vh auto; text-align:center;}
+  .sh-gate h1{font-size:var(--text-h4-size); font-weight:800; margin:0 0 var(--spacing-8);}
+  .sh-gate p{color:var(--color-neutral-6); margin:0;}
+
+  @media (max-width: 560px){
+    .sh-wrap{padding-left:var(--spacing-16); padding-right:var(--spacing-16);}
+    .sh-total{margin-left:0; width:100%;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .sh-chip, .sh-btns button, .sh-fgroup button{transition:none;}
+  }
+</style>
+</head>
+<body>
+<div class="sh-wrap" id="shRoot"></div>
+
+<script src="../shared/influencers-data.js"></script>
+<script src="../shared/avatar-manifest.js?v=2"></script>
+<script src="../shared/campaigns-data.js?v=3"></script>
+<script src="../shared/tiers.js?v=1"></script>
+<script src="../shared/campaign-model.js?v=2"></script>
+<script src="../shared/campaign-store.js?v=4"></script>
+<script>
+(function () {
+  'use strict';
+  var S = window.campaignStore, M = window.campaignModel;
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function E(id){ return document.getElementById(id); }
+
+  var PLAT_ICON = {
+    tiktok: '<i class="ph-fill ph-tiktok-logo"></i>',
+    instagram: '<i class="ph-fill ph-instagram-logo"></i>',
+    xhs: '<i class="ph-fill ph-book-open"></i>'
+  };
+  var PLAT_LABEL = {tiktok: 'TikTok', instagram: 'Instagram', xhs: 'Xiaohongshu'};
+  var ANSWERS = [
+    {key: 'selected', label: 'Approve'},
+    {key: 'kiv',      label: 'KIV'},
+    {key: 'rejected', label: 'Reject'}
+  ];
+
+  /* The store migrates records to channel-level shapes on read and needs the
+     profiles to know which channels each creator is on. This must run before
+     the first get(). */
+  var byInf = {};
+  (window.INFLUENCERS || []).forEach(function (r) { byInf[r.id] = r; });
+  S.setPeople(byInf);
+
+  var qs = new URLSearchParams(location.search);
+  var campaign = S.get(qs.get('c'));
+  var batchNo = Number(qs.get('b'));
+  var batch = campaign && (campaign.batches || []).filter(function (b) {
+    return b.n === batchNo;
+  })[0];
+
+  if (!campaign || !batch) {
+    E('shRoot').innerHTML = '<div class="sh-gate"><h1>This link is no longer available</h1>' +
+      '<p>Ask your contact at KULT for a new one.</p></div>';
+    return;
+  }
+
+  /* ── Shell */
+  E('shRoot').innerHTML =
+    '<header class="sh-head">' +
+      '<h1>' + esc(campaign.name) + '</h1>' +
+      '<p class="sub">' + esc(campaign.brand || '') +
+        (batch.sentAt ? ' · sent ' + esc(S.fmtDate(batch.sentAt, true)) : '') + '</p>' +
+      '<p class="ask">Please pick your line-up. Each creator is shown once, with a ' +
+        'separate choice for every channel they post on — approve a creator on ' +
+        'TikTok without taking their Instagram.</p>' +
+    '</header>' +
+    '<div class="sh-contract"><div class="sh-chips" id="shChips"></div></div>' +
+    '<div class="sh-filters">' +
+      '<label class="sh-search"><i class="ph ph-magnifying-glass"></i>' +
+        '<input type="search" id="shQ" placeholder="Search creators, handles or niches" ' +
+        'aria-label="Search creators" /></label>' +
+      '<span class="sh-fgroup" id="shPlat" role="group" aria-label="Filter by channel"></span>' +
+      '<label class="sh-toggle"><input type="checkbox" id="shFlat" /> Show as one list</label>' +
+    '</div>' +
+    '<main id="shList"></main>';
+
+  /* ── The contract. Counts what has been approved, per channel and tier,
+     against the campaign's ask. */
+  function chosen() {
+    var out = {};
+    (batch.picks || []).forEach(function (p) {
+      Object.keys(p.channels || {}).forEach(function (plat) {
+        if (p.channels[plat] !== 'selected') return;
+        var ch = M.channelsOf(byInf[p.inf]).filter(function (x) {
+          return x.platform === plat;
+        })[0];
+        var t = ch ? window.tiers.tierOf(ch.followers) : null;
+        if (!t) return;
+        out[plat] = out[plat] || {};
+        out[plat][t.key] = (out[plat][t.key] || 0) + 1;
+      });
+    });
+    return out;
+  }
+
+  function renderContract() {
+    var got = chosen(), slots = M.slotsOf(campaign), total = 0, want = 0;
+    var html = slots.map(function (s) {
+      var n = (got[s.platform] && got[s.platform][s.tier]) || 0;
+      total += n; want += s.want;
+      var cls = n > s.want ? 'is-over' : (n === s.want ? 'is-met' : '');
+      var t = window.tiers.tierByKey(s.tier);
+      return '<span class="sh-chip ' + cls + '">' +
+        '<span class="dot" style="background:' + t.dot + '"></span>' +
+        esc(PLAT_LABEL[s.platform] || s.platform) + ' ' + esc(t.name) +
+        ' <b>' + n + '/' + s.want + '</b>' +
+        (n > s.want ? ' <span>+' + (n - s.want) + ' over</span>' : '') +
+        '</span>';
+    }).join('');
+    if (!slots.length) {
+      html = '<span class="sh-chip">No specific ask — pick whoever fits</span>';
+    }
+    E('shChips').innerHTML = html +
+      '<span class="sh-total">' + total + ' of ' + want + ' chosen</span>';
+  }
+
+  /* ── Cards */
+  function fmtFollowers(n){
+    if (n == null) return '';
+    if (n >= 1e6) return (n / 1e6).toFixed(n % 1e6 ? 1 : 0).replace(/\.0$/, '') + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(n % 1e3 ? 1 : 0).replace(/\.0$/, '') + 'K';
+    return String(n);
+  }
+
+  /* AVATAR_FILES maps an id to which harvests exist, e.g. {tt:1, ig:1} — the
+     filename is built from the id. Local files only: the runtime avatar
+     service rate-limits, and this page has no shell to recover in. */
+  function avatarHTML(rec){
+    var m = (window.AVATAR_FILES || {})[rec.id] || {};
+    var src = m.tt ? '../assets/avatars/' + rec.id + '-tt.jpg'
+            : m.ig ? '../assets/avatars/' + rec.id + '-ig.jpg' : null;
+    var parts = String(rec.name || '?').replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/);
+    var ini = esc(((parts[0] || '?')[0] + (parts[1] ? parts[1][0] : '')).toUpperCase());
+    if (!src) return '<span class="ph-av">' + ini + '</span>';
+    return '<img src="' + esc(src) + '" alt="" loading="lazy" ' +
+      'onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),' +
+      '{className:\'ph-av\',textContent:' + JSON.stringify(ini) + '}))" />';
+  }
+
+  function cardHTML(pick){
+    var rec = byInf[pick.inf];
+    if (!rec) return '';
+    var meta = [rec.age, rec.gender, rec.location].filter(Boolean).join(' · ');
+    var rows = M.channelsOf(rec).map(function (ch) {
+      var t = window.tiers.tierOf(ch.followers);
+      var cur = (pick.channels || {})[ch.platform] || 'none';
+      return '<div class="sh-ch-row">' +
+        '<div class="sh-ch-hd">' +
+          '<span class="pl">' + (PLAT_ICON[ch.platform] || '') +
+            esc(PLAT_LABEL[ch.platform] || ch.platform) + '</span>' +
+          (t ? '<span class="sh-tier"><span class="dot" style="background:' + t.dot +
+               '"></span>' + esc(t.name) + '</span>' : '') +
+          '<span class="f">' + esc(fmtFollowers(ch.followers)) + ' followers</span>' +
+        '</div>' +
+        '<div class="sh-btns" role="group" aria-label="' +
+          esc(rec.name + ' on ' + (PLAT_LABEL[ch.platform] || ch.platform)) + '">' +
+          ANSWERS.map(function (a) {
+            return '<button type="button" data-a="' + a.key + '" data-inf="' +
+              esc(pick.inf) + '" data-plat="' + esc(ch.platform) + '" aria-pressed="' +
+              (cur === a.key) + '">' + a.label + '</button>';
+          }).join('') +
+        '</div></div>';
+    }).join('');
+
+    return '<article class="sh-card">' +
+      '<div class="sh-id">' + avatarHTML(rec) + '<div>' +
+        '<div class="nm">' + esc(rec.name) + '</div>' +
+        '<div class="mt">' + esc(meta || '—') + '</div>' +
+        ((rec.niches || []).length
+          ? '<div class="mt">' + esc(rec.niches.join(' · ')) + '</div>' : '') +
+      '</div></div>' +
+      '<div class="sh-ch">' + rows + '</div>' +
+      (pick.kultRemark
+        ? '<p class="sh-why"><b>Why we suggest them:</b> ' + esc(pick.kultRemark) + '</p>'
+        : '') +
+      '</article>';
+  }
+
+  /* ── Filters and grouping */
+  var filter = {q: '', plat: 'all', flat: false};
+
+  var platsInAsk = M.slotsOf(campaign).map(function (s) { return s.platform; })
+    .filter(function (p, i, a) { return a.indexOf(p) === i; });
+  /* Fall back to whatever the candidates are actually on, so a campaign with
+     no ask still gets usable filters. */
+  if (!platsInAsk.length) {
+    (batch.picks || []).forEach(function (p) {
+      M.channelsOf(byInf[p.inf]).forEach(function (ch) {
+        if (platsInAsk.indexOf(ch.platform) < 0) platsInAsk.push(ch.platform);
+      });
+    });
+  }
+  E('shPlat').innerHTML = [{key: 'all', label: 'All channels'}]
+    .concat(platsInAsk.map(function (p) { return {key: p, label: PLAT_LABEL[p] || p}; }))
+    .map(function (o) {
+      return '<button type="button" data-plat="' + esc(o.key) + '" aria-pressed="' +
+        (filter.plat === o.key) + '">' + esc(o.label) + '</button>';
+    }).join('');
+
+  function matches(pick){
+    var rec = byInf[pick.inf];
+    if (!rec) return false;
+    if (filter.q) {
+      var hay = [rec.name].concat(rec.niches || [],
+        M.channelsOf(rec).map(function (c) { return c.handle; })).join(' ').toLowerCase();
+      if (hay.indexOf(filter.q.toLowerCase()) < 0) return false;
+    }
+    if (filter.plat !== 'all' && !M.channelsOf(rec).some(function (c) {
+      return c.platform === filter.plat;
+    })) return false;
+    return true;
+  }
+
+  /* Which opening in the ask this creator is being put forward for. Grouping
+     by it lets the client read the list the same way the ask is written. */
+  function slotFor(rec){
+    var slots = M.slotsOf(campaign), hit = null;
+    M.channelsOf(rec).forEach(function (ch) {
+      if (hit) return;
+      var t = window.tiers.tierOf(ch.followers);
+      if (t && slots.some(function (s) {
+        return s.platform === ch.platform && s.tier === t.key;
+      })) hit = ch.platform + '/' + t.key;
+    });
+    return hit;
+  }
+
+  function renderList(){
+    var picks = (batch.picks || []).filter(matches);
+    if (!picks.length) {
+      E('shList').innerHTML = '<p class="sh-empty">No creators match that search.</p>';
+      return;
+    }
+    if (filter.flat) {
+      E('shList').innerHTML = '<div class="sh-grid">' + picks.map(cardHTML).join('') + '</div>';
+      return;
+    }
+    var groups = {}, order = [];
+    picks.forEach(function (p) {
+      var key = slotFor(byInf[p.inf]) || 'other';
+      if (!groups[key]) { groups[key] = []; order.push(key); }
+      groups[key].push(p);
+    });
+    E('shList').innerHTML = order.map(function (key) {
+      var label;
+      if (key === 'other') label = 'Also worth a look';
+      else {
+        var bits = key.split('/');
+        label = 'For ' + (PLAT_LABEL[bits[0]] || bits[0]) + ' · ' +
+          window.tiers.tierByKey(bits[1]).name;
+      }
+      return '<h2 class="sh-group-hd">' + esc(label) +
+        '<span class="n">' + groups[key].length + '</span></h2>' +
+        '<div class="sh-grid">' + groups[key].map(cardHTML).join('') + '</div>';
+    }).join('');
+  }
+
+  /* ── Behaviour. One listener on the list, so re-rendering never strands a
+     handler. */
+  E('shList').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-a]');
+    if (!b) return;
+    var inf = b.dataset.inf, plat = b.dataset.plat, answer = b.dataset.a;
+    var pick = (batch.picks || []).filter(function (p) { return p.inf === inf; })[0];
+    if (!pick) return;
+    /* Clicking the active answer clears it, so a mis-click is undoable. */
+    var next = (pick.channels || {})[plat] === answer ? 'none' : answer;
+
+    campaign = S.setChannelStatus(campaign.id, batch.n, inf, plat, next);
+    batch = (campaign.batches || []).filter(function (x) { return x.n === batch.n; })[0];
+    renderList();
+    renderContract();
+  });
+
+  E('shQ').addEventListener('input', function (e) {
+    filter.q = e.target.value.trim();
+    renderList();
+  });
+  E('shPlat').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-plat]');
+    if (!b) return;
+    filter.plat = b.dataset.plat;
+    Array.prototype.forEach.call(E('shPlat').children, function (x) {
+      x.setAttribute('aria-pressed', String(x.dataset.plat === filter.plat));
+    });
+    renderList();
+  });
+  E('shFlat').addEventListener('change', function (e) {
+    filter.flat = e.target.checked;
+    renderList();
+  });
+
+  renderContract();
+  renderList();
+})();
+</script>
+</body>
+</html>

@@ -64,7 +64,27 @@ window.CAMPAIGNS = [
     platforms: ['tiktok', 'instagram'], pax: 13, quote: 31423, cost: 20700,
     picPct: 100, overseerPct: null, remarks: '',
     createdAt: 1788100000000, updatedAt: 1788234402696,
-    deliverables: {done: 0, total: 0}, roster: [], batches: []
+    deliverables: {done: 0, total: 0}, roster: [],
+    /* Eight candidates against five slots, so every band has headroom and the
+       client has a real choice to make. Abby is the case the old model could
+       not express: she is a TikTok Macro and an Instagram Mid at the same
+       time, and the client can take one without the other. */
+    batches: [
+      {
+        n: 1, name: 'Batch 1 · parenting shortlist', sentAt: '2026-09-10',
+        picks: [
+          {inf: 'inf-195', kultRemark: 'Highest TikTok reach on the list, and her Instagram lands squarely in the Mid band — one booking can cover two of the slots.', status: 'none', clientRemark: ''},
+          {inf: 'inf-116', kultRemark: 'Parenting-first audience and the strongest Instagram Macro figure here. Closest fit to the MindPro brief.', status: 'none', clientRemark: ''},
+          {inf: 'inf-118', kultRemark: 'Parenting and lifestyle, with a large Instagram following and a steady TikTok Mid.', status: 'none', clientRemark: ''},
+          {inf: 'inf-323', kultRemark: 'Macro on both channels. Food-led rather than parenting, so worth a look only if you want the wider reach.', status: 'none', clientRemark: ''},
+          {inf: 'inf-234', kultRemark: 'Consistent lifestyle poster, Macro on TikTok and Mid on Instagram.', status: 'none', clientRemark: ''},
+          {inf: 'inf-209', kultRemark: 'Reliable TikTok Mid. Esports-leaning, included to give the Mid band a second option.', status: 'none', clientRemark: ''},
+          {inf: 'inf-107', kultRemark: 'Product-review background, which suits a routine-led format.', status: 'none', clientRemark: ''},
+          {inf: 'inf-302', kultRemark: 'Instagram Mid only — his TikTok is a Seeder account, so treat him as an Instagram booking.', status: 'none', clientRemark: ''}
+        ],
+        paxTargets: {}, notes: ''
+      }
+    ]
   },
   {
     id: 'camp-005', name: 'Enfagrow Ambassador (Adira)', brand: 'Enfagrow', agency: '',
