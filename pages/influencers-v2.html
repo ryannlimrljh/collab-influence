@@ -251,6 +251,15 @@
     .inf-selbar.is-on{max-height:220px;}
     .inf-selactions{width:100%; justify-content:flex-end;}
   }
+  /* Select-all lives in the filter row, not in the selection bar: the
+     bar only opens once something is selected, so it can never be the
+     way IN. The count sits in the label so the scope is never in
+     doubt — it always means "the profiles this filter is showing",
+     never the whole roster. */
+  .inf-selall{white-space:nowrap;}
+  .inf-selall[hidden]{display:none;}
+  .inf-selall.is-all{background:var(--color-earth-bg);
+    color:var(--color-neutral-9);}
   /* A selected row reads by fill, not by border: a 2px edge inside a
      table would push every neighbouring cell a pixel. */
   .c-table tbody tr.is-selected{background:var(--color-neutral-2);}
@@ -834,6 +843,9 @@
           </div>
           <span class="c-filter-search-divider" aria-hidden="true"></span>
           <div class="inf-pillbar" id="infPillbar"></div>
+          <button class="c-btn c-btn-ghost c-btn-sm inf-selall" id="infSelAll" type="button" hidden>
+            <i class="ph ph-checks"></i> <span class="lbl">Select all</span>
+          </button>
           <button class="c-btn c-btn-ghost c-btn-sm c-filter-clear-bar" id="infClearAll" type="button" hidden>Clear all</button>
         </div>
         <div class="inf-viewseg" role="group" aria-label="View">
@@ -847,7 +859,7 @@
       <div class="inf-selbar" id="infSelBar" role="region" aria-label="Selected influencers">
         <span class="inf-selstack" id="infSelStack" aria-hidden="true"></span>
         <span class="inf-seltext">
-          <span class="cnt" id="infSelCount">0 profiles selected</span>
+          <span class="cnt" id="infSelCount" aria-live="polite">0 profiles selected</span>
           <span class="hint">Select influencers and generate a sharable link for client review</span>
         </span>
         <span class="inf-selactions">
@@ -1244,6 +1256,11 @@
      that should survive a reload. The next build reads `selected` for
      its bulk actions. */
   var selected = new Set();
+  /* The ids the current search + filters are showing, in render order.
+     Select-all is scoped to this, not to the DOM: card view has no
+     rows to scrape, and a list that is still painting would under-
+     report. */
+  var shownIds = [];
 
   var all = [], byId = {};
   function refreshData(){
@@ -1646,6 +1663,9 @@
   scroller.addEventListener('scroll', syncStick, {passive: true});
 
   var lastPaintView = view;
+  function isFiltered(){
+    return !!query || FACETS.some(function(f){ return applied[f.key].length; });
+  }
   function render(keepPills){
     refreshData();
     untilt(); /* a mid-tilt card would snapshot its rotated rect */
@@ -1654,6 +1674,7 @@
     var hits = all.filter(matches);
     var pinnedHits = hits.filter(function(r){ return influencerStore.isPinned(r.id); });
     var restHits = hits.filter(function(r){ return !influencerStore.isPinned(r.id); });
+    shownIds = hits.map(function(r){ return r.id; });
     letterCounts = {};
     LETTERS.forEach(function(L){ letterCounts[L] = 0; });
     restHits.forEach(function(r){ letterCounts[letterOf(r.name)] += 1; });
@@ -1670,10 +1691,11 @@
           avatarIO.observe(img);
         });
       }
-      document.getElementById('infSub').textContent = (query || FACETS.some(function(f){ return applied[f.key].length; }))
+      document.getElementById('infSub').textContent = isFiltered()
         ? 'Showing ' + hits.length + ' of ' + all.length + ' influencers.'
         : all.length + ' influencers, A to Z.';
       applyViewButtons();
+      paintSelAll();
       renderRail();
       if (!keepPills) renderPillbar();
       renderTray();
@@ -1711,11 +1733,12 @@
       });
     }
 
-    document.getElementById('infSub').textContent = (query || FACETS.some(function(f){ return applied[f.key].length; }))
+    document.getElementById('infSub').textContent = isFiltered()
       ? 'Showing ' + hits.length + ' of ' + all.length + ' influencers.'
       : all.length + ' influencers, A to Z.';
 
     applyViewButtons();
+    paintSelAll();
     renderRail();
     if (!keepPills) renderPillbar();
     renderTray();
@@ -2684,17 +2707,57 @@
     box.setAttribute('aria-checked', String(on));
     box.innerHTML = on ? '<i class="ph ph-check"></i>' : '';
   }
+  /* How much of the current filter is already in the set — the one
+     number every select-all control is drawn from. */
+  function shownOn(){
+    var n = 0;
+    for (var i = 0; i < shownIds.length; i++) if (selected.has(shownIds[i])) n++;
+    return n;
+  }
   /* The header box reflects the rows in view, so it is repainted from
      the live selection rather than tracked separately. */
   function paintHeadBox(){
     var head = mainEl.querySelector('[data-sel-all]');
     if (!head) return;
-    var ids = [].map.call(mainEl.querySelectorAll('tr[data-id]'), function(tr){ return tr.dataset.id; });
-    var on = ids.filter(function(id){ return selected.has(id); }).length;
+    var on = shownOn(), total = shownIds.length;
     head.classList.toggle('on', !!on);
-    head.setAttribute('aria-checked', on ? (on === ids.length ? 'true' : 'mixed') : 'false');
+    head.setAttribute('aria-checked', on ? (on === total ? 'true' : 'mixed') : 'false');
+    head.setAttribute('aria-label', (on === total && total ? 'Deselect' : 'Select') +
+      ' all ' + total + ' shown');
     head.innerHTML = !on ? '' :
-      (on === ids.length ? '<i class="ph ph-check"></i>' : '<i class="ph ph-minus"></i>');
+      (on === total ? '<i class="ph ph-check"></i>' : '<i class="ph ph-minus"></i>');
+  }
+  /* The filter-row button. Hidden only when the filter matches nothing —
+     otherwise it holds its place, so it never moves out from under a
+     pointer that is on its way to it. */
+  function paintSelAll(){
+    var btn = document.getElementById('infSelAll');
+    if (!btn) return;
+    var total = shownIds.length;
+    btn.hidden = !total;
+    if (!total) return;
+    var isAll = shownOn() === total;   /* not `all` — that is the roster */
+    btn.classList.toggle('is-all', isAll);
+    btn.querySelector('.lbl').textContent =
+      (isAll ? 'Deselect all ' : 'Select all ') + total;
+    /* Not a bare ✕ for the off state — "Clear all" sits right beside it
+       and already owns that glyph for clearing FILTERS. */
+    btn.querySelector('i').className = isAll ? 'ph ph-selection-slash' : 'ph ph-checks';
+    var what = isFiltered()
+      ? 'the ' + total + ' profiles this filter is showing'
+      : 'all ' + total + ' influencers';
+    btn.title = (isAll ? 'Take ' : 'Add ') + what +
+      (isAll ? ' back out of the selection' : ' to the selection');
+  }
+  /* Repaint every card/row on screen from the live set. Used by the bulk
+     paths, where a per-id lookup would be a second full-DOM walk each. */
+  function paintHosts(){
+    mainEl.querySelectorAll('.inf-card[data-id], tr[data-id]').forEach(function(el){
+      var on = selected.has(el.dataset.id);
+      el.classList.toggle('is-selected', on);
+      var box = el.querySelector('[data-sel]');
+      if (box) paintBox(box, on);
+    });
   }
   function toggleSelect(id){
     var on = !selected.has(id);
@@ -2706,21 +2769,25 @@
       if (box) paintBox(box, on);
     }
     paintHeadBox();
+    paintSelAll();
     paintSelBar();
   }
+  /* Scoped to the filter, in both views: everything the search and the
+     pills are currently showing goes in (or, if it is all already in,
+     comes back out). Profiles selected under a PREVIOUS filter are left
+     alone — the set accumulates across filters, which is the whole point
+     of filtering down to a group and grabbing it. */
   function selectAllShown(){
-    var ids = [].map.call(mainEl.querySelectorAll('tr[data-id]'), function(tr){ return tr.dataset.id; });
-    var everyOn = ids.length && ids.every(function(id){ return selected.has(id); });
-    ids.forEach(function(id){ if (everyOn) selected.delete(id); else selected.add(id); });
-    mainEl.querySelectorAll('tr[data-id]').forEach(function(tr){
-      var on = selected.has(tr.dataset.id);
-      tr.classList.toggle('is-selected', on);
-      var box = tr.querySelector('[data-sel]');
-      if (box) paintBox(box, on);
+    var everyOn = shownIds.length && shownOn() === shownIds.length;
+    shownIds.forEach(function(id){
+      if (everyOn) selected.delete(id); else selected.add(id);
     });
+    paintHosts();
     paintHeadBox();
+    paintSelAll();
     paintSelBar();
   }
+  document.getElementById('infSelAll').addEventListener('click', selectAllShown);
   /* Create Selection List hands the selection to a campaign: the set
      becomes a preview batch there, and the campaign's KOL Selection tab
      is where the client's answers come back. "New campaign" carries the
@@ -2772,6 +2839,7 @@
     mainEl.querySelectorAll('.is-selected').forEach(function(el){ el.classList.remove('is-selected'); });
     mainEl.querySelectorAll('[data-sel]').forEach(function(b){ paintBox(b, false); });
     paintHeadBox();
+    paintSelAll();
     paintSelBar();
   });
 
