@@ -866,7 +866,7 @@
         <span class="inf-selactions">
           <button class="c-btn c-btn-ghost c-btn-sm" type="button" id="infSelClear">Clear</button>
           <button class="c-btn c-btn-primary c-btn-md" type="button" id="infSelGenerate">
-            <i class="ph ph-paper-plane-tilt"></i> Send to campaign
+            <i class="ph ph-plus"></i> Create Selection List
           </button>
         </span>
       </div>
@@ -2755,7 +2755,7 @@
     paintSelBar();
   }
   document.getElementById('infSelAll').addEventListener('click', selectAllShown);
-  /* "Send to campaign" hands the selection to a campaign — or to a new lead,
+  /* Create Selection List hands the selection to a campaign — or to a new lead,
      for work that is not won yet. The sheet gathers the destination, the ask
      and the link options; writing to the store stays here. */
   document.getElementById('infSelGenerate').addEventListener('click', function () {
