@@ -860,12 +860,12 @@
         <span class="inf-selstack" id="infSelStack" aria-hidden="true"></span>
         <span class="inf-seltext">
           <span class="cnt" id="infSelCount" aria-live="polite">0 profiles selected</span>
-          <span class="hint">Select influencers and generate a sharable link for client review</span>
+          <span class="hint" id="infSelHint">They go to a campaign as a batch your client reviews and picks from.</span>
         </span>
         <span class="inf-selactions">
           <button class="c-btn c-btn-ghost c-btn-sm" type="button" id="infSelClear">Clear</button>
           <button class="c-btn c-btn-primary c-btn-md" type="button" id="infSelGenerate">
-            <i class="ph ph-plus"></i> Create Selection List
+            <i class="ph ph-paper-plane-tilt"></i> Send to campaign
           </button>
         </span>
       </div>
@@ -2788,7 +2788,7 @@
     paintSelBar();
   }
   document.getElementById('infSelAll').addEventListener('click', selectAllShown);
-  /* Create Selection List hands the selection to a campaign: the set
+  /* "Send to campaign" hands the selection to a campaign: the set
      becomes a preview batch there, and the campaign's KOL Selection tab
      is where the client's answers come back. "New campaign" carries the
      ids across to the campaigns page, whose form finishes the job. */
