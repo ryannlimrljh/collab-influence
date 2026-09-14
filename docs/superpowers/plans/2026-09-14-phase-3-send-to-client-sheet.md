@@ -266,7 +266,7 @@ In `shared/campaign-store.js`, replace the whole `addBatch` property with:
 - [ ] **Step 8: Run it and watch it pass**
 
 Run: `node --test "tests/**/*.test.mjs"`
-Expected: PASS — 53 tests, 0 failures.
+Expected: PASS — 55 tests, 0 failures.
 
 - [ ] **Step 9: Update the two existing callers of the old signature**
 
@@ -504,7 +504,7 @@ Expected: FAIL — `ENOENT` on `shared/send-sheet.js`.
 - [ ] **Step 4: Run it and watch it pass**
 
 Run: `node --test "tests/**/*.test.mjs"`
-Expected: PASS — 61 tests, 0 failures.
+Expected: PASS — 63 tests, 0 failures.
 
 - [ ] **Step 5: Commit**
 
@@ -796,7 +796,7 @@ Call `injectCSS();` as the first line of `open()`.
 - [ ] **Step 3: Confirm the logic tests still pass**
 
 Run: `node --test "tests/**/*.test.mjs"`
-Expected: PASS — 61 tests, 0 failures. `open()` is not unit-tested; it is
+Expected: PASS — 63 tests, 0 failures. `open()` is not unit-tested; it is
 verified in the browser in Task 4.
 
 - [ ] **Step 4: Commit**
@@ -1014,7 +1014,7 @@ Add `isExpired: isExpired,` to the export.
 - [ ] **Step 4: Run it and watch it pass**
 
 Run: `node --test "tests/**/*.test.mjs"`
-Expected: PASS — 62 tests, 0 failures.
+Expected: PASS — 64 tests, 0 failures.
 
 - [ ] **Step 5: Use it on the share page**
 
@@ -1118,7 +1118,7 @@ git commit -m "share: honour the link's expiry and name prompt"
 - [ ] **Step 1: Run the suite**
 
 Run: `node --test "tests/**/*.test.mjs"`
-Expected: PASS — 62 tests, 0 failures.
+Expected: PASS — 64 tests, 0 failures.
 
 - [ ] **Step 2: Check every shared file's version is consistent across pages**
 
