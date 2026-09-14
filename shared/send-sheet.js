@@ -75,6 +75,8 @@
   }
 
   var CSS = [
+    '.ss-scrim{position:fixed; inset:0; z-index:400; background:var(--shadow-overlay);',
+    '  display:flex; align-items:center; justify-content:center;}',
     '.ss-modal{margin:var(--spacing-16); max-width:560px; max-height:86vh; display:flex; flex-direction:column;}',
     '.ss-modal .c-modal-body{overflow:auto;}',
     '.ss-count{margin:0 0 var(--spacing-16); font-size:var(--text-caption-size); color:var(--color-neutral-6);}',
@@ -124,8 +126,13 @@
     };
 
     var host = document.createElement('div');
-    host.className = 'inf-scrim ss-scrim';
-    host.style.cssText = 'display:flex; align-items:center; justify-content:center;';
+    /* The sheet owns its own scrim. It used to borrow `inf-scrim`, which is
+       declared in influencers-v2.html's page-local CSS and starts at
+       opacity 0 until something adds `is-open` — so the sheet rendered
+       invisible there, and on campaign.html, where the class does not exist
+       at all, it would have had no overlay whatsoever. A shared module
+       cannot depend on one page's stylesheet. */
+    host.className = 'ss-scrim';
     document.body.appendChild(host);
 
     function destinationCampaign() {
