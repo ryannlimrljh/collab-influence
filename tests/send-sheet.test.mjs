@@ -68,3 +68,31 @@ test('expiry turns a day count into a date', () => {
   assert.equal(SS.expiryFrom('2026-09-14', 30), '2026-10-14');
   assert.equal(SS.expiryFrom('2026-09-14', 0), null, 'never expires');
 });
+
+/* ── Rows to show. The bug this covers: a campaign with no ask rendered no
+   rows, so there was nowhere to type the numbers — the ask ended up bounded
+   by whether the campaign already had one. */
+
+test('bandRows shows a row for every band the picks occupy, even with no ask', () => {
+  const rows = SS.bandRows({}, ['a', 'b'], PEOPLE);
+  assert.deepEqual(rows, [
+    {platform: 'tiktok',    tier: 'macro', want: 0, have: 1, gap: 0},
+    {platform: 'instagram', tier: 'mid',   want: 0, have: 1, gap: 0},
+    {platform: 'tiktok',    tier: 'mid',   want: 0, have: 1, gap: 0}
+  ]);
+});
+
+test('bandRows lists asked bands first, then the extras being sent', () => {
+  const rows = SS.bandRows({instagram: {mid: 2}}, ['a', 'b'], PEOPLE);
+  assert.deepEqual(rows[0], {platform: 'instagram', tier: 'mid', want: 2, have: 1, gap: 1});
+  assert.equal(rows.length, 3, 'plus the two bands only the picks occupy');
+});
+
+test('bandRows keeps an asked band with nobody to fill it', () => {
+  const rows = SS.bandRows({xhs: {micro: 3}}, ['b'], PEOPLE);
+  assert.deepEqual(rows[0], {platform: 'xhs', tier: 'micro', want: 3, have: 0, gap: 3});
+});
+
+test('bandRows with nothing at all is empty', () => {
+  assert.deepEqual(SS.bandRows({}, [], PEOPLE), []);
+});

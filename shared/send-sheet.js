@@ -19,6 +19,34 @@
     return model().coverageOf(ask, infIds, people);
   }
 
+  /* Every band worth showing a row for: the ones the ask names, plus the ones
+     the ticked profiles actually occupy. Without the second half, a campaign
+     with no ask yet renders no rows at all — and then there is nowhere to type
+     the numbers, which is how the ask ends up bounded by something other than
+     what you want to ask for. `want` is 0 for a band you have not asked for. */
+  function bandRows(ask, infIds, people) {
+    var rows = {}, order = [];
+    function put(platform, tier) {
+      var k = platform + '/' + tier;
+      if (!rows[k]) { rows[k] = {platform: platform, tier: tier, want: 0, have: 0}; order.push(k); }
+      return rows[k];
+    }
+    model().slotsOf({requirement: ask || {}}).forEach(function (s) {
+      put(s.platform, s.tier).want = s.want;
+    });
+    (infIds || []).forEach(function (id) {
+      model().channelsOf(people[id]).forEach(function (ch) {
+        var t = window.tiers.tierOf(ch.followers);
+        if (t) put(ch.platform, t.key).have += 1;
+      });
+    });
+    return order.map(function (k) {
+      var r = rows[k];
+      r.gap = Math.max(0, r.want - r.have);
+      return r;
+    });
+  }
+
   function summary(ask, infIds, people) {
     var rows = coverage(ask, infIds, people);
     var channels = 0;
@@ -103,6 +131,7 @@
     '.ss-cov tr.is-ok td.note{color:var(--color-green);}',
     '.ss-cov tr.is-short td.note{color:#8A5A00;}',
     '.ss-cov tr.is-none td.note{color:var(--color-red);}',
+    '.ss-cov td.note{font-style:normal;}',
     '.ss-warn{display:flex; gap:6px; align-items:flex-start; margin:var(--spacing-8) 0 0; font-size:var(--text-footnote-size); color:#8A5A00;}',
     '.ss-check{display:flex; align-items:center; gap:8px; min-height:44px; font-size:var(--text-caption-size); cursor:pointer;}',
     '.ss-err{margin:var(--spacing-12) 0 0; color:var(--color-red); font-size:var(--text-caption-size);}'
@@ -167,7 +196,7 @@
 
     function render() {
       seedAsk();
-      var cov = coverage(state.ask, state.infIds, opts.people);
+      var cov = bandRows(state.ask, state.infIds, opts.people);
       var sum = summary(state.ask, state.infIds, opts.people);
       var c = destinationCampaign();
 
@@ -198,7 +227,7 @@
                           esc(window.tiers.tierByKey(r.tier).name) + ' ×' + r.want;
                       }).join(', ')
                     : 'nothing — this campaign is already filled') + '</p>'
-                : '<p class="ss-hint">This campaign has no pax set yet — type the numbers below.</p>') +
+                : '<p class="ss-hint">No pax set on this campaign yet. Set them below and they will be saved to it.</p>') +
               '</div>'
             : '') +
 
@@ -224,9 +253,12 @@
             ? '<table class="ss-cov"><thead><tr><th></th>' +
               '<th class="n">Client picks</th><th class="n">You are sending</th><th></th></tr></thead><tbody>' +
               cov.map(function (r) {
-                var cls = r.have === 0 ? 'is-none' : (r.gap > 0 ? 'is-short' : 'is-ok');
-                var note = r.have === 0 ? 'none to pick from'
-                         : (r.gap > 0 ? 'short ' + r.gap : 'enough');
+                /* A band you have not asked for says nothing — it is neither
+                   covered nor short, you simply are not asking. */
+                var cls = !r.want ? '' : (r.have === 0 ? 'is-none' : (r.gap > 0 ? 'is-short' : 'is-ok'));
+                var note = !r.want ? 'not asked for'
+                         : (r.have === 0 ? 'none to pick from'
+                         : (r.gap > 0 ? 'short ' + r.gap : 'enough'));
                 var tier = window.tiers.tierByKey(r.tier);
                 return '<tr class="' + cls + '"><td>' +
                   esc(PLAT_LABEL[r.platform] || r.platform) + ' · ' + esc(tier.name) + '</td>' +
@@ -243,8 +275,7 @@
                   ' fewer profiles than you are asking the client to pick. You can still send — ' +
                   'they will see the number and not be able to reach it.</p>'
                 : '')
-            : '<p class="ss-hint">This campaign has no pax set. Pick a campaign that has some, ' +
-              'or send the list with no number for the client to hit.</p>') +
+            : '<p class="ss-hint">Tick some profiles first and their platforms and tiers will appear here.</p>') +
 
           '<h5 class="ss-h">Link</h5>' +
           '<div class="ss-row">' +
@@ -328,7 +359,7 @@
   }
 
   window.sendSheet = {
-    coverage: coverage, summary: summary,
+    coverage: coverage, bandRows: bandRows, summary: summary,
     validate: validate, expiryFrom: expiryFrom,
     open: open
   };
