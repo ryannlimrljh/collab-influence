@@ -17,6 +17,7 @@
   /* Stage order is the pipeline order. `dot` is a DLS token so the
      list's strip, the badge and the detail header agree on the hue. */
   var STAGES = [
+    {key: 'lead',      label: 'Lead',      short: 'Lead',      dot: 'var(--color-neutral-4)'},
     {key: 'sourcing',  label: 'Sourcing',            short: 'Sourcing',  dot: 'var(--color-navy)'},
     {key: 'drafting',  label: 'Drafting',            short: 'Drafting',  dot: 'var(--color-turquoise)'},
     {key: 'posting',   label: 'Posting',             short: 'Posting',   dot: 'var(--color-green)'},
@@ -51,6 +52,15 @@
     {key: 'turquoise', css: 'var(--color-turquoise)'}
   ];
 
+  /* Stages that count as live work. `lead` is a pitch, not a campaign yet,
+     so it stays out of the dashboard's active counts and the pipeline strip. */
+  function isActiveStage(key) { return key !== 'lead' && key !== 'completed'; }
+
+  /* The influencer records migration needs, injected rather than read off a
+     global so the store can be tested without loading a 283KB data file. */
+  var PEOPLE = {};
+  function setPeople(map) { PEOPLE = map || {}; }
+
   function load() {
     try { return JSON.parse(localStorage.getItem(KEY)) || {}; }
     catch (e) { return {}; }
@@ -75,7 +85,7 @@
     var out = base().filter(live).map(function (r) { return apply(r, s); })
       .concat(s.added.filter(live).map(function (r) { return apply(r, s); }));
     out.sort(function (a, b) { return (b.updatedAt || 0) - (a.updatedAt || 0); });
-    return out;
+    return out.map(function (c) { return window.campaignModel.migrate(c, PEOPLE); });
   }
   function get(id) {
     return merged().filter(function (c) { return c.id === id; })[0] || null;
@@ -109,7 +119,9 @@
     (c.batches || []).forEach(function (b) {
       (b.picks || []).forEach(function (p) {
         out.requested += 1;
-        out[p.status || 'none'] += 1;
+        /* Statuses live on the channels now; roll them up so the counts the
+           list and the header show keep meaning one row per creator. */
+        out[window.campaignModel.pickStatus(p)] += 1;
       });
     });
     return out;
@@ -168,6 +180,7 @@
     stageOf: stageOf, colorOf: colorOf, initials: initials,
     money: money, pickCounts: pickCounts, num: num,
     fmtDate: fmtDate, fmtRange: fmtRange, fmtNum: fmtNum, fmtRM: fmtRM, today: today,
+    isActiveStage: isActiveStage, setPeople: setPeople,
 
     merged: merged,
     get: get,
@@ -189,20 +202,111 @@
       save(s);
     },
 
-    /* ── Roster — who is on the campaign. `source` is 'team' (added by
-       hand) or 'client' (answered Selected on a preview link). */
-    addToRoster: function (id, infIds, source, batch) {
+    /* The ask. pax and platforms are derived from it, not typed, so the
+       list view keeps rendering without knowing about slots. */
+    setRequirement: function (id, requirement) {
+      return update(id, {
+        requirement: requirement,
+        pax: window.campaignModel.derivedPax({requirement: requirement}),
+        platforms: Object.keys(requirement)
+      });
+    },
+
+    /* Roster — one entry per creator per channel. */
+    addToRoster: function (id, entries, source, batch) {
       var c = get(id); if (!c) return null;
       var roster = (c.roster || []).slice();
-      infIds.forEach(function (inf) {
-        if (roster.some(function (r) { return r.inf === inf; })) return;
-        roster.push({inf: inf, source: source || 'team', batch: batch || null});
+      entries.forEach(function (e) {
+        if (roster.some(function (r) { return r.inf === e.inf && r.platform === e.platform; })) return;
+        roster.push({
+          inf: e.inf, platform: e.platform, tier: e.tier,
+          source: source || 'team', batch: batch == null ? null : batch,
+          state: e.state || 'confirmed', substitutedFor: e.substitutedFor || null
+        });
       });
       return update(id, {roster: roster});
     },
-    removeFromRoster: function (id, inf) {
+    removeFromRoster: function (id, inf, platform) {
       var c = get(id); if (!c) return null;
-      return update(id, {roster: (c.roster || []).filter(function (r) { return r.inf !== inf; })});
+      return update(id, {roster: (c.roster || []).filter(function (r) {
+        return !(r.inf === inf && (platform == null || r.platform === platform));
+      })});
+    },
+    /* The agency's availability call: approved -> confirmed, or unavailable,
+       which releases the slot without deleting the history. */
+    setRosterState: function (id, inf, platform, nextState) {
+      var c = get(id); if (!c) return null;
+      return update(id, {roster: (c.roster || []).map(function (r) {
+        return (r.inf === inf && r.platform === platform)
+          ? Object.assign({}, r, {state: nextState,
+              confirmedAt: nextState === 'confirmed' ? today() : r.confirmedAt})
+          : r;
+      })});
+    },
+
+    /* One channel's answer on one pick. `selected` puts that channel on the
+       roster as approved; any other answer takes back an entry the client's
+       own answer put there, and leaves a hand-added one alone. */
+    setChannelStatus: function (id, n, inf, platform, status) {
+      var c = get(id); if (!c) return null;
+      var batches = (c.batches || []).map(function (b) {
+        if (b.n !== n) return b;
+        return Object.assign({}, b, {picks: (b.picks || []).map(function (p) {
+          if (p.inf !== inf) return p;
+          var channels = Object.assign({}, p.channels);
+          channels[platform] = status;
+          return Object.assign({}, p, {channels: channels});
+        })});
+      });
+
+      var roster = (c.roster || []).slice();
+      var at = function (r) { return r.inf === inf && r.platform === platform; };
+      if (status === 'selected') {
+        if (!roster.some(at)) {
+          var ch = window.campaignModel.channelsOf(PEOPLE[inf])
+            .filter(function (x) { return x.platform === platform; })[0];
+          var t = ch ? window.tiers.tierOf(ch.followers) : null;
+          roster.push({
+            inf: inf, platform: platform, tier: t ? t.key : null,
+            source: 'client', batch: n, state: 'approved',
+            substitutedFor: null
+          });
+        }
+      } else {
+        roster = roster.filter(function (r) {
+          return !(at(r) && r.source === 'client' && r.batch === n);
+        });
+      }
+      return update(id, {batches: batches, roster: roster});
+    },
+
+    /* The campaign page still offers one status control per creator, so this
+       fans the answer out across every channel they are on. The share page
+       answers channels individually; this is the bridge until the slot board
+       replaces that control. */
+    setCreatorStatus: function (id, n, inf, status) {
+      var c = get(id); if (!c) return null;
+      var b = (c.batches || []).filter(function (x) { return x.n === n; })[0];
+      var p = b && (b.picks || []).filter(function (x) { return x.inf === inf; })[0];
+      if (!p) return c;
+      Object.keys(p.channels || {}).forEach(function (platform) {
+        c = window.campaignStore.setChannelStatus(id, n, inf, platform, status);
+      });
+      return c;
+    },
+
+    /* Patch a pick's own fields — the remarks. Status is not patchable here;
+       it belongs to the channels, via setChannelStatus or setCreatorStatus. */
+    updatePick: function (id, n, inf, patch) {
+      var c = get(id); if (!c) return null;
+      var clean = Object.assign({}, patch);
+      delete clean.status; delete clean.channels;
+      return update(id, {batches: (c.batches || []).map(function (b) {
+        if (b.n !== n) return b;
+        return Object.assign({}, b, {picks: (b.picks || []).map(function (p) {
+          return p.inf === inf ? Object.assign({}, p, clean) : p;
+        })});
+      })});
     },
 
     /* ── Preview batches — one per link sent to the client. */
@@ -217,25 +321,6 @@
       });
       update(id, {batches: batches});
       return n;
-    },
-    /* Patch one pick; a Selected answer also puts the person on the
-       roster, and taking it back removes them again if the client's
-       answer was the only reason they were there. */
-    updatePick: function (id, n, inf, patch) {
-      var c = get(id); if (!c) return null;
-      var batches = (c.batches || []).map(function (b) {
-        if (b.n !== n) return b;
-        return Object.assign({}, b, {picks: (b.picks || []).map(function (p) {
-          return p.inf === inf ? Object.assign({}, p, patch) : p;
-        })});
-      });
-      var roster = (c.roster || []).slice();
-      if (patch.status === 'selected') {
-        if (!roster.some(function (r) { return r.inf === inf; })) roster.push({inf: inf, source: 'client', batch: n});
-      } else if (patch.status) {
-        roster = roster.filter(function (r) { return !(r.inf === inf && r.source === 'client' && r.batch === n); });
-      }
-      return update(id, {batches: batches, roster: roster});
     },
     updateBatch: function (id, n, patch) {
       var c = get(id); if (!c) return null;

@@ -135,3 +135,45 @@ test('coverage counts candidate channels against the ask', () => {
   assert.deepEqual(cov.find(x => x.platform === 'instagram' && x.tier === 'mid'),
     {platform: 'instagram', tier: 'mid', want: 1, have: 1, gap: 0});
 });
+
+/* ── The creator-level rollup the campaign page still reads. */
+
+test('pickStatus takes the most positive answer across channels', () => {
+  assert.equal(M.pickStatus({channels: {tiktok: 'selected', instagram: 'rejected'}}), 'selected');
+  assert.equal(M.pickStatus({channels: {tiktok: 'kiv', instagram: 'rejected'}}), 'kiv');
+  assert.equal(M.pickStatus({channels: {tiktok: 'rejected', instagram: 'unavailable'}}), 'rejected');
+  assert.equal(M.pickStatus({channels: {tiktok: 'unavailable'}}), 'unavailable');
+});
+
+test('pickStatus is none when nothing is answered, or there are no channels', () => {
+  assert.equal(M.pickStatus({channels: {tiktok: 'none', instagram: 'none'}}), 'none');
+  assert.equal(M.pickStatus({channels: {}}), 'none');
+  assert.equal(M.pickStatus({}), 'none');
+  assert.equal(M.pickStatus(null), 'none');
+});
+
+test('pickStatus round-trips a migrated record, where channels agree', () => {
+  const out = M.migrate({roster: [], batches: [
+    {n: 1, picks: [{inf: 'inf-001', status: 'kiv'}]}
+  ]}, PEOPLE);
+  assert.equal(M.pickStatus(out.batches[0].picks[0]), 'kiv');
+});
+
+/* ── Load order must never decide whether data survives. */
+
+test('without people the record passes through in its stored shape', () => {
+  const stored = {
+    roster: [{inf: 'inf-001', source: 'client', batch: 1}],
+    batches: [{n: 1, picks: [{inf: 'inf-001', status: 'selected'}]}]
+  };
+  const out = M.migrate(stored, {});
+  assert.deepEqual(out.roster, stored.roster, 'roster is not emptied');
+  assert.equal(out.batches[0].picks[0].status, 'selected', 'the answer is not lost');
+  assert.equal(out.batches[0].picks[0].channels, undefined, 'nothing is half-migrated');
+  assert.deepEqual(out.requirement, {}, 'requirement is still defaulted');
+});
+
+test('with people present, a stale id is still dropped', () => {
+  const out = M.migrate({roster: [{inf: 'inf-999', source: 'team', batch: null}], batches: []}, PEOPLE);
+  assert.deepEqual(out.roster, []);
+});

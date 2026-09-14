@@ -21,6 +21,14 @@
     var out = Object.assign({}, c);
     out.requirement = c.requirement || {};
 
+    /* Without `people` we cannot tell which channels a creator has. Migrating
+       anyway would fan every pick's status into an empty `channels` map and
+       lose the answer, and empty every roster entry. So pass the record
+       through in its stored shape instead: pages that only need a headcount
+       (the campaigns list) need not load a 283KB influencer file, and load
+       order can never decide whether data survives. */
+    if (!Object.keys(people).length) return out;
+
     out.batches = (c.batches || []).map(function (b) {
       return Object.assign({}, b, {picks: (b.picks || []).map(function (p) {
         if (p.channels) return p;
@@ -34,6 +42,8 @@
       })});
     });
 
+    /* With `people` present, an id missing from it really is a stale
+       reference, and is dropped. */
     out.roster = [];
     (c.roster || []).forEach(function (r) {
       if (r.platform) { out.roster.push(r); return; }
@@ -49,6 +59,24 @@
     });
 
     return out;
+  }
+
+  /* ── One creator's answer, rolled up from their channels.
+
+     The data is per channel now, but the campaign page still shows one row
+     per creator until the slot board lands. Most-positive wins, so a creator
+     approved on TikTok and rejected on Instagram reads as approved rather
+     than disappearing from the selected count. Migrated records have the same
+     value on every channel, so this is lossless for anything that existed
+     before the split. */
+  var STATUS_ORDER = ['selected', 'kiv', 'rejected', 'unavailable'];
+  function pickStatus(p) {
+    var ch = (p && p.channels) || {};
+    var vals = Object.keys(ch).map(function (k) { return ch[k]; });
+    for (var i = 0; i < STATUS_ORDER.length; i++) {
+      if (vals.indexOf(STATUS_ORDER[i]) > -1) return STATUS_ORDER[i];
+    }
+    return 'none';
   }
 
   /* Requirement -> a flat, ordered list of asks. Object key order is
@@ -126,6 +154,7 @@
 
   window.campaignModel = {
     migrate: migrate, channelsOf: channelsOf,
+    pickStatus: pickStatus,
     slotsOf: slotsOf, derivedPax: derivedPax, slotStatus: slotStatus,
     shortfallOf: shortfallOf, coverageOf: coverageOf
   };

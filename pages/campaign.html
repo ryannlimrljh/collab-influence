@@ -542,13 +542,15 @@
 <script>window.INFLUENCER_STORE_KEY = 'collab-influencers-v2';</script>
 <script src="../shared/influencer-store.js?v=2"></script>
 <script src="../shared/campaigns-data.js?v=1"></script>
-<script src="../shared/campaign-store.js?v=3"></script>
+<script src="../shared/campaign-store.js?v=4"></script>
 <script src="../shared/campaign-form.js?v=3"></script>
 <script src="../shared/tiers.js?v=1"></script>
+<script src="../shared/campaign-model.js?v=2"></script>
 <script>
 (function () {
   'use strict';
   var S = window.campaignStore;
+  var M = window.campaignModel;
   var E = function (id) { return document.getElementById(id); };
   function esc(s){
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -575,6 +577,7 @@
   var INF = window.influencerStore ? influencerStore.merged(INFLUENCERS) : INFLUENCERS.slice();
   INF.sort(function(a, b){ return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1; });
   var byInf = {}; INF.forEach(function(r){ byInf[r.id] = r; });
+  campaignStore.setPeople(byInf);
 
   /* ── Avatars — harvested local photo first, unavatar as the runtime
      fallback, cached per profile under the same key the roster uses. */
@@ -792,8 +795,8 @@
     var open = !!openBatches[b.n];
     var f = batchFilter[b.n] || 'all';
     var counts = {all: b.picks.length};
-    S.PICK_STATUS.forEach(function(p){ counts[p.key] = b.picks.filter(function(x){ return (x.status || 'none') === p.key; }).length; });
-    var picks = f === 'all' ? b.picks : b.picks.filter(function(x){ return (x.status || 'none') === f; });
+    S.PICK_STATUS.forEach(function(p){ counts[p.key] = b.picks.filter(function(x){ return M.pickStatus(x) === p.key; }).length; });
+    var picks = f === 'all' ? b.picks : b.picks.filter(function(x){ return M.pickStatus(x) === f; });
     var chips = [{key:'all', label:'All'}].concat(S.PICK_STATUS.map(function(p){ return {key:p.key, label:p.label}; }));
     var tones = {selected:'tone-success', kiv:'tone-gold', rejected:'tone-error', unavailable:'tone-neutral'};
     var answered = b.picks.length - counts.none;
@@ -822,7 +825,7 @@
           '<td>' + esc((rec.niches || []).join(', ') || '—') + '</td>' +
           '<td>' + esc(rec.ethnicity || '—') + '</td>' +
           '<td><textarea data-kult-remark data-batch="' + b.n + '" data-inf="' + p.inf + '" placeholder="Why you suggest them">' + esc(p.kultRemark || '') + '</textarea></td>' +
-          '<td>' + statusBadge(p.status || 'none', b.n, p.inf) + '</td>' +
+          '<td>' + statusBadge(M.pickStatus(p), b.n, p.inf) + '</td>' +
           '<td><textarea data-client-remark data-batch="' + b.n + '" data-inf="' + p.inf + '" placeholder="What the client said">' + esc(p.clientRemark || '') + '</textarea></td></tr>';
       }).join('') : '<tr><td colspan="8" style="text-align:center; color:var(--color-neutral-5)">No one in this batch has that answer yet.</td></tr>') +
       '</tbody></table></div>' +
@@ -991,7 +994,7 @@
     } else if (b.dataset.setPick) {
       closeMenu();
       var n = Number(b.dataset.batch), inf = b.dataset.inf, st = b.dataset.setPick;
-      S.updatePick(c.id, n, inf, {status: st});
+      S.setCreatorStatus(c.id, n, inf, st);
       renderAll();
       var rec = byInf[inf];
       if (st === 'selected') toast((rec ? rec.name : 'Profile') + ' is now on the campaign.');
@@ -1126,7 +1129,12 @@
       renderAll();
       toast('Batch ' + n + ' created with ' + ids.length + (ids.length === 1 ? ' profile' : ' profiles') + '. Open link copies the preview URL.');
     } else {
-      S.addToRoster(c.id, ids, 'team', null);
+      S.addToRoster(c.id, ids.map(function(inf){
+        var top = (byInf[inf].platforms || []).filter(function(p){ return p.handle; })
+          .sort(function(a,b){ return (b.followers||0) - (a.followers||0); })[0];
+        var t = top ? window.tiers.tierOf(top.followers) : null;
+        return {inf: inf, platform: top ? top.platform : null, tier: t ? t.key : null};
+      }), 'team', null);
       renderAll();
       toast(ids.length + (ids.length === 1 ? ' profile' : ' profiles') + ' added to the campaign.');
     }
