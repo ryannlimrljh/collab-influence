@@ -43,13 +43,18 @@ does not appear, add a cache-buster: `?v=2`, `?v=3`, and so on.
 | File | What it is |
 |---|---|
 | `pages/influencers-v2.html` | **The current roster design.** |
-| `pages/campaigns.html` | **Campaigns list** — pipeline track, board view (drag a card between columns to change its stage) and table view, Add campaign sheet. |
-| `pages/campaign.html?id=…` | **Campaign detail** — stage track, run-date timeline, Overview and KOL Selection tabs; Documents and Drafts are designed placeholders for the next build. |
-
-Campaign records carry a `color` field from the live app's form. Nothing renders it any more (the card stripe and title bar were removed as noise); it is kept in the data so it can come back if the team gives it a meaning.
+| `pages/campaigns.html` | **Campaigns list** — pipeline track with a ghost *Lead* node, board view (drag a card between columns to change its stage) and table view, the stepped Add / Edit campaign sheet. |
+| `pages/campaign.html?id=…` | **Campaign page** — stage track, *Next up* strip, run-date timeline, deliverables ring, and the tabs Overview · Selection · Deliverables · Documents · Activity. Documents is still a designed placeholder that reads the roster. |
+| `pages/share.html?c=…&b=…` | **The client's page** for one sent batch — they answer per channel and it writes straight back to the campaign. |
 | `pages/influencers.html` | The earlier roster version, kept for comparison. Not maintained. |
 
+Campaign records carry a `color` field from the live app's form. Nothing renders it any more (the card stripe and title bar were removed as noise); it is kept in the data so it can come back if the team gives it a meaning.
+
 Open **http://localhost:8796/pages/campaigns.html** for the campaigns surface.
+
+### The campaign feature in one paragraph
+
+Two routes into the same thing. **Route 1:** create a campaign from the list — three steps, Basics, *The ask* (steppers per platform × tier; pax and platforms derive from it) and Commercials — with a *lead* switch on step 1 for anything not yet won. **Route 2:** multi-select on the roster page and *Create selection list*, which sends a batch against an existing campaign or a new lead. Either way you land on the campaign page, where *Next up* says the one thing to do, and **Selection** is a board laid out from the ask: one card per band, the client's approvals arriving as fills you confirm or mark unavailable, open slots offering *Send batch k* (the send sheet, destination locked) or *Add by hand*. Confirmed creators then get **Deliverables**, whose statuses feed the ring, and everything the store writes shows in **Activity** alongside the team's notes. The design specs are in `docs/superpowers/specs/`; the campaign overhaul one is the current map.
 
 Everything lives in that one file — markup, styles and behaviour — on purpose,
 so the prototype stays portable. It is long, but it is ordered: design tokens
@@ -67,8 +72,15 @@ shared/           generated data + small runtime helpers
   post-manifest.js       which profiles have post images (GENERATED)
   influencer-store.js    localStorage overlay: adds/edits/removes/pins
   campaigns-data.js      5 seeded sample campaigns (hand-written, safe to edit)
-  campaign-store.js      localStorage overlay + stage/status vocabularies + shared formatting
-  campaign-form.js       the Add / Edit campaign sheet, shared by both campaign pages
+  campaign-store.js      localStorage overlay, vocabularies (stages, tiers, pick answers,
+                         deliverable states), every write, and the activity log those writes leave
+  campaign-model.js      pure maths over a campaign: migration, slots and shortfall, the board's
+                         groups, nextUp, deliverable counts. No DOM, no storage — this is what the tests hit
+  campaign-form.js       the stepped Add / Edit campaign sheet, shared by both campaign pages
+  send-sheet.js          the "send this list to the client" sheet, shared by the roster and campaign pages
+  tiers.js               follower brackets (Seeder … Mega) — the one place they are defined
+tests/            node:test suites over the shared files (see below)
+docs/superpowers/specs/   the approved design specs, newest is the campaign overhaul
 collabrium-dls/   the Collabrium design system, vendored. Do not edit.
 assets/avatars/   harvested profile photos
 assets/posts/     harvested TikTok post images
@@ -151,15 +163,35 @@ and vice versa. To wipe everything back to the generated dataset, run
 
 Multi-select is deliberately **not** persisted — it is a working set for the
 action you are about to take, held in a plain `Set` called `selected`.
-"Generate Client Preview" opens **Send to campaign**: the selection becomes a
-preview batch on an existing campaign (or a new one via
-`campaigns.html?new=1&picks=…`) and you land on that campaign's KOL Selection
-tab. Campaign edits, rosters and batches live in `localStorage` under
+*Create selection list* opens the send sheet: the selection becomes a batch
+on an existing campaign or a new lead, and you land on that campaign's
+Selection tab with the batch open. Campaign edits, rosters, batches,
+deliverables and the activity log live in `localStorage` under
 `collab-campaigns-v1`; run `campaignStore.reset()` in the console to go back
 to the seeded five.
 
-The batch's "Open link" copies a placeholder URL. The client-facing preview
-page itself is still to come, and the toast says so.
+The seed is read-only and every page reads it through `campaignStore`, which
+migrates old shapes on the way out (creator-level roster entries become one
+per channel; a `{done, total}` deliverables pair keeps feeding the ring until
+the first real deliverable is added). The one wrinkle: migration needs the
+influencer map, which the campaigns *list* does not load, so legacy rosters
+pass through it unmigrated and the list falls back to Pax where it would
+otherwise show slots.
+
+**Cache-busting is manual.** Every shared script is loaded with `?v=N`; when
+you change one, bump its number on every page that loads it, or the browser
+keeps the old file and you will chase a bug that is not there.
+
+## Tests
+
+```bash
+node --test "tests/**/*.test.mjs"
+```
+
+They load the shared files into a small sandbox (`tests/helpers/load.mjs`)
+so they run without a browser. Anything that decides what a number means —
+tiers, slots, shortfall, nextUp, what the store logs — has a test; the
+pages themselves are verified by hand in the browser.
 
 ## Things that look wrong but are not
 
@@ -178,7 +210,10 @@ page itself is still to come, and the toast says so.
 ## Not done yet
 
 - 24 profiles still without a photo (rate-limited, re-runnable — see above).
-- The client-facing preview page (what "Open link" would open) does not exist yet.
-- Campaign Documents and Drafts tabs are placeholders: the roster shows, CoE/ADSIS
-  generation and deliverable tracking are the next build.
+- The campaign Documents tab is a placeholder that reads the roster; CoE/ADSIS
+  generation is a later build.
+- The client's page (`share.html`) only takes answers; it does not show
+  deliverables or drafts to the client yet.
+- `by` on activity entries is the constant *Digital Team* — there are no users
+  or permissions in the prototype.
 - Nothing is wired to a backend; all edits are local to the browser.
