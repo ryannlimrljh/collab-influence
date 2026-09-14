@@ -544,6 +544,7 @@
 <script src="../shared/campaigns-data.js?v=1"></script>
 <script src="../shared/campaign-store.js?v=3"></script>
 <script src="../shared/campaign-form.js?v=3"></script>
+<script src="../shared/tiers.js"></script>
 <script>
 (function () {
   'use strict';
@@ -562,13 +563,7 @@
   var PLAT_LABEL = {tiktok: 'TikTok', instagram: 'Instagram', xhs: 'Xiaohongshu'};
 
   /* ── Tiers + follower formatting, the influencers page's own brackets. */
-  var TIERS = [
-    {max:1e3, name:'Seeder', cls:'inf-tier-0'}, {max:5e3, name:'Nano', cls:'inf-tier-1'},
-    {max:2e4, name:'Micro', cls:'inf-tier-2'}, {max:1e5, name:'Mid', cls:'inf-tier-3'},
-    {max:5e5, name:'Macro', cls:'inf-tier-4'}, {max:Infinity, name:'Mega', cls:'inf-tier-5'}
-  ];
-  var TIER_DOT = {Seeder:'var(--color-neutral-4)', Nano:'var(--color-salmon-pink)', Micro:'var(--color-green)', Mid:'var(--color-navy)', Macro:'var(--color-orange)', Mega:'var(--color-amber)'};
-  function tierOf(n){ if (n == null) return null; for (var i = 0; i < TIERS.length; i++) if (n < TIERS[i].max) return TIERS[i]; return null; }
+  var TIERS = window.tiers.TIERS, tierOf = window.tiers.tierOf;
   function fmtFollowers(n){
     if (n == null) return '';
     if (n >= 1e6) return (n / 1e6).toFixed(n % 1e6 ? 1 : 0).replace(/\.0$/, '') + 'M';
@@ -857,12 +852,13 @@
     if (!plats.length) return '';
     var targets = b.paxTargets || {};
     return '<div class="cd-pax"><h5>Pax to select, per platform and tier</h5>' + plats.map(function(pl){
-      var tiers = TIERS.map(function(t){ return t.name; }).filter(function(n){ return bands[pl][n]; });
-      var total = tiers.reduce(function(a, n){ return a + bands[pl][n]; }, 0);
+      var tiers = TIERS.filter(function(t){ return bands[pl][t.name]; });
+      var total = tiers.reduce(function(a, t){ return a + bands[pl][t.name]; }, 0);
       return '<div class="cd-pax-plat"><span class="pl">' + PLAT_LABEL[pl] + '<span class="c">' + total + (total === 1 ? ' account' : ' accounts') + '</span></span><div class="cd-pax-row">' +
-        tiers.map(function(n){
+        tiers.map(function(t){
+          var n = t.name;
           var v = (targets[pl] || {})[n];
-          return '<div class="cd-pax-box"><span class="t"><span class="cmp-dot" style="background:' + TIER_DOT[n] + '"></span><b>' + n + '</b>(' + bands[pl][n] + ' shown)</span>' +
+          return '<div class="cd-pax-box"><span class="t"><span class="cmp-dot" style="background:' + t.dot + '"></span><b>' + n + '</b>(' + bands[pl][n] + ' shown)</span>' +
             '<input inputmode="numeric" placeholder="—" data-pax-target data-batch="' + b.n + '" data-plat="' + pl + '" data-tier="' + n + '" value="' + (v == null ? '' : esc(v)) + '" /></div>';
         }).join('') + '</div></div>';
     }).join('') + '<p class="hint">Leave a box blank to show that band with no instruction.</p></div>';

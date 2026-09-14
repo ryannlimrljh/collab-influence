@@ -604,24 +604,31 @@
     white-space:nowrap; border:1px solid transparent;}
   .inf-tier .dot{width:6px; height:6px; border-radius:var(--radius-pill);
     flex:none; background:currentColor;}
-  .inf-tier-0{background:var(--color-neutral-2); color:var(--color-neutral-5);}
-  .inf-tier-1{background:var(--color-wood-bg); color:var(--color-salmon-pink);
+  .inf-tier-seeder{background:var(--color-neutral-2); color:var(--color-neutral-5);}
+  .inf-tier-koc{background:var(--color-neutral-2); color:var(--color-turquoise);}
+  .inf-tier-koc .dot{background:var(--color-turquoise);}
+  .inf-tier-nano{background:var(--color-wood-bg); color:var(--color-salmon-pink);
     border-color:color-mix(in srgb, var(--color-salmon-pink) 22%, transparent);}
-  .inf-tier-2{background:var(--color-earth-bg); color:var(--color-green);
+  .inf-tier-nano .dot{background:var(--color-salmon-pink);}
+  .inf-tier-micro{background:var(--color-earth-bg); color:var(--color-green);
     border-color:color-mix(in srgb, var(--color-green) 22%, transparent);}
-  .inf-tier-3{background:var(--color-water-bg); color:var(--color-navy);
+  .inf-tier-micro .dot{background:var(--color-green);}
+  .inf-tier-mid{background:var(--color-water-bg); color:var(--color-navy);
     border-color:color-mix(in srgb, var(--color-navy) 22%, transparent);}
-  .inf-tier-4{background:var(--color-fire-bg); color:var(--color-orange);
+  .inf-tier-mid .dot{background:var(--color-navy);}
+  .inf-tier-macro{background:var(--color-fire-bg); color:var(--color-orange);
     border-color:color-mix(in srgb, var(--color-orange) 22%, transparent);}
+  .inf-tier-macro .dot{background:var(--color-orange);}
   /* Mega follows the same formula as every other tier — pale element
      background, element-coloured text and dot. The solid amber fill it
      had before was the only pill built differently, so it read as a
      mistake rather than as emphasis. Amber on its own pale ground is
      too light for body text, so the label takes the darker bronze the
      DLS pairs with gold. */
-  .inf-tier-5{background:var(--color-gold-bg); color:#8A5A00;
+  .inf-tier-mega{background:var(--color-gold-bg); color:#8A5A00;
     border-color:color-mix(in srgb, var(--color-amber) 40%, transparent);}
-  .inf-tier-5 .dot{background:var(--color-amber);}
+  .inf-tier-mega .dot{background:var(--color-amber);}
+  .c-tag-koc{color:var(--color-turquoise);}
 
   .inf-list-plat{white-space:nowrap;}
   .inf-plat{display:flex; align-items:center; justify-content:flex-end;
@@ -1097,6 +1104,7 @@
 <script src="../shared/avatar-manifest.js?v=2"></script>
 <script>window.INFLUENCER_STORE_KEY = 'collab-influencers-v2';</script>
 <script src="../shared/influencer-store.js?v=2"></script>
+<script src="../shared/tiers.js"></script>
 <script>
 (function () {
   'use strict';
@@ -1110,21 +1118,7 @@
     if (n >= 1e3) return (n / 1e3).toFixed(n % 1e3 ? 1 : 0).replace(/\.0$/, '') + 'K';
     return String(n);
   }
-  /* rank drives the list's ordinal ramp (see .inf-tier-*); cls stays for
-     the cards' element-coloured tier dot. */
-  var TIERS = [
-    {max:1e3,  name:'Seeder', cls:'',            rank:0},
-    {max:5e3,  name:'Nano',   cls:'c-tag-wood',  rank:1},
-    {max:2e4,  name:'Micro',  cls:'c-tag-earth', rank:2},
-    {max:1e5,  name:'Mid',    cls:'c-tag-water', rank:3},
-    {max:5e5,  name:'Macro',  cls:'c-tag-fire',  rank:4},
-    {max:Infinity, name:'Mega', cls:'c-tag-gold', rank:5}
-  ];
-  function tierOf(n){
-    if (n == null) return null;
-    for (var i = 0; i < TIERS.length; i++) if (n < TIERS[i].max) return TIERS[i];
-    return null;
-  }
+  var TIERS = window.tiers.TIERS, tierOf = window.tiers.tierOf;
   function esc(s){
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
@@ -1291,11 +1285,6 @@
   /* ── Card render — reference-1 anatomy: centered avatar, name, quiet
      meta/niche lines, then the follower-number stat row. Tier shows as
      a small element-color dot on the stat label. */
-  var TIER_DOT = {
-    'c-tag-wood': 'var(--color-salmon-pink)', 'c-tag-earth': 'var(--color-green)',
-    'c-tag-water': 'var(--color-navy)', 'c-tag-fire': 'var(--color-orange)',
-    'c-tag-gold': 'var(--color-amber)', '': 'var(--color-neutral-4)'
-  };
   function cardHTML(r){
     var meta = [r.age, r.gender, r.location].filter(Boolean).join(' · ') || '—';
     var nicheline = (r.niches || []).join(' · ');
@@ -1303,10 +1292,10 @@
       var t = tierOf(p.followers);
       var inner = '<span class="num">' + (p.followers != null ? fmtFollowers(p.followers) : '—') + '</span>' +
         '<span class="inf-lblwrap"><span class="lbl">' +
-        (t ? '<span class="tdot" style="background:' + TIER_DOT[t.cls] + '"></span>' : '') +
+        (t ? '<span class="tdot" style="background:' + t.dot + '"></span>' : '') +
         esc(p.platform === 'xhs' ? 'XHS' : p.label) + '</span>' +
-        (t ? '<span class="inf-tier inf-tier-' + t.rank + '">' +
-             (t.rank ? '<span class="dot"></span>' : '') + t.name + '</span>' : '') +
+        (t ? '<span class="inf-tier inf-tier-' + t.key + '">' +
+             (t.key !== 'seeder' ? '<span class="dot"></span>' : '') + t.name + '</span>' : '') +
         '</span>';
       var title = (p.handle ? '@' + esc(p.handle) + ' · ' : '') + (t ? t.name : '');
       return p.link
@@ -1506,8 +1495,8 @@
       return '<td class="inf-list-plat"><span class="inf-plat">' +
         '<span class="pnum">' + (p && p.followers != null ? fmtFollowers(p.followers) : '—') + '</span>' +
         '<span class="ptier">' +
-        (t ? '<span class="inf-tier inf-tier-' + t.rank + '">' +
-             (t.rank ? '<span class="dot"></span>' : '') + t.name + '</span>' : '') +
+        (t ? '<span class="inf-tier inf-tier-' + t.key + '">' +
+             (t.key !== 'seeder' ? '<span class="dot"></span>' : '') + t.name + '</span>' : '') +
         '</span></span></td>';
     }
     var sel = selected.has(r.id);
@@ -2268,8 +2257,8 @@
       return '<div class="inf-kv"><dt>' + esc(p.label) + '</dt><dd>' +
         (p.link ? '<a href="' + esc(p.link) + '" target="_blank" rel="noopener" style="color:var(--color-navy)">@' + esc(p.handle) + '</a>' : (p.handle ? '@' + esc(p.handle) : '—')) +
         (p.followers != null ? ' · ' + fmtFollowers(p.followers) + ' followers' : '') +
-        (t ? ' <span class="inf-tier inf-tier-' + t.rank + '">' +
-             (t.rank ? '<span class="dot"></span>' : '') + t.name + '</span>' : '') +
+        (t ? ' <span class="inf-tier inf-tier-' + t.key + '">' +
+             (t.key !== 'seeder' ? '<span class="dot"></span>' : '') + t.name + '</span>' : '') +
         '</dd></div>';
     }).join('');
     var pii = r.pii || {};
