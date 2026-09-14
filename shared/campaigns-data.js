@@ -15,7 +15,18 @@ window.CAMPAIGNS = [
     platforms: ['tiktok', 'instagram'], pax: 30, quote: 13000, cost: 12000,
     picPct: 30, overseerPct: 70, remarks: '',
     createdAt: 1787000000000, updatedAt: 1788206789329,
-    deliverables: {done: 1, total: 8},
+    /* Eight planned, one out the door — the same 1/8 the ring showed when
+       this was just a pair of numbers. */
+    deliverables: [
+      {id: 'd-001-1', inf: 'inf-195', platform: 'tiktok', kind: 'video', dueAt: '2026-09-16', link: 'https://www.tiktok.com/@abbysuehaiveey/video/7412', caption: 'Morning routine with Darlie — the 2-minute rule my kids actually follow.', status: 'posted', clientApproval: 'approved', internalNote: 'Went live on time. Pull the 48h numbers Thursday.', clientNote: 'Love this one.'},
+      {id: 'd-001-2', inf: 'inf-195', platform: 'instagram', kind: 'reel', dueAt: '2026-09-18', link: 'https://drive.google.com/darlie/abby-reel-v2', caption: 'Same routine, Instagram cut.', status: 'approved', clientApproval: 'approved', internalNote: '', clientNote: 'Approved v2, thanks for trimming the intro.'},
+      {id: 'd-001-3', inf: 'inf-111', platform: 'tiktok', kind: 'video', dueAt: '2026-09-17', link: 'https://drive.google.com/darlie/abelizzati-v1', caption: 'Brushing after iftar — a small habit that stuck.', status: 'review', clientApproval: 'changes', internalNote: 'Client wants the product shot earlier.', clientNote: 'Can the tube appear in the first 3 seconds?'},
+      {id: 'd-001-4', inf: 'inf-111', platform: 'instagram', kind: 'post', dueAt: '2026-09-20', link: '', caption: '', status: 'drafted', clientApproval: 'pending', internalNote: 'Carousel, 4 frames.', clientNote: ''},
+      {id: 'd-001-5', inf: 'inf-209', platform: 'tiktok', kind: 'video', dueAt: '2026-09-19', link: '', caption: 'Gamer dental hygiene — yes it is a thing.', status: 'drafted', clientApproval: 'pending', internalNote: '', clientNote: ''},
+      {id: 'd-001-6', inf: 'inf-209', platform: 'instagram', kind: 'story', dueAt: '2026-09-19', link: '', caption: '', status: 'not_started', clientApproval: 'pending', internalNote: 'Same day as the video.', clientNote: ''},
+      {id: 'd-001-7', inf: 'inf-338', platform: 'tiktok', kind: 'video', dueAt: '2026-09-24', link: '', caption: '', status: 'not_started', clientApproval: 'pending', internalNote: '', clientNote: ''},
+      {id: 'd-001-8', inf: 'inf-338', platform: 'instagram', kind: 'reel', dueAt: '2026-09-26', link: '', caption: '', status: 'not_started', clientApproval: 'pending', internalNote: '', clientNote: ''}
+    ],
     roster: [
       {inf: 'inf-195', source: 'team', batch: 1},
       {inf: 'inf-111', source: 'team', batch: null},

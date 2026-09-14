@@ -465,17 +465,51 @@
   .cd-picker-foot{display:flex; align-items:center; gap:var(--spacing-8);}
   .cd-picker-foot .cnt{flex:1; font-size:var(--text-body2-size); color:var(--color-neutral-5);}
 
-  /* ── Drafts + documents placeholders. */
-  .cd-draft{background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);
-    border-radius:var(--radius-lg); margin-bottom:var(--spacing-8); overflow:hidden;}
-  .cd-draft-head{display:flex; align-items:center; gap:var(--spacing-12);
-    padding:var(--spacing-12) var(--spacing-16); cursor:pointer;}
-  .cd-draft-head .n{font-weight:700; color:var(--color-neutral-9);}
-  .cd-draft-head .s{font-size:var(--text-caption-size); color:var(--color-neutral-5);}
-  .cd-draft-head .r{margin-left:auto; display:flex; align-items:center; gap:var(--spacing-8);
-    font-size:var(--text-caption-size); color:var(--color-neutral-5);}
-  .cd-draft-body{padding:0 var(--spacing-16) var(--spacing-16); font-size:var(--text-body2-size); color:var(--color-neutral-5);}
-  .cd-draft-body[hidden]{display:none;}
+  /* ── Deliverables — one section per confirmed creator, a table of what
+     they owe. Fields edit in place and save on change; the two states are
+     badge menus, the same control the board uses for the client's answer. */
+  .cd-dl{background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg);
+    margin-bottom:var(--spacing-12); overflow:hidden;}
+  .cd-dl-head{display:flex; align-items:center; gap:var(--spacing-12); padding:var(--spacing-12) var(--spacing-16);
+    border-bottom:1px solid var(--color-neutral-3);}
+  .cd-dl-head .c-card-profile-avatar{width:36px; height:36px; flex:none; font-size:12px;}
+  .cd-dl-head .t{min-width:0; flex:1;}
+  .cd-dl-head .n{display:block; font-weight:800; color:var(--color-neutral-9); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cd-dl-head .s{display:flex; flex-wrap:wrap; gap:6px; margin-top:3px;}
+  .cd-dl-head .ch{display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:600; color:var(--color-neutral-6);
+    height:20px; padding:0 8px; border-radius:var(--radius-pill); background:var(--color-neutral-2);}
+  .cd-dl-head .ch i{font-size:12px;}
+  .cd-dl-head .cnt{font-size:var(--text-caption-size); color:var(--color-neutral-5); font-variant-numeric:tabular-nums; flex:none;}
+  .cd-dl-head .cnt b{color:var(--color-neutral-9);}
+  .cd-dl-wrap{overflow-x:auto;}
+  .cd-dl-table{width:100%; min-width:1040px; border-collapse:collapse; table-layout:fixed;}
+  .cd-dl-table th{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow);
+    color:var(--color-neutral-5); text-align:left; padding:8px 10px; border-bottom:1px solid var(--color-neutral-2); white-space:nowrap;}
+  .cd-dl-table th:first-child, .cd-dl-table td:first-child{padding-left:var(--spacing-16);}
+  .cd-dl-table td{padding:6px 10px; border-bottom:1px solid var(--color-neutral-2); vertical-align:middle;}
+  .cd-dl-table tr:last-child td{border-bottom:0;}
+  .cd-dl-table tr:hover td{background:var(--color-neutral-2);}
+  .cd-dl-table input, .cd-dl-table select{width:100%; height:32px; padding:0 8px; border:1px solid transparent; border-radius:var(--radius-sm);
+    background:transparent; font:inherit; font-size:var(--text-caption-size); color:var(--color-neutral-9);
+    transition:border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);}
+  .cd-dl-table input::placeholder{color:var(--color-neutral-4);}
+  .cd-dl-table tr:hover input, .cd-dl-table tr:hover select{border-color:var(--color-neutral-3); background:var(--color-neutral-1);}
+  .cd-dl-table input:focus, .cd-dl-table select:focus{outline:none; border-color:var(--color-obsidian); background:var(--color-neutral-1); box-shadow:var(--shadow-focus);}
+  .cd-dl-table select{appearance:none; -webkit-appearance:none; padding-right:22px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23777' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 8px center;}
+  .cd-dl-table .kind{display:flex; align-items:center; gap:6px;}
+  .cd-dl-table .kind i{font-size:var(--icon-sm); color:var(--color-neutral-6); flex:none;}
+  .cd-dl-table .lnk{display:flex; align-items:center; gap:4px;}
+  .cd-dl-table .lnk a{flex:none; width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
+    border-radius:var(--radius-sm); color:var(--color-neutral-6);}
+  .cd-dl-table .lnk a:hover{background:var(--color-neutral-3); color:var(--color-neutral-9);}
+  .cd-dl-table input.is-late{color:var(--color-red); font-weight:700;}
+  .cd-dl-table .cmp-stage{max-width:100%;}
+  .cd-dl-empty{display:flex; align-items:center; justify-content:center; gap:var(--spacing-8); padding:var(--spacing-16);
+    font-size:var(--text-body2-size); color:var(--color-neutral-5);}
+  .cd-dl-legacy{margin:0 0 var(--spacing-16); font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+  .cd-dl-row.is-new td{animation:cd-act-in 420ms var(--ease-settle) both;}
   .c-switch-track{cursor:pointer;}
 
   .cmp-scrim{position:fixed; inset:0; z-index:400; background:var(--shadow-overlay);
@@ -695,10 +729,10 @@
 <script src="../shared/avatar-manifest.js?v=2"></script>
 <script>window.INFLUENCER_STORE_KEY = 'collab-influencers-v2';</script>
 <script src="../shared/influencer-store.js?v=2"></script>
-<script src="../shared/campaigns-data.js?v=5"></script>
+<script src="../shared/campaigns-data.js?v=6"></script>
 <script src="../shared/tiers.js?v=1"></script>
 <script src="../shared/campaign-model.js?v=6"></script>
-<script src="../shared/campaign-store.js?v=8"></script>
+<script src="../shared/campaign-store.js?v=9"></script>
 <script src="../shared/campaign-form.js?v=4"></script>
 <script src="../shared/send-sheet.js?v=8"></script>
 <script>
@@ -1155,20 +1189,81 @@
       }).join('') + '</tbody></table></div>';
     hydrateAvatars(pan);
   }
+  var dlFlashId = null;
+  function dlBadge(list, key, attr, did){
+    var p = list.filter(function(x){ return x.key === key; })[0] || list[0];
+    return '<button type="button" class="cmp-stage" ' + attr + '="' + p.key + '" data-did="' + did + '" aria-haspopup="menu">' +
+      '<span class="cmp-dot" style="background:' + p.dot + '"></span><span class="t">' + p.label + '</span><i class="ph ph-caret-down"></i></button>';
+  }
+  function dlRow(d, channels){
+    var opts = [];
+    channels.forEach(function(pl){ (S.DELIV_KINDS[pl] || []).forEach(function(k){ opts.push({v: pl + '/' + k, l: (PLAT_LABEL[pl] || pl) + ' · ' + k}); }); });
+    if (!opts.some(function(o){ return o.v === d.platform + '/' + d.kind; })) opts.unshift({v: d.platform + '/' + d.kind, l: (PLAT_LABEL[d.platform] || d.platform) + ' · ' + d.kind});
+    var late = d.dueAt && d.dueAt < S.today() && d.status !== 'posted';
+    return '<tr class="cd-dl-row' + (d.id === dlFlashId ? ' is-new' : '') + '" data-did="' + esc(d.id) + '">' +
+      '<td><span class="kind">' + (PLAT_ICON[d.platform] || '') + '<select data-dl="kind" data-did="' + esc(d.id) + '" aria-label="Kind">' + opts.map(function(o){
+        return '<option value="' + esc(o.v) + '"' + (o.v === d.platform + '/' + d.kind ? ' selected' : '') + '>' + esc(o.l) + '</option>'; }).join('') + '</select></span></td>' +
+      '<td><input type="date" data-dl="dueAt" data-did="' + esc(d.id) + '" value="' + esc(d.dueAt || '') + '" class="' + (late ? 'is-late' : '') + '" aria-label="Due date"' + (late ? ' title="Past due"' : '') + ' /></td>' +
+      '<td><span class="lnk"><input data-dl="link" data-did="' + esc(d.id) + '" value="' + esc(d.link || '') + '" placeholder="Paste a link" aria-label="Link" />' +
+        (d.link ? '<a href="' + esc(d.link) + '" target="_blank" rel="noopener" title="Open link" aria-label="Open link"><i class="ph ph-arrow-square-out"></i></a>' : '') + '</span></td>' +
+      '<td><input data-dl="caption" data-did="' + esc(d.id) + '" value="' + esc(d.caption || '') + '" placeholder="Caption" aria-label="Caption" /></td>' +
+      '<td>' + dlBadge(S.DELIV_STATUS, d.status, 'data-dl-status', d.id) + '</td>' +
+      '<td>' + dlBadge(S.CLIENT_APPROVAL, d.clientApproval, 'data-dl-client', d.id) + '</td>' +
+      '<td><input data-dl="internalNote" data-did="' + esc(d.id) + '" value="' + esc(d.internalNote || '') + '" placeholder="For the team" aria-label="Internal note" /></td>' +
+      '<td><input data-dl="clientNote" data-did="' + esc(d.id) + '" value="' + esc(d.clientNote || '') + '" placeholder="What the client said" aria-label="Client note" /></td>' +
+      '<td><button class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-trash" type="button" data-dl-remove="' + esc(d.id) + '" aria-label="Remove deliverable"><i class="ph ph-trash"></i></button></td></tr>';
+  }
   function renderDrafts(){
-    var roster = c.roster || [];
     var pan = E('pan-deliverables');
-    if (!roster.length) {
-      pan.innerHTML = '<div class="cd-note">Nobody is on this campaign yet — <button class="c-empty-link" type="button" data-go-tab="selection">confirm influencers in Selection first</button>.</div>';
+    var creators = M.confirmedCreators(c);
+    var d = M.deliverableCounts(c);
+    var list = d.list ? c.deliverables : [];
+    if (!creators.length) {
+      pan.innerHTML = '<div class="cd-note">Nobody is confirmed on this campaign yet — <button class="c-empty-link" type="button" data-go-tab="selection">confirm influencers in Selection first</button>.</div>';
       return;
     }
-    pan.innerHTML = roster.map(function(r){
-      var rec = byInf[r.inf] || {id: r.inf, name: 'Unknown profile'};
-      return '<div class="cd-draft"><div class="cd-draft-head" data-draft-toggle="' + r.inf + '">' +
-        '<span class="n">' + esc(rec.name) + '</span><span class="s">0 deliverables</span>' +
-        '<span class="r">Preview: <span class="c-switch-track on" role="switch" aria-checked="true" aria-label="Show in client preview"><span class="c-switch-thumb"></span></span><i class="ph ph-caret-down"></i></span></div>' +
-        '<div class="cd-draft-body" hidden>Deliverables, captions and client approval land here in the next build. Nothing has been drafted for ' + esc(rec.name) + ' yet.</div></div>';
+    var counts = {};
+    S.DELIV_STATUS.forEach(function(st){ counts[st.key] = list.filter(function(x){ return x.status === st.key; }).length; });
+    var html = '';
+    if (list.length) {
+      html += '<div class="cd-sum"><div class="cd-sum-line"><span class="say"><b>' + list.length + (list.length === 1 ? ' deliverable' : ' deliverables') + '</b>' +
+        S.DELIV_STATUS.slice().reverse().filter(function(st){ return counts[st.key]; }).map(function(st){
+          return '<span class="sep">·</span><span class="k"><span class="cmp-dot" style="background:' + st.dot + '"></span>' + counts[st.key] + ' ' + st.label.toLowerCase() + '</span>';
+        }).join('') + '</span></div>' +
+        '<div class="c-progress-track size-compact stacked" role="img" aria-label="' + counts.posted + ' of ' + list.length + ' posted">' +
+        S.DELIV_STATUS.slice().reverse().filter(function(st){ return st.key !== 'not_started' && counts[st.key]; }).map(function(st){
+          return '<div class="c-progress-stack-segment" style="width:' + (counts[st.key] / list.length * 100) + '%; background:' + st.dot + '"></div>';
+        }).join('') + '<div class="c-progress-stack-remainder"></div></div></div>';
+    } else if (!d.list && d.total) {
+      html += '<p class="cd-dl-legacy">The ring counts <b>' + d.done + ' of ' + d.total + '</b> from the old record. Add a deliverable and this list becomes the truth.</p>';
+    }
+    /* Roster order, so the sections sit the way the board lists them. */
+    var order = {}; (c.roster || []).forEach(function(r, i){ if (order[r.inf] == null) order[r.inf] = i; });
+    creators.sort(function(a, b){ return (order[a] || 0) - (order[b] || 0); });
+    html += creators.map(function(inf){
+      var rec = byInf[inf] || {id: inf, name: 'Unknown profile', platforms: []};
+      var fills = (c.roster || []).filter(function(r){ return r.inf === inf && r.state === 'confirmed'; });
+      var channels = fills.map(function(r){ return r.platform; });
+      var mine = list.filter(function(x){ return x.inf === inf; });
+      var posted = mine.filter(function(x){ return x.status === 'posted'; }).length;
+      var chips = fills.map(function(r){
+        var ch = (rec.platforms || []).filter(function(x){ return x.platform === r.platform; })[0];
+        return '<span class="ch">' + (PLAT_ICON[r.platform] || '') + (ch ? '@' + esc(ch.handle) : esc(PLAT_LABEL[r.platform] || r.platform)) + (r.tier ? ' · ' + esc(tierName(r.tier)) : '') + '</span>';
+      }).join('');
+      return '<div class="cd-dl" data-dl-creator="' + esc(inf) + '"><div class="cd-dl-head">' + avatarHtml(rec) +
+        '<span class="t"><span class="n">' + esc(rec.name) + '</span><span class="s">' + chips + '</span></span>' +
+        '<span class="cnt">' + (mine.length ? '<b>' + mine.length + '</b>' + (mine.length === 1 ? ' deliverable' : ' deliverables') + ' · <b>' + posted + '</b> posted' : 'nothing planned') + '</span>' +
+        '<button class="c-btn c-btn-secondary c-btn-sm" type="button" data-dl-add="' + esc(inf) + '" data-plat="' + esc(channels[0] || 'tiktok') + '"><i class="ph ph-plus"></i> Add deliverable</button></div>' +
+        (mine.length
+          ? '<div class="cd-dl-wrap"><table class="cd-dl-table"><colgroup><col style="width:170px" /><col style="width:140px" /><col style="width:15%" /><col style="width:20%" /><col style="width:136px" /><col style="width:150px" /><col style="width:14%" /><col style="width:14%" /><col style="width:44px" /></colgroup>' +
+            '<thead><tr><th>Kind</th><th>Due</th><th>Link</th><th>Caption</th><th>Status</th><th>Client</th><th>Internal note</th><th>Client note</th><th><span class="sr-only">Remove</span></th></tr></thead><tbody>' +
+            mine.map(function(x){ return dlRow(x, channels); }).join('') + '</tbody></table></div>'
+          : '<div class="cd-dl-empty">Nothing planned for ' + esc(rec.name.split(' ')[0]) + ' yet.<button class="c-empty-link" type="button" data-dl-add="' + esc(inf) + '" data-plat="' + esc(channels[0] || 'tiktok') + '">Add the first one</button></div>') +
+      '</div>';
     }).join('');
+    pan.innerHTML = html;
+    dlFlashId = null;
+    hydrateAvatars(pan);
   }
 
   /* ── Tabs. */
@@ -1199,11 +1294,11 @@
   /* ── Activity. */
   var actFilter = 'all', actDraft = '', actFlashAt = null;
   var ACT_ICON = {create: 'ph-flag', stage: 'ph-arrow-right', batch: 'ph-paper-plane-tilt', answer: 'ph-chat-circle-text',
-                  roster: 'ph-user-check', edit: 'ph-pencil-simple', note: 'ph-note-pencil'};
+                  roster: 'ph-user-check', edit: 'ph-pencil-simple', note: 'ph-note-pencil', deliverable: 'ph-film-strip'};
   var ACT_FILTERS = [
     {key: 'all', label: 'All', types: null},
     {key: 'note', label: 'Notes', types: ['note']},
-    {key: 'client', label: 'Client', types: ['batch', 'answer']},
+    {key: 'client', label: 'Client', types: ['batch', 'answer'], refClient: true},
     {key: 'stage', label: 'Stage', types: ['stage', 'create']}
   ];
   function relTime(iso){
@@ -1238,16 +1333,18 @@
     var ref = a.ref || {};
     var link = a.type === 'batch' || a.type === 'answer' ? (ref.batch != null ? '<span>·</span><button type="button" data-act-batch="' + ref.batch + '">Open batch ' + ref.batch + '</button>' : '')
              : a.type === 'roster' && ref.inf ? '<span>·</span><button type="button" data-act-fill="' + esc(ref.inf) + '/' + esc(ref.platform || '') + '">Show on the board</button>'
-             : a.type === 'edit' ? '<span>·</span><button type="button" data-act-ask>See the ask</button>' : '';
+             : a.type === 'edit' ? '<span>·</span><button type="button" data-act-ask>See the ask</button>'
+             : a.type === 'deliverable' ? '<span>·</span><button type="button" data-act-tab="deliverables">Open deliverables</button>' : '';
     return '<div class="cd-act is-' + esc(a.type) + (a.at === actFlashAt ? ' is-new' : '') + '"><span class="ico"><i class="ph ' + (ACT_ICON[a.type] || 'ph-circle') + '"></i></span>' +
       '<div class="body"><p class="txt">' + esc(a.text) + '</p><span class="meta"><b>' + esc(a.by || 'Digital Team') + '</b><span>·</span><time datetime="' + esc(a.at) + '" title="' + esc(absTime(a.at)) + '">' + esc(relTime(a.at)) + '</time>' + link + '</span></div></div>';
   }
   function renderActivity(){
     var all = (c.activity || []).slice().reverse();
     var counts = {};
-    ACT_FILTERS.forEach(function(f){ counts[f.key] = f.types ? all.filter(function(a){ return f.types.indexOf(a.type) > -1; }).length : all.length; });
+    function matches(f, a){ return !f.types || f.types.indexOf(a.type) > -1 || (f.refClient && a.ref && a.ref.client); }
+    ACT_FILTERS.forEach(function(f){ counts[f.key] = all.filter(function(a){ return matches(f, a); }).length; });
     var f = ACT_FILTERS.filter(function(x){ return x.key === actFilter; })[0] || ACT_FILTERS[0];
-    var list = f.types ? all.filter(function(a){ return f.types.indexOf(a.type) > -1; }) : all;
+    var list = all.filter(function(a){ return matches(f, a); });
     var html = '<div class="cd-composer"><textarea id="cdNoteText" rows="1" placeholder="Add a note — what the client said, what to remember, what changed" aria-label="Add a note">' + esc(actDraft) + '</textarea>' +
       '<div class="foot"><span class="hint"><kbd>' + (navigator.platform.indexOf('Mac') > -1 ? '⌘' : 'Ctrl') + '</kbd> + <kbd>↵</kbd> to add</span>' +
       '<button class="c-btn c-btn-primary c-btn-sm" type="button" id="cdNoteAdd"' + (actDraft.trim() ? '' : ' disabled') + '><i class="ph ph-note-pencil"></i> Add note</button></div></div>';
@@ -1299,6 +1396,7 @@
       return;
     }
     if (e.target.closest('[data-act-ask]')) return setTab('overview');
+    var at = e.target.closest('[data-act-tab]'); if (at) return setTab(at.dataset.actTab);
   });
   E('pan-activity').addEventListener('input', function(e){
     if (e.target.id !== 'cdNoteText') return;
@@ -1360,6 +1458,16 @@
         return '<button type="button" class="cmp-menu-item" data-set-pick="' + p.key + '" data-batch="' + ps.dataset.batch + '" data-inf="' + ps.dataset.inf + '" data-plat="' + ps.dataset.plat + '"><span class="cmp-dot" style="background:' + p.dot + '"></span>' + p.label + (on ? '<i class="ph ph-check chk"></i>' : '') + '</button>';
       }).join(''));
     }
+    var ds = e.target.closest('[data-dl-status], [data-dl-client]');
+    if (ds) {
+      e.stopPropagation();
+      if (menuAnchor === ds) return closeMenu();
+      var isStatus = ds.hasAttribute('data-dl-status');
+      var list = isStatus ? S.DELIV_STATUS : S.CLIENT_APPROVAL, cur = isStatus ? ds.dataset.dlStatus : ds.dataset.dlClient;
+      return openMenu(ds, list.map(function(p){
+        return '<button type="button" class="cmp-menu-item" data-set-dl="' + (isStatus ? 'status' : 'clientApproval') + '" data-val="' + p.key + '" data-did="' + ds.dataset.did + '"><span class="cmp-dot" style="background:' + p.dot + '"></span>' + p.label + (p.key === cur ? '<i class="ph ph-check chk"></i>' : '') + '</button>';
+      }).join(''));
+    }
     var ct = e.target.closest('[data-count-toward]');
     if (ct) {
       e.stopPropagation();
@@ -1383,6 +1491,12 @@
       renderAll();
       var rec = byInf[inf];
       if (st === 'selected') toast((rec ? rec.name : 'Profile') + ' approved on ' + (PLAT_LABEL[pl] || pl) + ' — confirm their availability on the board.');
+    } else if (b.dataset.setDl) {
+      closeMenu();
+      var patchDl = {}; patchDl[b.dataset.setDl] = b.dataset.val;
+      S.updateDeliverable(c.id, b.dataset.did, patchDl);
+      renderAll();
+      if (b.dataset.setDl === 'status' && b.dataset.val === 'posted') toast('Posted — the ring moves up.');
     } else if (b.dataset.setSub) {
       closeMenu();
       S.setSubstitution(c.id, b.dataset.inf, b.dataset.plat, b.dataset.setSub);
@@ -1504,10 +1618,34 @@
 
   E('pan-deliverables').addEventListener('click', function(e){
     var go = e.target.closest('[data-go-tab]'); if (go) return setTab(go.dataset.goTab);
-    var sw = e.target.closest('.c-switch-track');
-    if (sw) { e.stopPropagation(); sw.classList.toggle('on'); sw.setAttribute('aria-checked', sw.classList.contains('on')); return; }
-    var h = e.target.closest('[data-draft-toggle]');
-    if (h) { var body = h.nextElementSibling; body.hidden = !body.hidden; h.querySelector('.ph-caret-down, .ph-caret-up').className = 'ph ' + (body.hidden ? 'ph-caret-down' : 'ph-caret-up'); }
+    var add = e.target.closest('[data-dl-add]');
+    if (add) {
+      var did = S.addDeliverable(c.id, {inf: add.dataset.dlAdd, platform: add.dataset.plat, dueAt: c.end || ''});
+      dlFlashId = did;
+      renderAll();
+      var cap = E('pan-deliverables').querySelector('[data-did="' + did + '"] [data-dl="caption"]');
+      if (cap) cap.focus();
+      return;
+    }
+    var rm = e.target.closest('[data-dl-remove]');
+    if (rm) {
+      var x = (c.deliverables || []).filter(function(y){ return y.id === rm.dataset.dlRemove; })[0];
+      S.removeDeliverable(c.id, rm.dataset.dlRemove);
+      renderAll();
+      toast((x ? (PLAT_LABEL[x.platform] || x.platform) + ' ' + x.kind : 'Deliverable') + ' removed.', 'danger');
+    }
+  });
+  /* Fields save on change and never re-render, so the caret stays put;
+     the header is refreshed since the ring and Next up read the list. */
+  E('pan-deliverables').addEventListener('change', function(e){
+    var t = e.target; if (!t.dataset.dl) return;
+    var patch = {};
+    if (t.dataset.dl === 'kind') { var pk = t.value.split('/'); patch.platform = pk[0]; patch.kind = pk[1]; }
+    else patch[t.dataset.dl] = t.value;
+    S.updateDeliverable(c.id, t.dataset.did, patch);
+    reload();
+    if (t.dataset.dl === 'kind' || t.dataset.dl === 'link' || t.dataset.dl === 'dueAt') renderDrafts();
+    renderHeader();
   });
 
   /* ── Roster picker. `roster` adds fills by hand; `send` gathers the

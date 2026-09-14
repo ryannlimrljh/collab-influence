@@ -60,3 +60,23 @@ test('seeded activity is well-formed and in time order', () => {
     }
   }
 });
+
+test('seeded deliverables reference roster creators with real kinds and states', () => {
+  const KINDS = {tiktok: ['video'], instagram: ['reel', 'post', 'story'], xhs: ['note']};
+  const STATUS = ['not_started', 'drafted', 'review', 'approved', 'posted'];
+  const CLIENT = ['pending', 'approved', 'changes'];
+  for (const c of win.CAMPAIGNS) {
+    if (!Array.isArray(c.deliverables)) continue;
+    const onRoster = new Set((c.roster || []).map(r => r.inf));
+    const ids = new Set();
+    for (const d of c.deliverables) {
+      assert.ok(d.id && !ids.has(d.id), `${c.id}: unique id ${d.id}`); ids.add(d.id);
+      assert.ok(onRoster.has(d.inf), `${c.id}: ${d.inf} is on the roster`);
+      assert.ok((KINDS[d.platform] || []).includes(d.kind), `${c.id}: ${d.platform} ${d.kind}`);
+      assert.ok(STATUS.includes(d.status) && CLIENT.includes(d.clientApproval), `${c.id}: states`);
+    }
+  }
+  const c1 = byId['camp-001'];
+  assert.equal(c1.deliverables.length, 8);
+  assert.equal(c1.deliverables.filter(d => d.status === 'posted').length, 1);
+});

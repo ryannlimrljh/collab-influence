@@ -279,3 +279,39 @@ test('setSubstitution moves where a fill is counted and logs it', () => {
   assert.equal(c.roster[0].substitutedFor, null);
   assert.match(c.activity[c.activity.length - 1].text, /Stopped counting/);
 });
+
+test('deliverables: add, update with logging, remove; the ring reads the list', () => {
+  const win = fresh(); const S = win.campaignStore, M = win.campaignModel;
+  const id = S.createLead({name: 'D', requirement: {tiktok: {mid: 1}}});
+  S.addToRoster(id, [{inf: 'inf-001', platform: 'tiktok', tier: 'macro'}], 'team', null);
+  const did = S.addDeliverable(id, {inf: 'inf-001', platform: 'instagram'});
+  let c = S.get(id);
+  assert.equal(c.deliverables.length, 1);
+  assert.equal(c.deliverables[0].kind, 'reel', 'first kind for the platform');
+  assert.equal(c.deliverables[0].status, 'not_started');
+  assert.match(c.activity[c.activity.length - 1].text, /Planned a Instagram reel for inf-001/);
+  S.updateDeliverable(id, did, {caption: 'hello'});
+  c = S.get(id);
+  assert.equal(c.deliverables[0].caption, 'hello');
+  assert.doesNotMatch(c.activity[c.activity.length - 1].text, /hello/, 'plain edits are not logged');
+  S.updateDeliverable(id, did, {status: 'posted'});
+  c = S.get(id);
+  assert.match(c.activity[c.activity.length - 1].text, /as posted/);
+  assert.deepEqual(M.deliverableCounts(c), {done: 1, total: 1, list: true});
+  S.updateDeliverable(id, did, {clientApproval: 'changes'});
+  c = S.get(id);
+  assert.match(c.activity[c.activity.length - 1].text, /Client asked for changes/);
+  assert.equal(c.activity[c.activity.length - 1].ref.client, true);
+  S.updateDeliverable(id, did, {platform: 'tiktok'});
+  assert.equal(S.get(id).deliverables[0].kind, 'video', 'kind follows the platform');
+  S.removeDeliverable(id, did);
+  assert.equal(S.get(id).deliverables.length, 0);
+});
+
+test('the first deliverable replaces an old {done,total} pair', () => {
+  const win = fresh(); const S = win.campaignStore, M = win.campaignModel;
+  win.CAMPAIGNS = [{id: 'c9', stage: 'drafting', roster: [], batches: [], deliverables: {done: 1, total: 8}}];
+  assert.deepEqual(M.deliverableCounts(S.get('c9')), {done: 1, total: 8, list: false});
+  S.addDeliverable('c9', {inf: 'inf-001', platform: 'tiktok'});
+  assert.deepEqual(M.deliverableCounts(S.get('c9')), {done: 0, total: 1, list: true});
+});

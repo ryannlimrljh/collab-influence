@@ -103,6 +103,27 @@
   }
   function nameOf(inf) { return (PEOPLE[inf] && PEOPLE[inf].name) || inf; }
 
+  /* ── Deliverables vocabulary. Kinds per platform; five working states;
+     the client's word on each. */
+  var DELIV_KINDS = {tiktok: ['video'], instagram: ['reel', 'post', 'story'], xhs: ['note']};
+  var DELIV_STATUS = [
+    {key: 'not_started', label: 'Not started', dot: 'var(--color-neutral-4)'},
+    {key: 'drafted',     label: 'Drafted',     dot: 'var(--color-navy)'},
+    {key: 'review',      label: 'In review',   dot: 'var(--color-amber)'},
+    {key: 'approved',    label: 'Approved',    dot: 'var(--color-turquoise)'},
+    {key: 'posted',      label: 'Posted',      dot: 'var(--color-green)'}
+  ];
+  var CLIENT_APPROVAL = [
+    {key: 'pending',  label: 'Pending',         dot: 'var(--color-neutral-4)'},
+    {key: 'approved', label: 'Client approved', dot: 'var(--color-green)'},
+    {key: 'changes',  label: 'Changes asked',   dot: 'var(--color-amber)'}
+  ];
+  function labelOf(list, key) { var x = list.filter(function (o) { return o.key === key; })[0]; return x ? x.label : key; }
+  function kindLabel(d) { return (PLAT_LABEL[d.platform] || d.platform) + ' ' + d.kind; }
+  /* A record that still holds {done, total} becomes a list on the first
+     write; the list is the truth from then on. */
+  function delivList(c) { return Array.isArray(c.deliverables) ? c.deliverables.slice() : []; }
+
   /* `log` is an optional activity entry appended with the patch. A stage
      change is logged here whichever caller made it, since three surfaces
      can move a campaign and none of them should have to remember to. */
@@ -351,6 +372,43 @@
         c = window.campaignStore.setChannelStatus(id, n, inf, platform, status);
       });
       return c;
+    },
+
+    /* ── Deliverables. */
+    DELIV_KINDS: DELIV_KINDS, DELIV_STATUS: DELIV_STATUS, CLIENT_APPROVAL: CLIENT_APPROVAL,
+    addDeliverable: function (id, d) {
+      var c = get(id); if (!c) return null;
+      var list = delivList(c);
+      var rec = Object.assign({
+        id: 'd-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e4).toString(36),
+        inf: null, platform: 'tiktok', kind: null, dueAt: '', link: '', caption: '',
+        status: 'not_started', clientApproval: 'pending', internalNote: '', clientNote: ''
+      }, d || {});
+      if (!rec.kind) rec.kind = (DELIV_KINDS[rec.platform] || ['post'])[0];
+      list.push(rec);
+      update(id, {deliverables: list}, entry('deliverable',
+        'Planned a ' + kindLabel(rec) + ' for ' + nameOf(rec.inf), {deliverable: rec.id, inf: rec.inf}));
+      return rec.id;
+    },
+    updateDeliverable: function (id, did, patch) {
+      var c = get(id); if (!c) return null;
+      var before = delivList(c).filter(function (x) { return x.id === did; })[0];
+      if (!before) return c;
+      var next = Object.assign({}, before, patch);
+      if (next.platform !== before.platform && !(patch && patch.kind)) next.kind = (DELIV_KINDS[next.platform] || ['post'])[0];
+      var log = null;
+      if (next.status !== before.status) {
+        log = entry('deliverable', 'Marked ' + nameOf(next.inf) + "'s " + kindLabel(next) + ' as ' + labelOf(DELIV_STATUS, next.status).toLowerCase(),
+          {deliverable: did, inf: next.inf});
+      } else if (next.clientApproval !== before.clientApproval) {
+        var said = next.clientApproval === 'approved' ? 'Client approved ' : next.clientApproval === 'changes' ? 'Client asked for changes on ' : 'Client approval reset on ';
+        log = entry('deliverable', said + nameOf(next.inf) + "'s " + kindLabel(next), {deliverable: did, inf: next.inf, client: true});
+      }
+      return update(id, {deliverables: delivList(c).map(function (x) { return x.id === did ? next : x; })}, log);
+    },
+    removeDeliverable: function (id, did) {
+      var c = get(id); if (!c) return null;
+      return update(id, {deliverables: delivList(c).filter(function (x) { return x.id !== did; })});
     },
 
     /* Patch a pick's own fields — the remarks. Status is not patchable here;
