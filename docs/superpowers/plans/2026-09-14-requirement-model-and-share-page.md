@@ -21,7 +21,7 @@
 | `tests/helpers/load.mjs` | Load a browser-global IIFE file into Node with `window`/`localStorage` shims. |
 | `tests/tiers.test.mjs` | Tier band boundaries and key/name mapping. |
 | `tests/campaign-model.test.mjs` | Migration, slots, fills, coverage, shortfall. |
-| `shared/tiers.js` | The one tier table. `TIERS`, `tierOf()`, `tierByKey()`. |
+| `shared/tiers.js` | The one tier table, exported as `window.tiers` = `{TIERS, tierOf, tierByKey}`. |
 | `shared/campaign-model.js` | Pure functions over a campaign record. No storage, no DOM. |
 | `pages/share.html` | Client-facing selection page. |
 
@@ -63,7 +63,19 @@ import {dirname, join} from 'node:path';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 /* Load browser-global IIFE files into a fresh sandbox object.
-   Files are evaluated in order against one shared `window`, because
+
+   `window` and `localStorage` are passed as PARAMETERS, not installed on
+   globalThis. That matters: every closure in the loaded file captures them
+   lexically, so a function that looks up `window.tiers.tierOf(...)` when it is
+   called — which is exactly what campaign-model.js does — still resolves
+   correctly long after loadShared has returned. Installing them on globalThis
+   and restoring in a `finally` looks tidier but breaks precisely that case.
+
+   node:vm would also fix it, but objects built inside a vm context belong to
+   another realm, and assert.deepEqual then fails on prototype identity for
+   every array and object these tests compare. Same realm is the point.
+
+   Files are evaluated in order against one shared sandbox, because
    campaign-model.js reads the tier table that tiers.js attaches. */
 export function loadShared(...files) {
   const mem = {};
@@ -72,20 +84,13 @@ export function loadShared(...files) {
       getItem: k => (k in mem ? mem[k] : null),
       setItem: (k, v) => { mem[k] = String(v); },
       removeItem: k => { delete mem[k]; }
-    }
+    },
+    console
   };
   win.window = win;
-  const prevWindow = globalThis.window;
-  const prevStorage = globalThis.localStorage;
-  globalThis.window = win;
-  globalThis.localStorage = win.localStorage;
-  try {
-    for (const f of files) {
-      (0, eval)(readFileSync(join(ROOT, 'shared', f), 'utf8'));
-    }
-  } finally {
-    globalThis.window = prevWindow;
-    globalThis.localStorage = prevStorage;
+  for (const f of files) {
+    const src = readFileSync(join(ROOT, 'shared', f), 'utf8');
+    new Function('window', 'localStorage', src)(win, win.localStorage);
   }
   return win;
 }
@@ -99,7 +104,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {loadShared} from './helpers/load.mjs';
 
-const {tierOf, tierByKey, TIERS} = loadShared('tiers.js');
+const {tierOf, tierByKey, TIERS} = loadShared('tiers.js').tiers;
 
 test('seeder covers everything below 500', () => {
   assert.equal(tierOf(0).key, 'seeder');
@@ -112,11 +117,17 @@ test('koc sits between 500 and 1000', () => {
   assert.equal(tierOf(932).key, 'koc');
 });
 
+/* Every band gets both of its edges, so a wrong `max` anywhere is caught
+   rather than merely implied by the neighbouring band's edge. */
 test('bands above koc are unchanged', () => {
   assert.equal(tierOf(1000).key, 'nano');
   assert.equal(tierOf(4999).key, 'nano');
+  assert.equal(tierOf(5000).key, 'micro');
+  assert.equal(tierOf(19999).key, 'micro');
   assert.equal(tierOf(20000).key, 'mid');
   assert.equal(tierOf(99999).key, 'mid');
+  assert.equal(tierOf(100000).key, 'macro');
+  assert.equal(tierOf(499999).key, 'macro');
   assert.equal(tierOf(500000).key, 'mega');
   assert.equal(tierOf(1.2e6).key, 'mega');
 });
@@ -126,6 +137,23 @@ test('null followers have no tier', () => {
   assert.equal(tierOf(undefined), null);
 });
 
+test('unparseable followers have no tier', () => {
+  assert.equal(tierOf(NaN), null);
+  assert.equal(tierOf('abc'), null);
+  assert.equal(tierOf({}), null);
+});
+
+/* Documenting accepted behaviour rather than asserting an ideal: a negative
+   count is bad data, and Seeder is the least surprising place to put it. */
+test('numeric strings work and negatives fall in seeder', () => {
+  assert.equal(tierOf('708').key, 'koc');
+  assert.equal(tierOf(-5).key, 'seeder');
+});
+
+test('Infinity lands in the top band rather than nowhere', () => {
+  assert.equal(tierOf(Infinity).key, 'mega');
+});
+
 test('every tier carries a key, name and dot colour', () => {
   assert.equal(TIERS.length, 7);
   for (const t of TIERS) {
@@ -133,9 +161,18 @@ test('every tier carries a key, name and dot colour', () => {
   }
 });
 
-test('tierByKey round-trips', () => {
+/* KOC is what this file adds, so pin its record exactly — a typo in `cls`
+   or `dot` is otherwise invisible until it reaches the page. */
+test('the KOC record is exactly as specified', () => {
+  assert.deepEqual(tierByKey('koc'), {
+    key: 'koc', name: 'KOC', max: 1000, cls: 'c-tag-koc', dot: 'var(--color-turquoise)'
+  });
+});
+
+test('tierByKey round-trips and is case-sensitive', () => {
   assert.equal(tierByKey('macro').name, 'Macro');
   assert.equal(tierByKey('nope'), null);
+  assert.equal(tierByKey('MACRO'), null);
 });
 ```
 
@@ -170,25 +207,30 @@ Expected: FAIL — `ENOENT` on `shared/tiers.js`.
   ];
 
   function tierOf(n) {
-    if (n == null || isNaN(Number(n))) return null;
-    for (var i = 0; i < TIERS.length; i++) if (Number(n) < TIERS[i].max) return TIERS[i];
-    return null;
+    if (n == null) return null;
+    var v = Number(n);
+    if (isNaN(v)) return null;
+    for (var i = 0; i < TIERS.length; i++) if (v < TIERS[i].max) return TIERS[i];
+    /* Only Infinity reaches here, since the last band's max is Infinity and
+       the comparison is strict. The three page-local copies returned null for
+       it; returning the top band is the answer everyone actually wanted. */
+    return TIERS[TIERS.length - 1];
   }
   function tierByKey(key) {
     for (var i = 0; i < TIERS.length; i++) if (TIERS[i].key === key) return TIERS[i];
     return null;
   }
 
-  window.TIERS = TIERS;
-  window.tierOf = tierOf;
-  window.tierByKey = tierByKey;
+  /* One namespaced object, the way campaignStore, influencerStore,
+     campaignForm and collabBrand all export. */
+  window.tiers = {TIERS: TIERS, tierOf: tierOf, tierByKey: tierByKey};
 })();
 ```
 
 - [ ] **Step 5: Run the test to verify it passes**
 
 Run: `node --test tests/tiers.test.mjs`
-Expected: PASS — 6 tests, 0 failures.
+Expected: PASS — 10 tests, 0 failures.
 
 - [ ] **Step 6: Commit**
 
@@ -209,19 +251,41 @@ No new behaviour — the same tiers rendered from one source, plus the CSS ramp 
 
 - [ ] **Step 1: Point campaign.html at the shared table**
 
-Delete lines 565-571 (`var TIERS`, `var TIER_DOT`, `function tierOf`). Add the script tag beside the other shared includes in `<head>`:
+Add the script tag beside the other shared includes in `<head>`:
 
 ```html
 <script src="../shared/tiers.js"></script>
 ```
 
-At `campaign.html:865`, `TIER_DOT[n]` was keyed by tier name. Replace with a key lookup:
+Replace lines 565-571 (`var TIERS`, `var TIER_DOT`, `function tierOf`) with a
+local alias, matching how this page already aliases `campaignStore` to `S`:
 
 ```js
-// was: TIER_DOT[n]  where n was 'Mid'
-// now: n is a tier key ('mid'), and the colour rides on the record
-window.tierByKey(n).dot
+  var TIERS = window.tiers.TIERS, tierOf = window.tiers.tierOf;
 ```
+
+Note that this page's `TIERS[].cls` was never read — its `TIER_DOT` was keyed by
+tier *name*, not `cls`. Nothing depends on dropping it.
+
+`paxHtml()` at `campaign.html:860-866` maps `TIERS` down to tier **names** and
+then looks the colour up by name. With the colour now a field on the record, keep
+the tier objects instead of reducing them to names. Replace lines 860-866 with:
+
+```js
+      var tiers = TIERS.filter(function(t){ return bands[pl][t.name]; });
+      var total = tiers.reduce(function(a, t){ return a + bands[pl][t.name]; }, 0);
+      return '<div class="cd-pax-plat"><span class="pl">' + PLAT_LABEL[pl] + '<span class="c">' + total + (total === 1 ? ' account' : ' accounts') + '</span></span><div class="cd-pax-row">' +
+        tiers.map(function(t){
+          var n = t.name;
+          var v = (targets[pl] || {})[n];
+          return '<div class="cd-pax-box"><span class="t"><span class="cmp-dot" style="background:' + t.dot + '"></span><b>' + n + '</b>(' + bands[pl][n] + ' shown)</span>' +
+            '<input inputmode="numeric" placeholder="—" data-pax-target data-batch="' + b.n + '" data-plat="' + pl + '" data-tier="' + n + '" value="' + (v == null ? '' : esc(v)) + '" /></div>';
+        }).join('') + '</div></div>';
+```
+
+`data-tier` deliberately still carries the tier **name**, because `paxTargets` is
+keyed by name today and the change-handler at `campaign.html:1049` reads it back.
+Phase 4 replaces this whole block; do not change the stored shape here.
 
 - [ ] **Step 2: Load campaign.html and confirm nothing moved**
 
@@ -258,11 +322,23 @@ Keep the existing `.inf-tier` base rule untouched. Add the tag class used by the
 
 - [ ] **Step 4: Point influencers-v2.html at the shared table**
 
-Delete `var TIERS` (1115-1122), `function tierOf` (1123-1128) and `var TIER_DOT` (1294-1298). Add beside the other shared includes:
+Add beside the other shared includes:
 
 ```html
 <script src="../shared/tiers.js"></script>
 ```
+
+Replace `var TIERS` (1115-1122) and `function tierOf` (1123-1128) with a local
+alias, the way the pages already alias `campaignStore` to `S`. Every existing
+`tierOf(...)` and `TIERS` call site then keeps working untouched:
+
+```js
+  var TIERS = window.tiers.TIERS, tierOf = window.tiers.tierOf;
+```
+
+Delete `var TIER_DOT` (1294-1298) outright — the colour is a field on the tier
+record now, so the map has no remaining callers once the render sites below are
+updated.
 
 Replace the four render sites that build the ramp class. At `1306-1309`:
 
@@ -416,7 +492,7 @@ Expected: FAIL — `ENOENT` on `shared/campaign-model.js`.
     (c.roster || []).forEach(function (r) {
       if (r.platform) { out.roster.push(r); return; }
       channelsOf(people[r.inf]).forEach(function (ch) {
-        var t = window.tierOf(ch.followers);
+        var t = window.tiers.tierOf(ch.followers);
         out.roster.push({
           inf: r.inf, platform: ch.platform, tier: t ? t.key : null,
           source: r.source || 'team', batch: r.batch == null ? null : r.batch,
@@ -598,7 +674,7 @@ Insert before the `window.campaignModel = ...` line in `shared/campaign-model.js
     var have = {};
     (infIds || []).forEach(function (id) {
       channelsOf(people[id]).forEach(function (ch) {
-        var t = window.tierOf(ch.followers);
+        var t = window.tiers.tierOf(ch.followers);
         if (!t) return;
         have[ch.platform] = have[ch.platform] || {};
         have[ch.platform][t.key] = (have[ch.platform][t.key] || 0) + 1;
@@ -848,7 +924,7 @@ Replace `addToRoster`, `removeFromRoster` and `updatePick` (lines 194-243) with:
         if (!roster.some(at)) {
           var ch = window.campaignModel.channelsOf(PEOPLE[inf])
             .filter(function (x) { return x.platform === platform; })[0];
-          var t = ch ? window.tierOf(ch.followers) : null;
+          var t = ch ? window.tiers.tierOf(ch.followers) : null;
           roster.push({
             inf: inf, platform: platform, tier: t ? t.key : null,
             source: 'client', batch: n, state: 'approved',
@@ -882,7 +958,7 @@ Expected: PASS — 7 tests, 0 failures.
 - [ ] **Step 7: Run the whole suite**
 
 Run: `node --test "tests/**/*.test.mjs"`
-Expected: PASS — 26 tests across 3 files, 0 failures.
+Expected: PASS — 30 tests across 3 files, 0 failures.
 
 - [ ] **Step 8: Update the callers that used the old signatures**
 
@@ -896,7 +972,7 @@ array of ids. Change to entries:
       S.addToRoster(c.id, ids.map(function(inf){
         var top = (byInf[inf].platforms || []).filter(function(p){ return p.handle; })
           .sort(function(a,b){ return (b.followers||0) - (a.followers||0); })[0];
-        var t = top ? window.tierOf(top.followers) : null;
+        var t = top ? window.tiers.tierOf(top.followers) : null;
         return {inf: inf, platform: top ? top.platform : null, tier: t ? t.key : null};
       }), 'team', null);
 ```
@@ -976,7 +1052,7 @@ test('camp-004 asks for five channel slots', () => {
 
 test('every requirement uses real platform and tier keys', () => {
   const platforms = ['tiktok', 'instagram', 'xhs'];
-  const tiers = win.TIERS.map(t => t.key);
+  const tiers = win.tiers.TIERS.map(t => t.key);
   for (const c of win.CAMPAIGNS) {
     for (const [p, bands] of Object.entries(c.requirement || {})) {
       assert.ok(platforms.includes(p), `${c.id}: unknown platform ${p}`);
@@ -1115,7 +1191,7 @@ Append inside the same IIFE, before the `window.shareCtx` line:
         if (p.channels[plat] !== 'selected') return;
         var ch = M.channelsOf(byInf[p.inf])
           .filter(function (x) { return x.platform === plat; })[0];
-        var t = ch ? window.tierOf(ch.followers) : null;
+        var t = ch ? window.tiers.tierOf(ch.followers) : null;
         if (!t) return;
         out[plat] = out[plat] || {};
         out[plat][t.key] = (out[plat][t.key] || 0) + 1;
@@ -1133,7 +1209,7 @@ Append inside the same IIFE, before the `window.shareCtx` line:
       var n = (got[s.platform] && got[s.platform][s.tier]) || 0;
       total += n; want += s.want;
       var cls = n >= s.want ? (n > s.want ? 'is-over' : 'is-met') : '';
-      var tier = window.tierByKey(s.tier);
+      var tier = window.tiers.tierByKey(s.tier);
       return '<span class="sh-chip ' + cls + '">' +
         '<span class="dot" style="background:' + tier.dot + '"></span>' +
         esc(PLAT_LABEL[s.platform] || s.platform) + ' ' + esc(tier.name) +
@@ -1252,7 +1328,7 @@ Append inside the IIFE:
     if (!rec) return '';
     var meta = [rec.age, rec.gender, rec.location].filter(Boolean).join(' · ');
     var rows = M.channelsOf(rec).map(function (ch) {
-      var t = window.tierOf(ch.followers);
+      var t = window.tiers.tierOf(ch.followers);
       var cur = (pick.channels || {})[ch.platform] || 'none';
       return '<div class="sh-ch-row">' +
         '<div class="hd">' +
@@ -1409,7 +1485,7 @@ Replace `renderList()` with:
     var slots = M.slotsOf(campaign);
     var hit = null;
     M.channelsOf(rec).forEach(function (ch) {
-      var t = window.tierOf(ch.followers);
+      var t = window.tiers.tierOf(ch.followers);
       if (!t || hit) return;
       if (slots.some(function (s) { return s.platform === ch.platform && s.tier === t.key; })) {
         hit = {platform: ch.platform, tier: t.key};
@@ -1438,7 +1514,7 @@ Replace `renderList()` with:
     E('shList').innerHTML = order.map(function (key) {
       var label = key === 'other' ? 'Also worth a look' : (function () {
         var bits = key.split('/');
-        return 'For ' + (PLAT_LABEL[bits[0]] || bits[0]) + ' · ' + window.tierByKey(bits[1]).name;
+        return 'For ' + (PLAT_LABEL[bits[0]] || bits[0]) + ' · ' + window.tiers.tierByKey(bits[1]).name;
       })();
       return '<h2 class="sh-group-hd">' + esc(label) + '</h2><div class="sh-grid">' +
         groups[key].map(cardHTML).join('') + '</div>';
@@ -1497,7 +1573,7 @@ git commit -m "share: channel filters and slot grouping, replacing platform tabs
 - [ ] **Step 1: Run the suite**
 
 Run: `node --test "tests/**/*.test.mjs"`
-Expected: PASS — 29 tests across 4 files, 0 failures.
+Expected: PASS — 33 tests across 4 files, 0 failures.
 
 - [ ] **Step 2: Walk every page for regressions**
 
