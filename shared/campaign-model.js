@@ -152,10 +152,22 @@
     });
   }
 
+  /* What a new batch should ask for: whatever the campaign still owes.
+     shortfallOf gives a flat list; the sheet wants it in requirement shape
+     so it can seed the steppers directly. */
+  function askFor(c) {
+    var out = {};
+    shortfallOf(c).forEach(function (s) {
+      out[s.platform] = out[s.platform] || {};
+      out[s.platform][s.tier] = s.want;
+    });
+    return out;
+  }
+
   window.campaignModel = {
     migrate: migrate, channelsOf: channelsOf,
     pickStatus: pickStatus,
-    slotsOf: slotsOf, derivedPax: derivedPax, slotStatus: slotStatus,
+    slotsOf: slotsOf, askFor: askFor, derivedPax: derivedPax, slotStatus: slotStatus,
     shortfallOf: shortfallOf, coverageOf: coverageOf
   };
 })();

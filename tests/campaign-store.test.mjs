@@ -137,3 +137,66 @@ test('updatePick writes remarks and refuses to write status', () => {
   assert.deepEqual(c.batches[0].picks[0].channels, {tiktok: 'none'}, 'channels untouched');
   assert.deepEqual(c.roster, [], 'remarks do not touch the roster');
 });
+
+/* ── Sending a batch. */
+
+test('addBatch writes channel-level picks, not a creator-level status', () => {
+  const win = fresh();
+  win.CAMPAIGNS = [{id: 'c1', stage: 'sourcing', roster: [], batches: []}];
+  const n = win.campaignStore.addBatch('c1', {infIds: ['inf-001']});
+  const b = win.campaignStore.get('c1').batches[n - 1];
+  assert.deepEqual(b.picks[0].channels, {tiktok: 'none', instagram: 'none'});
+  assert.equal(b.picks[0].status, undefined, 'no pre-Phase-1 status field');
+});
+
+test('addBatch records the ask, recipient and expiry it was sent with', () => {
+  const win = fresh();
+  win.CAMPAIGNS = [{id: 'c1', stage: 'sourcing', roster: [], batches: []}];
+  const n = win.campaignStore.addBatch('c1', {
+    infIds: ['inf-001'], name: 'Batch 1',
+    ask: {tiktok: {macro: 1}}, recipient: 'anna@brand.com',
+    expiresAt: '2026-10-10', requireName: true
+  });
+  const b = win.campaignStore.get('c1').batches[n - 1];
+  assert.deepEqual(b.ask, {tiktok: {macro: 1}});
+  assert.equal(b.recipient, 'anna@brand.com');
+  assert.equal(b.expiresAt, '2026-10-10');
+  assert.equal(b.requireName, true);
+  assert.equal(b.name, 'Batch 1');
+});
+
+test('addBatch defaults the name and leaves the optional fields null', () => {
+  const win = fresh();
+  win.CAMPAIGNS = [{id: 'c1', stage: 'sourcing', roster: [], batches: []}];
+  const n = win.campaignStore.addBatch('c1', {infIds: ['inf-001']});
+  const b = win.campaignStore.get('c1').batches[n - 1];
+  assert.equal(b.name, 'Batch 1');
+  assert.equal(b.recipient, null);
+  assert.equal(b.expiresAt, null);
+  assert.equal(b.requireName, false);
+  assert.deepEqual(b.ask, {});
+});
+
+test('createLead makes a campaign at stage lead, out of the active count', () => {
+  const win = fresh();
+  win.CAMPAIGNS = [];
+  const id = win.campaignStore.createLead({name: 'Raya pitch', brand: 'Shopee'});
+  const c = win.campaignStore.get(id);
+  assert.equal(c.stage, 'lead');
+  assert.equal(c.name, 'Raya pitch');
+  assert.equal(c.brand, 'Shopee');
+  assert.equal(win.campaignStore.isActiveStage(c.stage), false);
+  assert.deepEqual(c.roster, []);
+  assert.deepEqual(c.batches, []);
+});
+
+test('createLead accepts a requirement and derives pax from it', () => {
+  const win = fresh();
+  win.CAMPAIGNS = [];
+  const id = win.campaignStore.createLead({
+    name: 'Raya pitch', brand: 'Shopee', requirement: {tiktok: {mid: 3}}
+  });
+  const c = win.campaignStore.get(id);
+  assert.equal(c.pax, 3);
+  assert.deepEqual(c.platforms, ['tiktok']);
+});

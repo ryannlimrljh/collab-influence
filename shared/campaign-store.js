@@ -309,18 +309,57 @@
       })});
     },
 
-    /* ── Preview batches — one per link sent to the client. */
-    addBatch: function (id, name, infIds) {
+    /* ── Preview batches — one per link sent to the client.
+
+       Takes an options object rather than positional arguments: a batch now
+       carries the ask it was sent against, who it went to and when it lapses,
+       and a fourth positional argument was one too many. */
+    addBatch: function (id, opts) {
       var c = get(id); if (!c) return null;
+      opts = opts || {};
       var batches = (c.batches || []).slice();
       var n = batches.length + 1;
       batches.push({
-        n: n, name: name || ('Batch ' + n), sentAt: today(),
-        picks: infIds.map(function (inf) { return {inf: inf, kultRemark: '', status: 'none', clientRemark: ''}; }),
+        n: n,
+        name: opts.name || ('Batch ' + n),
+        sentAt: today(),
+        /* The ask is copied, not referenced: it is what this batch was sent
+           against, and must not move when the campaign's own ask changes. */
+        ask: opts.ask ? JSON.parse(JSON.stringify(opts.ask)) : {},
+        recipient: opts.recipient || null,
+        expiresAt: opts.expiresAt || null,
+        requireName: !!opts.requireName,
+        picks: (opts.infIds || []).map(function (inf) {
+          var channels = {};
+          window.campaignModel.channelsOf(PEOPLE[inf]).forEach(function (ch) {
+            channels[ch.platform] = 'none';
+          });
+          return {inf: inf, kultRemark: '', channels: channels, clientRemark: ''};
+        }),
         paxTargets: {}, notes: ''
       });
       update(id, {batches: batches});
       return n;
+    },
+
+    /* A pitch: a campaign that exists so a list can be built against it
+       before the work is won. isActiveStage keeps it out of the dashboard's
+       counts until someone moves it to Sourcing. */
+    createLead: function (fields) {
+      fields = fields || {};
+      var requirement = fields.requirement || {};
+      return window.campaignStore.add({
+        name: fields.name || 'Untitled lead',
+        brand: fields.brand || '', agency: '', description: '',
+        pic: fields.pic || 'Digital Team', overseer: '', salesperson: '',
+        start: fields.start || null, end: fields.end || null,
+        color: 'obsidian', io: '', types: ['Influencers'], stage: 'lead',
+        requirement: requirement,
+        platforms: Object.keys(requirement),
+        pax: window.campaignModel.derivedPax({requirement: requirement}),
+        quote: null, cost: null, picPct: 100, overseerPct: null, remarks: '',
+        deliverables: {done: 0, total: 0}
+      });
     },
     updateBatch: function (id, n, patch) {
       var c = get(id); if (!c) return null;

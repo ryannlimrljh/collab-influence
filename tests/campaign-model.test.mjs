@@ -177,3 +177,35 @@ test('with people present, a stale id is still dropped', () => {
   const out = M.migrate({roster: [{inf: 'inf-999', source: 'team', batch: null}], batches: []}, PEOPLE);
   assert.deepEqual(out.roster, []);
 });
+
+/* ── What a new batch should ask for. */
+
+test('askFor is the remaining shortfall when something is already filled', () => {
+  const c = {requirement: {tiktok: {mid: 2, macro: 1}}, roster: [
+    {inf: 'a', platform: 'tiktok', tier: 'mid', state: 'confirmed'}
+  ]};
+  assert.deepEqual(M.askFor(c), {tiktok: {mid: 1, macro: 1}});
+});
+
+test('askFor is the whole requirement when nothing is filled', () => {
+  const c = {requirement: {tiktok: {mid: 2}, instagram: {macro: 1}}, roster: []};
+  assert.deepEqual(M.askFor(c), {tiktok: {mid: 2}, instagram: {macro: 1}});
+});
+
+test('askFor drops a band that is already met', () => {
+  const c = {requirement: {tiktok: {mid: 1, macro: 1}}, roster: [
+    {inf: 'a', platform: 'tiktok', tier: 'mid', state: 'approved'}
+  ]};
+  assert.deepEqual(M.askFor(c), {tiktok: {macro: 1}});
+});
+
+test('askFor is empty when the ask is fully filled', () => {
+  const c = {requirement: {tiktok: {mid: 1}}, roster: [
+    {inf: 'a', platform: 'tiktok', tier: 'mid', state: 'confirmed'}
+  ]};
+  assert.deepEqual(M.askFor(c), {});
+});
+
+test('askFor on a campaign with no requirement is empty', () => {
+  assert.deepEqual(M.askFor({roster: []}), {});
+});

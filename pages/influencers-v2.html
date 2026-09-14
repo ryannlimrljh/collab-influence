@@ -1093,8 +1093,8 @@
 
 <script src="../shared/shell.js?v=0.9.46"></script>
 <script src="../shared/campaigns-data.js?v=3"></script>
-<script src="../shared/campaign-store.js?v=4"></script>
-<script src="../shared/campaign-model.js?v=2"></script>
+<script src="../shared/campaign-store.js?v=5"></script>
+<script src="../shared/campaign-model.js?v=3"></script>
 <script src="../shared/influencers-data.js"></script>
 <script src="../shared/avatar-manifest.js?v=2"></script>
 <script>window.INFLUENCER_STORE_KEY = 'collab-influencers-v2';</script>
@@ -2818,7 +2818,7 @@
       return;
     }
     var name = document.getElementById('infSendBatch').value.trim() || null;
-    var n = campaignStore.addBatch(v, name, ids);
+    var n = campaignStore.addBatch(v, {name: name, infIds: ids});
     location.href = 'campaign.html?id=' + encodeURIComponent(v) + '&tab=kol&batch=' + n;
   });
   document.getElementById('infSelClear').addEventListener('click', function(){
