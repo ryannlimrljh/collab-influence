@@ -330,11 +330,19 @@
         expiresAt: opts.expiresAt || null,
         requireName: !!opts.requireName,
         picks: (opts.infIds || []).map(function (inf) {
-          var channels = {};
-          window.campaignModel.channelsOf(PEOPLE[inf]).forEach(function (ch) {
-            channels[ch.platform] = 'none';
-          });
-          return {inf: inf, kultRemark: '', channels: channels, clientRemark: ''};
+          var pick = {inf: inf, kultRemark: '', clientRemark: ''};
+          /* Only write `channels` when we can actually tell what they are.
+             campaigns.html creates a batch without loading the influencer
+             file, and an empty `channels` map is truthy — migrate() would
+             take it as already-migrated and the pick would never get its
+             channels at all. Omitting the key leaves migrate() to fill it in
+             on a page that does have the profiles. */
+          var chans = window.campaignModel.channelsOf(PEOPLE[inf]);
+          if (chans.length) {
+            pick.channels = {};
+            chans.forEach(function (ch) { pick.channels[ch.platform] = 'none'; });
+          }
+          return pick;
         }),
         paxTargets: {}, notes: ''
       });

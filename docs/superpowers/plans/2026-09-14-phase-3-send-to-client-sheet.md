@@ -270,7 +270,7 @@ Expected: PASS — 53 tests, 0 failures.
 
 - [ ] **Step 9: Update the two existing callers of the old signature**
 
-There are **two**, and missing either leaves a page silently creating empty batches.
+There are **three**, and missing any leaves that page silently creating empty batches.
 
 `pages/influencers-v2.html` calls `campaignStore.addBatch(v, name, ids)`:
 
@@ -287,6 +287,18 @@ There are **two**, and missing either leaves a page silently creating empty batc
 
 Task 5 replaces this second call entirely, but it must be correct in the meantime —
 never leave the tree in a state where a page is broken between commits.
+
+`pages/campaigns.html` (the ?new=1&picks= hand-off, around line 975) calls
+`S.addBatch(id, 'Batch 1', handoffPicks)`:
+
+```js
+        var n = S.addBatch(id, {name: 'Batch 1', infIds: handoffPicks});
+```
+
+That page loads no influencer file, so `addBatch` cannot tell what channels a
+creator has. It must omit the `channels` key entirely rather than writing an
+empty map — an empty map is truthy, and `migrate()` would take the pick as
+already migrated and strand it without channels forever.
 
 Then confirm none are left using three positional arguments:
 

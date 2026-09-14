@@ -200,3 +200,24 @@ test('createLead accepts a requirement and derives pax from it', () => {
   assert.equal(c.pax, 3);
   assert.deepEqual(c.platforms, ['tiktok']);
 });
+
+test('addBatch omits channels when it has no profiles to read them from', () => {
+  /* campaigns.html creates a batch without loading the influencer file.
+     An empty channels map is truthy and migrate() would treat the pick as
+     already migrated, stranding it without channels forever. */
+  const win = loadShared('tiers.js', 'campaign-model.js', 'campaign-store.js');
+  win.CAMPAIGNS = [{id: 'c1', stage: 'sourcing', roster: [], batches: []}];
+  const n = win.campaignStore.addBatch('c1', {infIds: ['inf-001']});
+  const pick = win.campaignStore.get('c1').batches[n - 1].picks[0];
+  assert.equal(pick.channels, undefined, 'left for migrate() to fill in');
+  assert.equal(pick.inf, 'inf-001');
+});
+
+test('a channel-less pick is migrated once a page supplies the profiles', () => {
+  const win = fresh();
+  win.CAMPAIGNS = [{id: 'c1', stage: 'sourcing', roster: [], batches: [
+    {n: 1, picks: [{inf: 'inf-001', kultRemark: '', clientRemark: ''}]}
+  ]}];
+  const pick = win.campaignStore.get('c1').batches[0].picks[0];
+  assert.deepEqual(pick.channels, {tiktok: 'none', instagram: 'none'});
+});
