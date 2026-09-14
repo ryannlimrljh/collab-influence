@@ -51,5 +51,82 @@
     return out;
   }
 
-  window.campaignModel = {migrate: migrate, channelsOf: channelsOf};
+  /* Requirement -> a flat, ordered list of asks. Object key order is
+     insertion order for string keys, which is what we want: the ask reads
+     back the way it was entered. */
+  function slotsOf(c) {
+    var req = (c && c.requirement) || {}, out = [];
+    Object.keys(req).forEach(function (platform) {
+      Object.keys(req[platform]).forEach(function (tier) {
+        var want = Number(req[platform][tier]) || 0;
+        if (want > 0) out.push({platform: platform, tier: tier, want: want});
+      });
+    });
+    return out;
+  }
+
+  function derivedPax(c) {
+    return slotsOf(c).reduce(function (a, s) { return a + s.want; }, 0);
+  }
+
+  /* A roster entry occupies its slot while it is approved or confirmed.
+     `unavailable` releases it, which is what reopens the slot. */
+  function occupies(r) { return r.state === 'approved' || r.state === 'confirmed'; }
+
+  /* platform -> tier -> {want, filled, open, over}. Tiers present on the
+     roster but absent from the ask still appear, with want 0, so an
+     unasked-for fill is visible rather than silently dropped. */
+  function slotStatus(c) {
+    var out = {};
+    function cell(platform, tier) {
+      out[platform] = out[platform] || {};
+      out[platform][tier] = out[platform][tier] || {want: 0, filled: 0, open: 0, over: 0};
+      return out[platform][tier];
+    }
+    slotsOf(c).forEach(function (s) { cell(s.platform, s.tier).want = s.want; });
+    ((c && c.roster) || []).filter(occupies).forEach(function (r) {
+      cell(r.platform, r.tier).filled += 1;
+    });
+    Object.keys(out).forEach(function (p) {
+      Object.keys(out[p]).forEach(function (t) {
+        var x = out[p][t];
+        x.open = Math.max(0, x.want - x.filled);
+        x.over = Math.max(0, x.filled - x.want);
+      });
+    });
+    return out;
+  }
+
+  function shortfallOf(c) {
+    var st = slotStatus(c);
+    return slotsOf(c).map(function (s) {
+      return {platform: s.platform, tier: s.tier, want: st[s.platform][s.tier].open};
+    }).filter(function (s) { return s.want > 0; });
+  }
+
+  /* How well a set of candidates covers an ask, before anything is sent.
+     Counts channel accounts, not people: one creator on two platforms
+     contributes to both. */
+  function coverageOf(requirement, infIds, people) {
+    var have = {};
+    (infIds || []).forEach(function (id) {
+      channelsOf(people[id]).forEach(function (ch) {
+        var t = window.tiers.tierOf(ch.followers);
+        if (!t) return;
+        have[ch.platform] = have[ch.platform] || {};
+        have[ch.platform][t.key] = (have[ch.platform][t.key] || 0) + 1;
+      });
+    });
+    return slotsOf({requirement: requirement}).map(function (s) {
+      var n = (have[s.platform] && have[s.platform][s.tier]) || 0;
+      return {platform: s.platform, tier: s.tier, want: s.want, have: n,
+              gap: Math.max(0, s.want - n)};
+    });
+  }
+
+  window.campaignModel = {
+    migrate: migrate, channelsOf: channelsOf,
+    slotsOf: slotsOf, derivedPax: derivedPax, slotStatus: slotStatus,
+    shortfallOf: shortfallOf, coverageOf: coverageOf
+  };
 })();

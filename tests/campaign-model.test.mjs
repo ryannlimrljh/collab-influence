@@ -66,3 +66,72 @@ test('an existing requirement is left alone', () => {
   const out = M.migrate({roster: [], batches: [], requirement: req}, PEOPLE);
   assert.deepEqual(out.requirement, req);
 });
+
+const REQ = {tiktok: {mid: 2, macro: 1}, instagram: {mid: 1}};
+
+test('slots flatten the requirement in platform then tier order', () => {
+  assert.deepEqual(M.slotsOf({requirement: REQ}), [
+    {platform: 'tiktok',    tier: 'mid',   want: 2},
+    {platform: 'tiktok',    tier: 'macro', want: 1},
+    {platform: 'instagram', tier: 'mid',   want: 1}
+  ]);
+});
+
+test('derivedPax is the sum of every slot', () => {
+  assert.equal(M.derivedPax({requirement: REQ}), 4);
+  assert.equal(M.derivedPax({requirement: {}}), 0);
+});
+
+test('fills count approved and confirmed but not unavailable', () => {
+  const c = {requirement: REQ, roster: [
+    {inf: 'a', platform: 'tiktok', tier: 'mid', state: 'confirmed'},
+    {inf: 'b', platform: 'tiktok', tier: 'mid', state: 'approved'},
+    {inf: 'c', platform: 'tiktok', tier: 'mid', state: 'unavailable'}
+  ]};
+  const s = M.slotStatus(c);
+  assert.equal(s.tiktok.mid.filled, 2);
+  assert.equal(s.tiktok.mid.want, 2);
+  assert.equal(s.tiktok.mid.open, 0);
+  assert.equal(s.tiktok.mid.over, 0);
+});
+
+test('overage is reported, never clamped', () => {
+  const c = {requirement: {tiktok: {macro: 1}}, roster: [
+    {inf: 'a', platform: 'tiktok', tier: 'macro', state: 'confirmed'},
+    {inf: 'b', platform: 'tiktok', tier: 'macro', state: 'approved'}
+  ]};
+  const s = M.slotStatus(c);
+  assert.equal(s.tiktok.macro.filled, 2);
+  assert.equal(s.tiktok.macro.over, 1);
+  assert.equal(s.tiktok.macro.open, 0);
+});
+
+test('shortfall lists only what is still open', () => {
+  const c = {requirement: REQ, roster: [
+    {inf: 'a', platform: 'tiktok', tier: 'mid', state: 'confirmed'}
+  ]};
+  assert.deepEqual(M.shortfallOf(c), [
+    {platform: 'tiktok',    tier: 'mid',   want: 1},
+    {platform: 'tiktok',    tier: 'macro', want: 1},
+    {platform: 'instagram', tier: 'mid',   want: 1}
+  ]);
+});
+
+test('coverage counts candidate channels against the ask', () => {
+  const people = {
+    'inf-001': {id: 'inf-001', platforms: [
+      {platform: 'tiktok', handle: 'a', followers: 60000},
+      {platform: 'instagram', handle: 'a', followers: 60000}
+    ]},
+    'inf-002': {id: 'inf-002', platforms: [
+      {platform: 'tiktok', handle: 'b', followers: 60000}
+    ]}
+  };
+  const cov = M.coverageOf(REQ, ['inf-001', 'inf-002'], people);
+  assert.deepEqual(cov.find(x => x.platform === 'tiktok' && x.tier === 'mid'),
+    {platform: 'tiktok', tier: 'mid', want: 2, have: 2, gap: 0});
+  assert.deepEqual(cov.find(x => x.platform === 'tiktok' && x.tier === 'macro'),
+    {platform: 'tiktok', tier: 'macro', want: 1, have: 0, gap: 1});
+  assert.deepEqual(cov.find(x => x.platform === 'instagram' && x.tier === 'mid'),
+    {platform: 'instagram', tier: 'mid', want: 1, have: 1, gap: 0});
+});
