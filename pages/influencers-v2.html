@@ -606,19 +606,14 @@
     flex:none; background:currentColor;}
   .inf-tier-seeder{background:var(--color-neutral-2); color:var(--color-neutral-5);}
   .inf-tier-koc{background:var(--color-neutral-2); color:var(--color-turquoise);}
-  .inf-tier-koc .dot{background:var(--color-turquoise);}
   .inf-tier-nano{background:var(--color-wood-bg); color:var(--color-salmon-pink);
     border-color:color-mix(in srgb, var(--color-salmon-pink) 22%, transparent);}
-  .inf-tier-nano .dot{background:var(--color-salmon-pink);}
   .inf-tier-micro{background:var(--color-earth-bg); color:var(--color-green);
     border-color:color-mix(in srgb, var(--color-green) 22%, transparent);}
-  .inf-tier-micro .dot{background:var(--color-green);}
   .inf-tier-mid{background:var(--color-water-bg); color:var(--color-navy);
     border-color:color-mix(in srgb, var(--color-navy) 22%, transparent);}
-  .inf-tier-mid .dot{background:var(--color-navy);}
   .inf-tier-macro{background:var(--color-fire-bg); color:var(--color-orange);
     border-color:color-mix(in srgb, var(--color-orange) 22%, transparent);}
-  .inf-tier-macro .dot{background:var(--color-orange);}
   /* Mega follows the same formula as every other tier — pale element
      background, element-coloured text and dot. The solid amber fill it
      had before was the only pill built differently, so it read as a
@@ -628,7 +623,6 @@
   .inf-tier-mega{background:var(--color-gold-bg); color:#8A5A00;
     border-color:color-mix(in srgb, var(--color-amber) 40%, transparent);}
   .inf-tier-mega .dot{background:var(--color-amber);}
-  .c-tag-koc{color:var(--color-turquoise);}
 
   .inf-list-plat{white-space:nowrap;}
   .inf-plat{display:flex; align-items:center; justify-content:flex-end;
@@ -1104,14 +1098,13 @@
 <script src="../shared/avatar-manifest.js?v=2"></script>
 <script>window.INFLUENCER_STORE_KEY = 'collab-influencers-v2';</script>
 <script src="../shared/influencer-store.js?v=2"></script>
-<script src="../shared/tiers.js"></script>
+<script src="../shared/tiers.js?v=1"></script>
 <script>
 (function () {
   'use strict';
 
-  /* ── Formatting + tiers. Tier brackets read off the live app's own
-     labels: Seeder under 1K, Nano to 5K, Micro to 20K, Mid to 100K,
-     Macro to 500K, Mega beyond. Tag recipes per the DLS tier table. */
+  /* ── Formatting + tiers. The brackets themselves live in
+     shared/tiers.js, which is the one copy all pages read. */
   function fmtFollowers(n){
     if (n == null) return '';
     if (n >= 1e6) return (n / 1e6).toFixed(n % 1e6 ? 1 : 0).replace(/\.0$/, '') + 'M';

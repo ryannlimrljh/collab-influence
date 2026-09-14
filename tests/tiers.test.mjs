@@ -64,7 +64,7 @@ test('every tier carries a key, name and dot colour', () => {
    or `dot` is otherwise invisible until it reaches the page. */
 test('the KOC record is exactly as specified', () => {
   assert.deepEqual(tierByKey('koc'), {
-    key: 'koc', name: 'KOC', max: 1000, cls: 'c-tag-koc', dot: 'var(--color-turquoise)'
+    key: 'koc', name: 'KOC', max: 1000, dot: 'var(--color-turquoise)'
   });
 });
 

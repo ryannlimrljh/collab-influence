@@ -544,7 +544,7 @@
 <script src="../shared/campaigns-data.js?v=1"></script>
 <script src="../shared/campaign-store.js?v=3"></script>
 <script src="../shared/campaign-form.js?v=3"></script>
-<script src="../shared/tiers.js"></script>
+<script src="../shared/tiers.js?v=1"></script>
 <script>
 (function () {
   'use strict';
@@ -562,7 +562,7 @@
   };
   var PLAT_LABEL = {tiktok: 'TikTok', instagram: 'Instagram', xhs: 'Xiaohongshu'};
 
-  /* ── Tiers + follower formatting, the influencers page's own brackets. */
+  /* ── Tiers + follower formatting. Brackets come from shared/tiers.js. */
   var TIERS = window.tiers.TIERS, tierOf = window.tiers.tierOf;
   function fmtFollowers(n){
     if (n == null) return '';

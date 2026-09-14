@@ -2,22 +2,28 @@
 
    Was copied into campaign.html, influencers-v2.html and influencers.html,
    each with its own idea of what a tier record holds. The dot colour used to
-   live in a separate TIER_DOT map keyed differently on each page (by name in
-   campaign.html, by cls in influencers-v2.html); it is a field here instead,
-   so there is nothing left to keep in sync.
+   live in a separate TIER_DOT map keyed differently on each page — by name in
+   campaign.html, by a `cls` field in influencers-v2.html — so the two could
+   drift apart. It is a field on the record here, and both maps are gone.
 
-   `key` doubles as the requirement object's tier key: requirement.tiktok.mid. */
+   `key` doubles as two other things: the requirement object's tier key
+   (requirement.tiktok.mid) and the CSS ramp class (.inf-tier-mid). The ramp
+   used to be indexed by array position, which meant inserting a tier silently
+   unstyled every tier after it.
+
+   influencers.html still carries its own copy; it is unmaintained by decision
+   (see HANDOVER.md) and is deliberately left alone. */
 (function () {
   'use strict';
 
   var TIERS = [
-    {key: 'seeder', name: 'Seeder', max: 5e2,      cls: '',            dot: 'var(--color-neutral-4)'},
-    {key: 'koc',    name: 'KOC',    max: 1e3,      cls: 'c-tag-koc',   dot: 'var(--color-turquoise)'},
-    {key: 'nano',   name: 'Nano',   max: 5e3,      cls: 'c-tag-wood',  dot: 'var(--color-salmon-pink)'},
-    {key: 'micro',  name: 'Micro',  max: 2e4,      cls: 'c-tag-earth', dot: 'var(--color-green)'},
-    {key: 'mid',    name: 'Mid',    max: 1e5,      cls: 'c-tag-water', dot: 'var(--color-navy)'},
-    {key: 'macro',  name: 'Macro',  max: 5e5,      cls: 'c-tag-fire',  dot: 'var(--color-orange)'},
-    {key: 'mega',   name: 'Mega',   max: Infinity, cls: 'c-tag-gold',  dot: 'var(--color-amber)'}
+    {key: 'seeder', name: 'Seeder', max: 5e2,      dot: 'var(--color-neutral-4)'},
+    {key: 'koc',    name: 'KOC',    max: 1e3,      dot: 'var(--color-turquoise)'},
+    {key: 'nano',   name: 'Nano',   max: 5e3,      dot: 'var(--color-salmon-pink)'},
+    {key: 'micro',  name: 'Micro',  max: 2e4,      dot: 'var(--color-green)'},
+    {key: 'mid',    name: 'Mid',    max: 1e5,      dot: 'var(--color-navy)'},
+    {key: 'macro',  name: 'Macro',  max: 5e5,      dot: 'var(--color-orange)'},
+    {key: 'mega',   name: 'Mega',   max: Infinity, dot: 'var(--color-amber)'}
   ];
 
   function tierOf(n) {
