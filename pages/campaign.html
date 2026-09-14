@@ -16,15 +16,17 @@
 <style>
   /* Page-local. Composes tokens only — no new colors, radii, or spacing. */
   .c-shell .c-shell-content{padding-top:0;}
-  .cd-top{padding-top:var(--spacing-32);}
-  .c-back-button{text-decoration:none; margin-left:calc(var(--spacing-12) * -1);
-    color:var(--color-neutral-9);}
+  /* Back sits in the header row itself, the way the media planner does
+     it — one row instead of two. The arrow hangs half out of the grid so
+     the title stays on the margin. */
+  .cd-headrow{display:flex; align-items:flex-start; gap:var(--spacing-8); min-width:0; flex:1;}
+  .cd-crumb{flex:none; text-decoration:none; margin-left:calc(var(--spacing-12) * -1); margin-top:4px;}
 
   /* ── Header: colour bar, title, stage; actions on the right. The
      bar is the campaign's own colour from the form — the one place it
      shows, so it stays a quiet 6px stripe rather than a wash. */
   .cd-head{display:flex; align-items:flex-start; justify-content:space-between;
-    gap:var(--spacing-16); margin-top:var(--spacing-12);}
+    gap:var(--spacing-16); padding-top:var(--spacing-32);}
   .cd-title{display:flex; align-items:center; gap:var(--spacing-12); min-width:0; flex-wrap:wrap;}
   .cd-title h1{margin:0; font-size:var(--text-h1-size); line-height:var(--text-h1-lh);
     font-weight:var(--text-h1-weight); color:var(--color-neutral-9); min-width:0;
@@ -590,20 +592,19 @@
 
   <div class="c-shell-main">
     <div class="c-shell-content" id="cdContent">
-      <div class="cd-top">
-        <a class="c-back-button" href="campaigns.html"><i class="ph ph-arrow-left"></i> Campaigns</a>
-      </div>
-
-      <div id="cdMissing" hidden></div>
+      <div id="cdMissing" hidden style="padding-top:var(--spacing-32)"></div>
 
       <div id="cdPage">
         <div class="cd-head">
-          <div>
-            <div class="cd-title">
-              <h1 id="cdName"></h1>
-              <span id="cdStageWrap"></span>
+          <div class="cd-headrow">
+            <a class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-crumb" href="campaigns.html" aria-label="Back to campaigns" title="Back to campaigns"><i class="ph ph-arrow-left"></i></a>
+            <div style="min-width:0">
+              <div class="cd-title">
+                <h1 id="cdName"></h1>
+                <span id="cdStageWrap"></span>
+              </div>
+              <p class="cd-io" id="cdIo" hidden></p>
             </div>
-            <p class="cd-io" id="cdIo" hidden></p>
           </div>
           <div class="cd-actions">
             <button class="c-btn c-btn-secondary c-btn-md" type="button" id="cdDelete"><i class="ph ph-trash"></i> Delete</button>
