@@ -430,6 +430,40 @@
     '  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);',
     '  -webkit-mask-composite:xor; mask-composite:exclude;}',
     '.ss-ai-tag i{font-size:9px;}',
+    '.ss-ai-tag.is-think i{animation:ss-ai-spin 1.1s var(--ease-standard) infinite;}',
+    '.ss-ai-tag.is-think::before{opacity:.34;}',
+
+    /* A row being thought about: the shape of the answer, before the answer. */
+    '@keyframes ss-sheen{from{background-position:-180px 0;} to{background-position:260px 0;}}',
+    '.ss-prow.ss-ghost, .ss-prow.ss-ghost:hover{background:none; cursor:default;}',
+    '.ss-sk{background-color:var(--color-neutral-2); border-radius:var(--radius-pill);',
+    "  background-image:linear-gradient(90deg, transparent 0, rgba(255,255,255,.85) 50%, transparent 100%);",
+    '  background-repeat:no-repeat; background-size:180px 100%;',
+    '  animation:ss-sheen 1.15s linear infinite;}',
+    '.ss-ghost .ss-gav{width:28px; height:28px; flex:none;}',
+    '.ss-ghost .ss-gline{display:block; height:10px; width:min(140px, 40%);}',
+
+    /* What the assist did, said next to what it did it to. It used to report
+       from the banner, which the anchor scrolls off the screen. */
+    '.ss-ainote{display:flex; align-items:center; gap:8px; margin:0 0 var(--spacing-12);',
+    '  padding:8px var(--spacing-12); border-radius:var(--radius-md);',
+    '  background:var(--color-neutral-2); font-size:var(--text-caption-size);',
+    '  color:var(--color-neutral-9);}',
+    '.ss-ainote i{flex:none; color:var(--color-green);}',
+    '.ss-ainote.is-ai{position:relative; z-index:0; overflow:hidden; background:none;',
+    '  color:rgba(8,8,8,.8);}',
+    ".ss-ainote.is-ai::before, .ss-ainote.is-ai::after{content:''; position:absolute; inset:0;",
+    '  border-radius:inherit; pointer-events:none;',
+    '  background-image:linear-gradient(90deg,var(--color-fire-pastel) 0%,',
+    '    var(--color-wood-pastel) 20%,var(--color-earth-pastel) 40%,',
+    '    var(--color-water-pastel) 60%,var(--color-gold-pastel) 80%,var(--color-fire-pastel) 100%);',
+    '  background-size:200% 100%; animation:c-prompt-bar-glow-move 4s linear infinite;}',
+    '.ss-ainote.is-ai::before{z-index:-1; opacity:.16;}',
+    '.ss-ainote.is-ai::after{z-index:1; padding:1px;',
+    '  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);',
+    '  -webkit-mask-composite:xor; mask-composite:exclude;}',
+    '.ss-ainote.is-ai i{color:inherit; position:relative; z-index:1;}',
+    '.ss-ainote.is-ai span{position:relative; z-index:1;}',
     /* The rows it just added land rather than appear. */
     '@keyframes ss-land{from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:none;}}',
     '.ss-prow.is-new{animation:ss-land var(--duration-base) var(--ease-standard) both;}',
@@ -444,7 +478,8 @@
     '  clip-path:inset(50%); white-space:nowrap;}',
     '@media (prefers-reduced-motion:reduce){',
     '  .ss-ai-btn::before, .ss-ai-btn::after, .ss-ai-tag::before, .ss-ai-tag::after,',
-    '  .ss-ai-btn.is-working i, .ss-prow.is-new{animation:none;}',
+    '  .ss-ainote.is-ai::before, .ss-ainote.is-ai::after, .ss-sk,',
+    '  .ss-ai-tag.is-think i, .ss-ai-btn.is-working i, .ss-prow.is-new{animation:none;}',
     '  .ss-addrow input.is-bad{animation:none;} }',
     '.ss-err{margin:var(--spacing-12) 0 0; color:var(--color-red); font-size:var(--text-caption-size);}',
     '@media (max-width:600px){ .ss-dest, .ss-grid{grid-template-columns:1fr;}',
@@ -539,9 +574,9 @@
       }).join('') + '</span>';
     }
 
-    function personHtml(r) {
+    function personHtml(r, extraCls) {
       return '<div class="ss-prow' + (r.fits ? '' : ' is-mis') +
-        (state.newIds[r.id] ? ' is-new' : '') + '">' +
+        (state.newIds[r.id] ? ' is-new' : '') + (extraCls ? ' ' + extraCls : '') + '">' +
         avatarHtml(r.id, '', r.name) +
         '<span class="nm">' + esc(r.name) +
           (r.fits ? '' : '<i class="ph-fill ph-warning-circle" ' +
@@ -626,6 +661,11 @@
          closed before innerHTML is rebuilt or the panel is left orphaned
          there with nothing to close it. */
       if (window.collabDropdown) window.collabDropdown.close();
+      /* innerHTML replaces the scrolling element, so its position has to be
+         carried over by hand — otherwise every edit (dropping one person,
+         adding a band) returns the user to the top of the sheet. */
+      var wasAt = host.querySelector('.c-modal-body');
+      wasAt = wasAt ? wasAt.scrollTop : 0;
       seedAsk();
       var cov = bandRows(state.ask, state.infIds, opts.people);
       /* Bands in the ask lead; bands you merely happen to be sending sit
@@ -824,24 +864,15 @@
                     'biggest accounts that fit, skipping anyone already on this list, already ' +
                     'booked on this campaign, or already turned down by this client. Everything ' +
                     'it adds is tagged in the list below, and you can drop any of it.</p>' +
-                    (state.fillNote ? '<p class="message"><b>' + esc(state.fillNote) + '</b></p>' : '') +
                     '<div class="actions">' +
                       '<button type="button" class="c-btn c-btn-ghost c-btn-sm ss-ai-btn" ' +
                       'data-ss="fill"><i class="ph-fill ph-sparkle"></i> ' +
                       'Let Collab AI fill the gaps</button></div></div></div>'
-                  : (state.fillNote
-                    ? (state.fillAi
-                      ? '<div class="c-banner c-banner-ai ss-warn" role="status">' +
-                        '<i class="ph-fill ph-sparkle icon"></i><div class="body">' +
-                        '<p class="message">' + esc(state.fillNote) + '</p></div></div>'
-                      : '<div class="c-banner c-banner-success ss-warn" role="status">' +
-                        '<i class="ph-fill ph-check-circle icon"></i><div class="body">' +
-                        '<p class="message">' + esc(state.fillNote) + '</p></div></div>')
-                    : ''))
+                  : '')
               : '<p class="c-helper">Tick some profiles first and their channels and tiers appear here.</p>') +
           '</section>' +
 
-          '<section class="ss-sec">' +
+          '<section class="ss-sec" data-ss="whosec">' +
             '<h5 class="ss-sec-h">Who you are sending <span class="opt">' +
               prows.length + (prows.length === 1 ? ' profile' : ' profiles') +
               (split.mismatch.length ? ' · ' + split.mismatch.length + ' off the brief' : '') +
@@ -849,7 +880,12 @@
             '<p class="ss-lede">Drop anyone who does not belong, add anyone missing. ' +
             'The table above follows along, so a mismatch is something you fix here ' +
             'rather than a reason to close this and start again.</p>' +
-            '<div class="ss-plist">' +
+            (state.fillNote
+              ? '<p class="ss-ainote' + (state.fillAi ? ' is-ai' : '') + '" role="status">' +
+                '<i class="ph-fill ph-' + (state.fillAi ? 'sparkle' : 'check-circle') + '"></i>' +
+                '<span>' + esc(state.fillNote) + '</span></p>'
+              : '') +
+            '<div class="ss-plist" data-ss="plist">' +
               (shownP.length ? shownP.map(personHtml).join('')
                 : '<p class="c-helper">Nobody on this list yet — search for someone below.</p>') +
               (ordered.length > PEEK
@@ -906,6 +942,10 @@
           window.collabDropdown.enhance(sl, {placeholder: 'Pick one'});
         });
       }
+      if (wasAt) {
+        var nowAt = host.querySelector('.c-modal-body');
+        if (nowAt) nowAt.scrollTop = wasAt;
+      }
 
       state.newIds = {};
 
@@ -918,11 +958,154 @@
       }
     }
 
+    /* Rolled by hand rather than scrollTo({behavior:'smooth'}), which some
+       browsers and OS motion settings quietly decline — and a scroll that
+       sometimes does not happen is worse than one that always does. Each frame
+       re-finds the body, because a render in the middle of a glide replaces
+       the element the tween started on. */
+    var glide = null;
+    function anchor(el, smooth) {
+      var body = host.querySelector('.c-modal-body');
+      if (!body || !el) return;
+      var to = body.scrollTop +
+        el.getBoundingClientRect().top - body.getBoundingClientRect().top - 12;
+      to = Math.max(0, Math.min(to, body.scrollHeight - body.clientHeight));
+      if (glide) { cancelAnimationFrame(glide); glide = null; }
+      if (!smooth) { body.scrollTop = to; return; }
+
+      var from = body.scrollTop, start = 0, DUR = 420;
+      function step(ts) {
+        var b = host.querySelector('.c-modal-body');
+        if (!b) { glide = null; return; }
+        if (!start) start = ts;
+        var k = Math.min(1, (ts - start) / DUR);
+        b.scrollTop = from + (to - from) * (1 - Math.pow(1 - k, 3));
+        glide = k < 1 ? requestAnimationFrame(step) : null;
+      }
+      glide = requestAnimationFrame(step);
+    }
+
     function working(btn, label) {
       if (!btn) return;
       btn.classList.add('is-working');
       btn.disabled = true;
       btn.innerHTML = '<i class="ph-fill ph-sparkle"></i> ' + esc(label);
+    }
+
+    /* The assist works where its answer will land: anchor to the list, think
+       in it, then fill the rows in one at a time. The search itself is instant
+       — a sort over a list already in memory — so the pacing is a choice. It
+       buys the one thing a silent result cannot: the user watches the rows
+       they asked for being built, in the place they will have to judge them,
+       instead of a button spinning in a banner while the answer appears off
+       the bottom of the sheet. */
+    function runAssist(btn) {
+      var rows = bandRows(state.ask, state.infIds, opts.people);
+      var short = rows.filter(function (r) { return r.gap > 0; });
+      var add = fillGaps(rows, opts.people, excluded());
+
+      /* The first short band this profile answers — so a thinking row can name
+         the gap it is being pulled in to close. */
+      function bandFor(id) {
+        var chans = model().channelsOf(opts.people[id]);
+        for (var i = 0; i < short.length; i++) {
+          var b = short[i];
+          var hit = chans.some(function (ch) {
+            var t = window.tiers.tierOf(ch.followers);
+            return ch.platform === b.platform && t && t.key === b.tier;
+          });
+          if (hit) {
+            return (PLAT_LABEL[b.platform] || b.platform) + ' · ' +
+              window.tiers.tierByKey(b.tier).name;
+          }
+        }
+        return null;
+      }
+
+      /* Say what happened, including what could not: a band the list cannot
+         fill is the thing worth knowing, and it is invisible if the only
+         feedback is rows appearing. */
+      function report() {
+        var left = bandRows(state.ask, state.infIds, opts.people)
+          .filter(function (r) { return r.gap > 0; });
+        state.fillAi = true;
+        state.fillNote = !add.length
+          ? 'Nothing in your influencer list fits the bands that are short.'
+          : 'Added ' + add.length + (add.length === 1 ? ' profile' : ' profiles') +
+            (left.length
+              ? ', but ' + left.map(function (r) {
+                  return (PLAT_LABEL[r.platform] || r.platform) + ' ' +
+                    window.tiers.tierByKey(r.tier).name + ' is still ' + r.gap + ' short.';
+                }).join(' ')
+              : ' — every band is covered now.');
+      }
+
+      var still = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      /* Nothing it adds should land behind a "show all" toggle. */
+      state.showAll = true;
+
+      if (still) {
+        state.infIds = state.infIds.concat(add);
+        state.newIds = {};
+        add.forEach(function (id) { state.aiAdded[id] = true; state.newIds[id] = true; });
+        report();
+        sync();
+        render();
+        return anchor(host.querySelector('[data-ss="whosec"]'), false);
+      }
+
+      state.aiBusy = true;
+      working(btn, 'Working…');
+      render();
+      anchor(host.querySelector('[data-ss="whosec"]'), true);
+
+      var STEP = 260, LEAD = 520;
+      setTimeout(function () {
+        var list = host.querySelector('[data-ss="plist"]');
+        if (!list) { state.aiBusy = false; return; }
+
+        /* One thinking row per profile it is about to add, so the list shows
+           the shape of the answer before the answer. Nothing to add still
+           gets one, or the assist would look like it never ran. */
+        var n = add.length || 1;
+        var ghosts = '';
+        for (var i = 0; i < n; i++) {
+          ghosts += '<div class="ss-prow ss-ghost" data-ghost="' + i + '">' +
+            '<span class="ss-gav ss-sk"></span>' +
+            '<span class="nm"><span class="ss-gline ss-sk"></span></span>' +
+            '<span class="ss-ai-tag is-think"><i class="ph-fill ph-sparkle"></i> ' +
+            esc(add.length
+              ? 'Matching ' + (bandFor(add[i]) || 'the short bands') + '…'
+              : 'Reading your influencer list…') + '</span></div>';
+        }
+        list.insertAdjacentHTML('beforeend', ghosts);
+
+        add.forEach(function (id, i) {
+          setTimeout(function () {
+            var g = list.querySelector('[data-ghost="' + i + '"]');
+            if (!g) return;
+            /* Committed as it lands, not all at the end — so a click during
+               the fill acts on a list that is telling the truth. */
+            state.infIds = state.infIds.concat([id]);
+            state.aiAdded[id] = true;
+            sync();
+            g.outerHTML = personHtml(peopleRows(state.ask, [id], opts.people)[0], 'is-new');
+          }, LEAD + i * STEP);
+        });
+
+        setTimeout(function () {
+          state.aiBusy = false;
+          state.newIds = {};   /* they already landed; do not play it twice */
+          report();
+          render();
+          /* Filling the last gap takes the banner away, so everything below it
+             shifts up. render() holds the old offset; this glides to the new
+             one rather than letting the section jump under the eye. */
+          anchor(host.querySelector('[data-ss="whosec"]'), true);
+        }, LEAD + n * STEP + 180);
+      }, 420);
     }
 
     function close() { host.remove(); }
@@ -983,58 +1166,7 @@
         return render();
       }
       var fillBtn = e.target.closest('[data-ss="fill"]');
-      if (fillBtn) {
-        if (state.aiBusy) return;
-        var rows = bandRows(state.ask, state.infIds, opts.people);
-        var short = rows.filter(function (r) { return r.gap > 0; });
-
-        function landIt() {
-          state.aiBusy = false;
-          var add = fillGaps(rows, opts.people, excluded());
-          state.infIds = state.infIds.concat(add);
-          state.newIds = {};
-          add.forEach(function (id) { state.aiAdded[id] = true; state.newIds[id] = true; });
-
-          /* Say what happened, including what could not happen: a band the
-             list cannot fill is the thing worth knowing, and it is invisible
-             if the only feedback is rows appearing. */
-          var left = bandRows(state.ask, state.infIds, opts.people)
-            .filter(function (r) { return r.gap > 0; });
-          state.fillAi = true;
-          state.fillNote = !add.length
-            ? 'Nothing in your influencer list fits the bands that are short.'
-            : 'Added ' + add.length + (add.length === 1 ? ' profile' : ' profiles') +
-              (left.length
-                ? ', but ' + left.map(function (r) {
-                    return esc(PLAT_LABEL[r.platform] || r.platform) + ' ' +
-                      window.tiers.tierByKey(r.tier).name + ' is still ' + r.gap + ' short.';
-                  }).join(' ')
-                : ' — every band is covered now.');
-          sync();
-          render();
-        }
-
-        /* The search itself is instant — a sort over a list already in memory.
-           Showing it anyway is not theatre: it is the only moment in which
-           something visibly works on the user's behalf, and naming the band it
-           is on makes the answer that lands legible rather than magical.
-           Anyone who has asked not to see motion skips straight to the result. */
-        var still = window.matchMedia &&
-          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (still) return landIt();
-
-        state.aiBusy = true;
-        working(fillBtn, 'Reading your influencer list…');
-        if (short[0]) {
-          setTimeout(function () {
-            working(host.querySelector('[data-ss="fill"]'),
-              'Matching ' + (PLAT_LABEL[short[0].platform] || short[0].platform) + ' · ' +
-              window.tiers.tierByKey(short[0].tier).name + '…');
-          }, 430);
-        }
-        setTimeout(landIt, 950);
-        return;
-      }
+      if (fillBtn) { if (!state.aiBusy) runAssist(fillBtn); return; }
       if (e.target.closest('[data-ss="more"]')) {
         state.showExtra = !state.showExtra;
         return render();
