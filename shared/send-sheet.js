@@ -279,7 +279,19 @@
     '.ss-opt{font-weight:400; color:var(--color-neutral-5);}',
 
     /* c-table in a standalone wrap, as the campaign page uses it. Only the
-       numeric cells and the in-cell input need saying. */
+       numeric cells and the in-cell input need saying.
+
+       The clip has to be re-asserted. The DLS gives the wrap overflow:hidden
+       so its 20px radius actually cuts the header fill and the last row, but
+       both host pages drop it globally — `.c-table-standalone-wrap{overflow:
+       visible}` — so a kebab menu opened on their last row is not cut off.
+       That unscoped rule reaches in here too, and squared off all four
+       corners: the grey thead and the grey toggle row painted straight past
+       the rounded border. This table has no kebab menus, and the one thing
+       that would suffer from a clip — the DLS dropdown in the add-band row —
+       portals its panel onto document.body. A shared module cannot rely on
+       the host page's stylesheet leaving a component's defaults alone. */
+    '.ss-modal .c-table-standalone-wrap{overflow:hidden;}',
     '.ss-modal .c-table th, .ss-modal .c-table td{padding:var(--spacing-8) var(--spacing-12);}',
     '.ss-modal .c-table th{font-size:11px; font-weight:700; text-transform:uppercase;',
     '  letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}',
