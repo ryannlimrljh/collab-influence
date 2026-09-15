@@ -44,7 +44,7 @@ does not appear, add a cache-buster: `?v=2`, `?v=3`, and so on.
 |---|---|
 | `pages/influencers-v2.html` | **The current roster design.** |
 | `pages/campaigns.html` | **Campaigns list** — pipeline track with a ghost *Lead* node, board view (drag a card between columns to change its stage) and table view, the stepped Add / Edit campaign sheet. |
-| `pages/campaign.html?id=…` | **Campaign page** — stage track, *Next up* strip, run-date timeline, deliverables ring, and the tabs Overview · Selection · Deliverables · Documents · Activity. Documents is still a designed placeholder that reads the roster. |
+| `pages/campaign.html?id=…` | **Campaign page** — stage track, *Next up* strip, run-date timeline, deliverables ring, and the tabs Overview · Selection · Deliverables · Documents · Activity. Documents is still a designed placeholder that reads the roster. C toggles a rail of every campaign, [ and ] step between them; opening a campaign from the list is a cross-page view transition (the card grows into the hero). |
 | `pages/share.html?c=…&b=…` | **The client's page** for one sent batch — they answer per channel and it writes straight back to the campaign. |
 | `pages/influencers.html` | The earlier roster version, kept for comparison. Not maintained. |
 
