@@ -170,6 +170,16 @@
     '.ss-modal .c-table td.n input::-webkit-outer-spin-button,',
     '.ss-modal .c-table td.n input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}',
     '.ss-modal .c-table td.n input:focus{outline:none; border:2px solid var(--color-obsidian);}',
+    '.ss-lede{margin:-4px 0 var(--spacing-12); font-size:var(--text-caption-size); color:var(--color-neutral-6);}',
+    '.ss-lock{display:inline-flex; align-items:center; gap:4px; color:var(--color-neutral-5);}',
+    '.ss-modal .c-table td.n input:disabled{background:var(--color-neutral-2); color:var(--color-neutral-7); border-color:var(--color-neutral-2); cursor:default;}',
+    '.ss-extra{color:var(--color-neutral-4);}',
+    '.ss-modal .c-table th.note{text-align:right;}',
+    '.ss-modal .c-table tr.ss-more td{padding:0; border-bottom:1px solid var(--color-neutral-3);}',
+    '.ss-modal .c-table tr.ss-more button{width:100%; padding:8px var(--spacing-12); text-align:left;',
+    '  border:0; background:var(--color-neutral-2); font:inherit; font-size:var(--text-caption-size);',
+    '  color:var(--color-neutral-6); cursor:pointer; display:flex; align-items:center; gap:6px;}',
+    '.ss-modal .c-table tr.ss-more button:hover{color:var(--color-neutral-9);}',
     '.ss-warn{margin-top:var(--spacing-12);}',
     '.ss-err{margin:var(--spacing-12) 0 0; color:var(--color-red); font-size:var(--text-caption-size);}',
     '@media (max-width:600px){ .ss-dest, .ss-grid{grid-template-columns:1fr;}',
@@ -198,6 +208,7 @@
       campaignId: opts.defaultCampaignId || (opts.campaigns[0] && opts.campaigns[0].id) || '',
       leadName: '', leadBrand: '',
       ask: {}, name: '', recipient: '', expiryDays: 30, requireName: false,
+      showExtra: false,
       infIds: opts.infIds || []
     };
 
@@ -254,8 +265,22 @@
       if (window.collabDropdown) window.collabDropdown.close();
       seedAsk();
       var cov = bandRows(state.ask, state.infIds, opts.people);
+      /* Bands in the ask lead; bands you merely happen to be sending sit
+         behind a toggle, so a long tail of "not in the ask" rows does not
+         bury the four that matter. */
+      var asked = cov.filter(function (r) { return r.want > 0; });
+      var extra = cov.filter(function (r) { return !r.want; });
+      /* With nothing asked for yet, the bands are not "other" — they are the
+         only ones there are, and the rows you type into. Collapsing them
+         would leave a toggle with an empty table above it. */
+      if (!asked.length) { asked = extra; extra = []; }
       var sum = summary(state.ask, state.infIds, opts.people);
       var c = destinationCampaign();
+      /* When the campaign already defines the ask, it is the source of truth
+         and these numbers are shown, not typed. Editing them here would
+         rewrite the campaign silently. A campaign with no ask yet is the one
+         case where they are editable, and then they save back to it. */
+      var askLocked = !!(c && model().derivedPax(c));
 
       function stillNeeds() {
         if (!c) return '';
@@ -271,20 +296,23 @@
           : 'Every slot on this campaign is already filled.';
       }
 
+      /* The last column answers one question — can the client actually pick
+         the number being asked for in this band — so it says yes, or how
+         many more are needed. "enough" and "short 1" were shorthand that
+         only made sense if you already knew what the table was for. */
       function rowHtml(r) {
-        /* A band you have asked nothing of says so, rather than claiming to
-           be covered — you are simply not asking for it. */
         var cls = !r.want ? '' : (r.have === 0 ? 'is-none' : (r.gap > 0 ? 'is-short' : 'is-ok'));
-        var note = !r.want ? 'not asked for'
-                 : (r.have === 0 ? 'none to pick from'
-                 : (r.gap > 0 ? 'short ' + r.gap : 'enough'));
+        var note = !r.want ? '<span class="ss-extra">not in the ask</span>'
+                 : (r.have === 0 ? 'None sent'
+                 : (r.gap > 0 ? 'Need ' + r.gap + ' more' : 'Yes'));
         var tier = window.tiers.tierByKey(r.tier);
         return '<tr class="' + cls + '"><td>' +
           '<span class="ss-band"><span class="cmp-dot" style="background:' + tier.dot + '"></span>' +
             esc(PLAT_LABEL[r.platform] || r.platform) + ' · ' + esc(tier.name) + '</span></td>' +
           '<td class="n"><input type="number" min="0" inputmode="numeric" value="' + r.want +
-            '" data-ss="ask" data-plat="' + esc(r.platform) + '" data-tier="' + esc(r.tier) +
-            '" aria-label="Pax to pick, ' + esc(PLAT_LABEL[r.platform] + ' ' + tier.name) + '" /></td>' +
+            '" data-ss="ask" data-plat="' + esc(r.platform) + '" data-tier="' + esc(r.tier) + '"' +
+            (askLocked ? ' disabled title="Set on the campaign"' : '') +
+            ' aria-label="Pax to pick, ' + esc(PLAT_LABEL[r.platform] + ' ' + tier.name) + '" /></td>' +
           '<td class="n num">' + r.have + '</td>' +
           '<td class="note">' + note + '</td></tr>';
       }
@@ -336,12 +364,28 @@
 
           '<section class="ss-sec">' +
             '<h5 class="ss-sec-h">Pax to select <span class="opt">per platform and tier</span></h5>' +
+            '<p class="ss-lede">How many profiles the client should pick in each band, and ' +
+            'whether the ones you have ticked can cover it.' +
+            (askLocked
+              ? ' <span class="ss-lock"><i class="ph ph-lock-simple"></i> Set on ' +
+                esc(c.name) + ' — change it on the campaign.</span>'
+              : '') + '</p>' +
             (cov.length
               ? '<div class="c-table-standalone-wrap">' +
                   '<table class="c-table c-table-standalone"><thead><tr>' +
                     '<th>Channel · Tier</th><th class="n">Pax to pick</th>' +
-                    '<th class="n">Profiles sent</th><th></th></tr></thead><tbody>' +
-                    cov.map(rowHtml).join('') +
+                    '<th class="n">Profiles sent</th>' +
+                    '<th class="note">Can they pick that many?</th></tr></thead><tbody>' +
+                    asked.map(rowHtml).join('') +
+                    (extra.length
+                      ? '<tr class="ss-more"><td colspan="4">' +
+                        '<button type="button" data-ss="more">' +
+                        '<i class="ph ph-caret-' + (state.showExtra ? 'up' : 'down') + '"></i> ' +
+                        (state.showExtra ? 'Hide the ' : 'Show the ') + extra.length +
+                        ' other band' + (extra.length === 1 ? '' : 's') +
+                        ' you are sending</button></td></tr>' +
+                        (state.showExtra ? extra.map(rowHtml).join('') : '')
+                      : '') +
                   '</tbody></table></div>' +
                 (sum.shortBands
                   ? '<div class="c-banner c-banner-warning ss-warn">' +
@@ -400,6 +444,10 @@
 
     host.addEventListener('click', function (e) {
       if (e.target === host || e.target.closest('[data-ss="close"], [data-ss="cancel"]')) return close();
+      if (e.target.closest('[data-ss="more"]')) {
+        state.showExtra = !state.showExtra;
+        return render();
+      }
       if (!e.target.closest('[data-ss="send"]')) return;
       var v = validate(state);
       if (!v.ok) {
