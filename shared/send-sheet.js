@@ -358,7 +358,8 @@
     '  width:28px; height:28px; margin-left:-7px; border-radius:var(--radius-pill);',
     '  border:2px solid var(--color-neutral-1); background:var(--color-neutral-2);',
     '  font-size:10px; font-weight:800; color:var(--color-neutral-6);}',
-    '.ss-mis{display:inline-flex; align-items:center; gap:4px; margin-top:2px; color:#8A5A00;}',
+    '.ss-mis{display:inline-flex; align-items:center; gap:6px; margin-top:2px; color:#8A5A00;}',
+    '.ss-mis .sep{opacity:.5;}',
     '.ss-mis button{border:0; background:none; padding:0; font:inherit; color:inherit;',
     '  text-decoration:underline; text-underline-offset:3px; cursor:pointer;}',
 
@@ -963,10 +964,10 @@
               (split.mismatch.length
                 ? '<br><span class="ss-mis"><i class="ph-fill ph-warning-circle"></i> ' +
                   split.mismatch.length +
-                  (split.mismatch.length === 1 ? ' profile fits' : ' profiles fit') +
-                  ' no band you asked for ' +
-                  '<button type="button" data-ss="dropmis">Remove ' +
-                  (split.mismatch.length === 1 ? 'it' : 'them') + '</button></span>'
+                  (split.mismatch.length === 1 ? ' profile does not fit' : ' profiles do not fit') +
+                  ' any band for this campaign' +
+                  '<span class="sep" aria-hidden="true">·</span>' +
+                  '<button type="button" data-ss="dropmis">Remove</button></span>'
                 : '') + '</p>' +
             '</div></div>' +
           '<button class="c-icon-btn" type="button" data-ss="close" aria-label="Close">' +
@@ -1376,8 +1377,8 @@
         state.infIds = keep;
         state.fillAi = false;
         state.fillNote = 'Removed ' + dropped +
-          (dropped === 1 ? ' profile that fit' : ' profiles that fit') +
-          ' no band you asked for.';
+          (dropped === 1 ? ' profile that did' : ' profiles that did') +
+          ' not fit any band for this campaign.';
         sync();
         return render();
       }
