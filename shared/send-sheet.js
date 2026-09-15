@@ -1018,7 +1018,12 @@
                   '<table class="c-table c-table-standalone"><thead><tr>' +
                     '<th>Channel · Tier</th><th class="n">Pax to pick</th>' +
                     '<th class="n">Profiles sent</th>' +
-                    '<th class="note">Can they pick that many?</th></tr></thead><tbody>' +
+                    /* Not "Can they pick that many?" — the "they" read as the
+                       profiles as often as the client, and a question about a
+                       hypothetical is a lot to carry in a column head. This
+                       one has no pronoun and answers straight off the two
+                       numbers to its left. */
+                    '<th class="note">Enough profiles?</th></tr></thead><tbody>' +
                     (asked.length ? asked.map(rowHtml).join('')
                       : '<tr class="ss-none"><td colspan="4">No bands yet — add one below.</td></tr>') +
                     (!askLocked
