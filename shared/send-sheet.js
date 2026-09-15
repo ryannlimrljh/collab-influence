@@ -285,6 +285,7 @@
     '  border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm);',
     '  background:var(--color-neutral-1); -moz-appearance:textfield;}',
     '.ss-addrow input::-webkit-outer-spin-button, .ss-addrow input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}',
+    '.ss-modal .c-table tr.ss-none td{color:var(--color-neutral-5); font-size:var(--text-caption-size);}',
     '.ss-lede{margin:-4px 0 var(--spacing-12); font-size:var(--text-caption-size); color:var(--color-neutral-6);}',
     '.ss-lock{display:inline-flex; align-items:center; gap:4px; color:var(--color-neutral-5);}',
     '.ss-modal .c-table td.n input:disabled{background:var(--color-neutral-2); color:var(--color-neutral-7); border-color:var(--color-neutral-2); cursor:default;}',
@@ -404,10 +405,11 @@
          bury the four that matter. */
       var asked = cov.filter(function (r) { return r.want > 0; });
       var extra = cov.filter(function (r) { return !r.want; });
-      /* With nothing asked for yet, the bands are not "other" — they are the
-         only ones there are, and the rows you type into. Collapsing them
-         would leave a toggle with an empty table above it. */
-      if (!asked.length) { asked = extra; extra = []; }
+      /* No fallback here any more. This used to promote the bands you happen
+         to be sending into rows, because with no ask there was nowhere to
+         type; the add-a-band row is that entry point now, so a new campaign
+         opens with no lines at all and you state the ask rather than editing
+         a list of things you did not ask for. */
       var sum = summary(state.ask, state.infIds, opts.people);
       var c = destinationCampaign();
       var split = matchSplit(state.ask, state.infIds, opts.people);
@@ -544,13 +546,14 @@
               ? ' <span class="ss-lock"><i class="ph ph-lock-simple"></i> Set on ' +
                 esc(c.name) + ' — change it on the campaign.</span>'
               : '') + '</p>' +
-            (cov.length
+            (cov.length || !askLocked
               ? '<div class="c-table-standalone-wrap">' +
                   '<table class="c-table c-table-standalone"><thead><tr>' +
                     '<th>Channel · Tier</th><th class="n">Pax to pick</th>' +
                     '<th class="n">Profiles sent</th>' +
                     '<th class="note">Can they pick that many?</th></tr></thead><tbody>' +
-                    asked.map(rowHtml).join('') +
+                    (asked.length ? asked.map(rowHtml).join('')
+                      : '<tr class="ss-none"><td colspan="4">No bands yet — add the first one below.</td></tr>') +
                     (!askLocked
                       ? '<tr class="ss-add"><td colspan="4">' +
                         '<div class="ss-addrow">' +
