@@ -916,7 +916,7 @@
 <script src="../shared/dropdown.js?v=3"></script>
 <script src="../shared/campaign-store.js?v=10"></script>
 <script src="../shared/campaign-form.js?v=14"></script>
-<script src="../shared/send-sheet.js?v=35"></script>
+<script src="../shared/send-sheet.js?v=36"></script>
 <script src="../shared/swing-modal.js?v=4"></script>
 <script>
 (function () {
@@ -2129,17 +2129,19 @@
   window.swingModal.body().addEventListener('click', selectionClick);
   window.swingModal.body().addEventListener('change', selectionChange);
 
-  /* ── Sending a batch: pick the candidates, then the shared send sheet
-     with this campaign locked as the destination. A band narrows the
-     picker to creators who fit it; the sheet's ask is whatever is still
-     open, so the client only sees what is left to fill. */
+  /* ── Creating a selection list: straight into the shared send sheet
+     with this campaign locked as the destination, the same sheet the
+     influencers page uses. It opens with nobody on it and Collab AI
+     fills the open slots with the best-fitting accounts, to be swapped
+     out or added to by search there. A band narrows the ask to that
+     one slot; otherwise the ask is whatever is still open. */
   function startSend(band, anchor){
     setTab('selection');
-    openPicker('send', band, anchor);
+    openSendSheet([], anchor, band);
   }
-  function openSendSheet(ids, anchor){
+  function openSendSheet(ids, anchor, band){
     window.sendSheet.open({
-      anchor: anchor || null,
+      anchor: anchor || null, band: band || null, autoFill: !ids.length,
       infIds: ids, people: byInf, campaigns: S.merged(), defaultCampaignId: c.id, lockCampaign: true,
       onSend: function(r){
         /* Sending against an edited ask updates the campaign's own ask, so
@@ -2283,9 +2285,6 @@
   E('cdPickCancel').addEventListener('click', closePicker);
   E('cdPickConfirm').addEventListener('click', function(){
     var ids = Array.from(chosen); if (!ids.length) return;
-    /* The sheet takes the panel over from the picker, folding out of the
-       button that was just pressed. */
-    if (pickMode === 'send') return openSendSheet(ids, E('cdPickConfirm'));
     closePicker();
     /* By hand: the fill takes the band's platform when the creator has it,
        else their biggest channel; its tier is always the real one, and a
