@@ -1076,7 +1076,7 @@
 <script src="../shared/dropdown.js?v=2"></script>
 <script src="../shared/campaign-store.js?v=10"></script>
 <script src="../shared/campaign-model.js?v=8"></script>
-<script src="../shared/send-sheet.js?v=23"></script>
+<script src="../shared/send-sheet.js?v=24"></script>
 <script src="../shared/influencers-data.js"></script>
 <script src="../shared/avatar-manifest.js?v=2"></script>
 <script>window.INFLUENCER_STORE_KEY = 'collab-influencers-v2';</script>
@@ -2766,6 +2766,18 @@
       infIds: Array.from(selected),
       people: byId,
       campaigns: campaignStore.merged(),
+      /* The sheet is where the list gets edited now — dropping a mismatch or
+         searching someone in. Mirror that back onto the page's own set, so
+         closing the sheet keeps the fix instead of reverting to whatever was
+         ticked when it opened. */
+      onSelection: function (ids) {
+        selected.clear();
+        ids.forEach(function (id) { selected.add(id); });
+        paintHosts();
+        paintHeadBox();
+        paintSelAll();
+        paintSelBar();
+      },
       onSend: function (r) {
         var id = r.campaignId;
         if (r.mode === 'lead') {

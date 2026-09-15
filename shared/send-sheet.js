@@ -117,6 +117,55 @@
     return {match: match, mismatch: mismatch};
   }
 
+  /* One row per ticked profile: the bands their accounts land in, and whether
+     any of those bands is one you are asking for. The fit rule is matchSplit's,
+     read off the same slots — with no ask at all nothing can fail it — so the
+     list the sheet draws and the count in its header can never disagree. */
+  function peopleRows(ask, infIds, people) {
+    var wanted = {};
+    model().slotsOf({requirement: ask || {}}).forEach(function (s) {
+      wanted[s.platform + '/' + s.tier] = true;
+    });
+    var none = !Object.keys(wanted).length;
+    return (infIds || []).map(function (id) {
+      var rec = (people || {})[id] || {};
+      var bands = model().channelsOf(rec).map(function (ch) {
+        var t = window.tiers.tierOf(ch.followers);
+        return {
+          platform: ch.platform, tier: t ? t.key : null,
+          followers: ch.followers || 0,
+          wanted: !!(t && wanted[ch.platform + '/' + t.key])
+        };
+      });
+      return {
+        id: id, name: rec.name || id, bands: bands,
+        fits: none || bands.some(function (b) { return b.wanted; })
+      };
+    });
+  }
+
+  /* Name or handle, biggest total following first. The point of it is to let
+     someone answer a mismatch without closing the sheet, so it searches the
+     same roster the page does and leans on `exclude` to keep out whoever is
+     already on the list or already spoken for on the destination. */
+  function searchPeople(q, people, exclude, limit) {
+    var needle = String(q || '').trim().toLowerCase();
+    if (!needle) return [];
+    var out = [];
+    Object.keys(people || {}).forEach(function (id) {
+      if (exclude && exclude[id]) return;
+      var rec = people[id], hay = String(rec.name || ''), reach = 0;
+      model().channelsOf(rec).forEach(function (ch) {
+        hay += ' ' + (ch.handle || '');
+        reach += ch.followers || 0;
+      });
+      if (hay.toLowerCase().indexOf(needle) === -1) return;
+      out.push({id: id, name: rec.name || id, reach: reach});
+    });
+    out.sort(function (a, b) { return b.reach - a.reach; });
+    return limit ? out.slice(0, limit) : out;
+  }
+
   function summary(ask, infIds, people) {
     var rows = coverage(ask, infIds, people);
     var channels = 0;
@@ -287,6 +336,45 @@
     '.ss-addrow input::-webkit-outer-spin-button, .ss-addrow input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}',
     '.ss-modal .c-table tr.ss-none td{color:var(--color-neutral-5); font-size:var(--text-caption-size);}',
     '.ss-lede{margin:-4px 0 var(--spacing-12); font-size:var(--text-caption-size); color:var(--color-neutral-6);}',
+
+    /* The people list. One row per profile, 44px of touch target, and the
+       remove control always in the same column so the eye can run down it. */
+    '.ss-plist{display:flex; flex-direction:column;}',
+    '.ss-prow{display:flex; align-items:center; gap:var(--spacing-12); min-height:44px;',
+    '  padding:6px 8px; border-radius:var(--radius-sm);}',
+    '.ss-prow:hover{background:var(--color-neutral-2);}',
+    '.ss-prow .c-card-profile-avatar{width:28px; height:28px; flex:none; border-radius:var(--radius-pill);',
+    '  object-fit:cover; background:var(--color-neutral-2); color:var(--color-neutral-6);',
+    '  display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:800;}',
+    '.ss-prow .nm{flex:1 1 auto; min-width:0; display:flex; align-items:center; gap:6px;',
+    '  font-size:var(--text-body2-size); font-weight:700; white-space:nowrap;',
+    '  overflow:hidden; text-overflow:ellipsis;}',
+    '.ss-prow .nm i{color:var(--color-amber); flex:none;}',
+    /* Tinted, not hidden: it is still going to the client until you say otherwise. */
+    '.ss-prow.is-mis{background:var(--color-gold-bg); box-shadow:inset 2px 0 0 var(--color-amber);}',
+    '.ss-prow .c-icon-btn{flex:none; color:var(--color-neutral-5);}',
+    '.ss-prow .c-icon-btn:hover{color:var(--color-red); background:var(--color-neutral-2);}',
+    '.ss-pb{display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; flex:none;}',
+    '.ss-pb span{display:inline-flex; align-items:center; gap:4px; padding:2px 8px;',
+    '  border-radius:var(--radius-pill); background:var(--color-neutral-2);',
+    '  font-size:11px; font-weight:700; color:var(--color-neutral-6); white-space:nowrap;}',
+    /* A band the client was actually asked to pick from, filled so it reads
+       at a glance which of a creator's accounts is the reason they are here. */
+    '.ss-pb span.is-want{background:var(--color-obsidian); color:var(--color-neutral-1);}',
+    '.ss-pb .cmp-dot{width:6px; height:6px; border-radius:99px; flex:none;}',
+    '.ss-allbtn{align-self:flex-start; margin-top:4px; padding:6px 8px; border:0; background:none;',
+    '  font:inherit; font-size:var(--text-caption-size); color:var(--color-neutral-6);',
+    '  cursor:pointer; display:inline-flex; align-items:center; gap:6px;}',
+    '.ss-allbtn:hover{color:var(--color-neutral-9);}',
+    '.ss-search{display:flex; align-items:center; gap:8px; margin-top:var(--spacing-12);',
+    '  height:40px; padding:0 var(--spacing-12); box-sizing:border-box;',
+    '  border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm);',
+    '  background:var(--color-neutral-1); color:var(--color-neutral-5);}',
+    '.ss-search:focus-within{border:2px solid var(--color-obsidian); padding:0 11px;}',
+    '.ss-search input{flex:1; min-width:0; border:0; outline:none; background:none;',
+    '  font:inherit; font-size:var(--text-body2-size); color:var(--color-neutral-9);}',
+    '.ss-results{margin-top:4px;}',
+    '.ss-results .c-helper{padding:6px 8px;}',
     '.ss-lock{display:inline-flex; align-items:center; gap:4px; color:var(--color-neutral-5);}',
     '.ss-modal .c-table td.n input:disabled{background:var(--color-neutral-2); color:var(--color-neutral-7); border-color:var(--color-neutral-2); cursor:default;}',
     '.ss-extra{color:var(--color-neutral-4);}',
@@ -311,7 +399,11 @@
     document.head.appendChild(s);
   }
 
-  /* opts: {infIds, people, campaigns, defaultCampaignId, lockCampaign, onSend}
+  /* opts: {infIds, people, campaigns, defaultCampaignId, lockCampaign,
+            onSend, onSelection}
+     onSelection fires on every change to who is on the list, so the page that
+     opened the sheet can keep its own selection in step — the sheet is now
+     where you edit the list, and closing it must not undo that.
      onSend receives the resolved state; the caller writes to the store, so
      this module never has to know which page it is on. With `lockCampaign`
      the destination is fixed — the campaign page opening the sheet for its
@@ -324,7 +416,7 @@
       campaignId: opts.defaultCampaignId || (opts.campaigns[0] && opts.campaigns[0].id) || '',
       leadName: '', leadBrand: '',
       ask: {}, name: '', recipient: '', expiryDays: 30, requireName: false,
-      showExtra: false, fillNote: '',
+      showExtra: false, fillNote: '', q: '', showAll: false, focusQ: false,
       newPlat: 'tiktok', newTier: 'mid', newN: '',
       infIds: opts.infIds || []
     };
@@ -356,6 +448,75 @@
       });
       return out;
     }
+
+    /* One avatar recipe for the header stack and the people list both — they
+       used to be the same seven lines twice over. */
+    function avatarHtml(id, extraCls, title) {
+      var rec = opts.people[id];
+      if (!rec) return '';
+      var m = (window.AVATAR_FILES || {})[id] || {};
+      var src = m.tt ? '../assets/avatars/' + id + '-tt.jpg'
+              : m.ig ? '../assets/avatars/' + id + '-ig.jpg' : null;
+      var parts = String(rec.name || '?').replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/);
+      var ini = esc(((parts[0] || '?')[0] + (parts[1] ? parts[1][0] : '')).toUpperCase());
+      var cls = 'c-card-profile-avatar' + (extraCls ? ' ' + extraCls : '');
+      var t = esc(title == null ? (rec.name || id) : title);
+      return src
+        ? '<img class="' + cls + '" src="' + esc(src) + '" alt="" title="' + t + '" />'
+        : '<span class="' + cls + '" title="' + t + '">' + ini + '</span>';
+    }
+
+    function bandChips(bands) {
+      if (!bands.length) return '<span class="ss-pb"><span>No accounts</span></span>';
+      return '<span class="ss-pb">' + bands.map(function (b) {
+        var t = b.tier ? window.tiers.tierByKey(b.tier) : null;
+        return '<span' + (b.wanted ? ' class="is-want"' : '') + '>' +
+          (t ? '<span class="cmp-dot" style="background:' + t.dot + '"></span>' : '') +
+          esc(PLAT_LABEL[b.platform] || b.platform) + ' · ' + esc(t ? t.name : 'Untiered') +
+          '</span>';
+      }).join('') + '</span>';
+    }
+
+    function personHtml(r) {
+      return '<div class="ss-prow' + (r.fits ? '' : ' is-mis') + '">' +
+        avatarHtml(r.id, '', r.name) +
+        '<span class="nm">' + esc(r.name) +
+          (r.fits ? '' : '<i class="ph-fill ph-warning-circle" ' +
+            'title="Fits no band you are asking for"></i>') + '</span>' +
+        bandChips(r.bands) +
+        '<button type="button" class="c-icon-btn" data-ss="drop" data-id="' + esc(r.id) +
+          '" title="Take off this list" aria-label="Take ' + esc(r.name) +
+          ' off this list"><i class="ph ph-x"></i></button>' +
+      '</div>';
+    }
+
+    /* Rebuilt on its own so typing in the search box never re-renders the
+       sheet around the caret. */
+    function resultsHtml() {
+      if (!String(state.q || '').trim()) return '';
+      var res = searchPeople(state.q, opts.people, excluded(), 6);
+      if (!res.length) {
+        return '<p class="c-helper">Nobody matches — or everyone who does is ' +
+          'already on this list, already booked, or already turned down.</p>';
+      }
+      return peopleRows(state.ask, res.map(function (r) { return r.id; }), opts.people)
+        .map(function (r) {
+          return '<div class="ss-prow">' + avatarHtml(r.id, '', r.name) +
+            '<span class="nm">' + esc(r.name) + '</span>' + bandChips(r.bands) +
+            '<button type="button" class="c-btn c-btn-secondary c-btn-sm" data-ss="pick" ' +
+              'data-id="' + esc(r.id) + '"><i class="ph ph-plus"></i> Add</button></div>';
+        }).join('');
+    }
+
+    function renderResults() {
+      var el = host.querySelector('[data-ss="results"]');
+      if (el) el.innerHTML = resultsHtml();
+    }
+
+    /* The page that opened the sheet keeps its own selection, so an edit made
+       in here has to reach it. Without this, fixing the list and then closing
+       would quietly roll the fix back. */
+    function sync() { if (opts.onSelection) opts.onSelection(state.infIds.slice()); }
 
     function destinationCampaign() {
       return state.mode === 'existing' && state.campaignId ? S.get(state.campaignId) : null;
@@ -413,6 +574,14 @@
       var sum = summary(state.ask, state.infIds, opts.people);
       var c = destinationCampaign();
       var split = matchSplit(state.ask, state.infIds, opts.people);
+      /* Misfits lead: they are the rows there is something to do about. Past
+         six the list stops being scannable, so the rest sit behind a toggle —
+         but a misfit is never in the hidden half. */
+      var prows = peopleRows(state.ask, state.infIds, opts.people);
+      var ordered = prows.filter(function (r) { return !r.fits; })
+                     .concat(prows.filter(function (r) { return r.fits; }));
+      var PEEK = 6;
+      var shownP = state.showAll ? ordered : ordered.slice(0, PEEK);
 
       /* Faces, not just a count: the same overlapping stack the campaign
          page uses for a roster. A profile that answers no band being asked
@@ -426,16 +595,8 @@
         return '<span class="ss-stack">' + ids.map(function (id) {
           var rec = opts.people[id];
           if (!rec) return '';
-          var m = (window.AVATAR_FILES || {})[id] || {};
-          var src = m.tt ? '../assets/avatars/' + id + '-tt.jpg'
-                  : m.ig ? '../assets/avatars/' + id + '-ig.jpg' : null;
-          var parts = String(rec.name || '?').replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/);
-          var ini = esc(((parts[0] || '?')[0] + (parts[1] ? parts[1][0] : '')).toUpperCase());
-          var cls = 'c-card-profile-avatar' + (mis[id] ? ' is-mis' : '');
-          var title = esc(rec.name || id) + (mis[id] ? ' — fits no band you are asking for' : '');
-          return src
-            ? '<img class="' + cls + '" src="' + esc(src) + '" alt="" title="' + title + '" />'
-            : '<span class="' + cls + '" title="' + title + '">' + ini + '</span>';
+          return avatarHtml(id, mis[id] ? 'is-mis' : '',
+            (rec.name || id) + (mis[id] ? ' — fits no band you are asking for' : ''));
         }).join('') +
         (state.infIds.length > 7 ? '<span class="more">+' + (state.infIds.length - 7) + '</span>' : '') +
         '</span>';
@@ -603,6 +764,30 @@
           '</section>' +
 
           '<section class="ss-sec">' +
+            '<h5 class="ss-sec-h">Who you are sending <span class="opt">' +
+              prows.length + (prows.length === 1 ? ' profile' : ' profiles') +
+              (split.mismatch.length ? ' · ' + split.mismatch.length + ' off the brief' : '') +
+              '</span></h5>' +
+            '<p class="ss-lede">Drop anyone who does not belong, add anyone missing. ' +
+            'The table above follows along, so a mismatch is something you fix here ' +
+            'rather than a reason to close this and start again.</p>' +
+            '<div class="ss-plist">' +
+              (shownP.length ? shownP.map(personHtml).join('')
+                : '<p class="c-helper">Nobody on this list yet — search for someone below.</p>') +
+              (ordered.length > PEEK
+                ? '<button type="button" class="ss-allbtn" data-ss="all">' +
+                  '<i class="ph ph-caret-' + (state.showAll ? 'up' : 'down') + '"></i> ' +
+                  (state.showAll ? 'Show fewer' : 'Show all ' + ordered.length) + '</button>'
+                : '') +
+            '</div>' +
+            '<div class="ss-search"><i class="ph ph-magnifying-glass"></i>' +
+              '<input data-ss="q" value="' + esc(state.q) + '" ' +
+              'placeholder="Add someone — name or handle" ' +
+              'aria-label="Search the roster for someone to add" /></div>' +
+            '<div class="ss-plist ss-results" data-ss="results">' + resultsHtml() + '</div>' +
+          '</section>' +
+
+          '<section class="ss-sec">' +
             '<h5 class="ss-sec-h">The link</h5>' +
             '<div class="ss-grid">' +
               '<div class="c-field"><label for="ssName">List name</label>' +
@@ -643,6 +828,14 @@
           window.collabDropdown.enhance(sl, {placeholder: 'Pick one'});
         });
       }
+
+      /* Adding someone re-renders the whole sheet, which would otherwise drop
+         you out of the search box mid-search. */
+      if (state.focusQ) {
+        state.focusQ = false;
+        var q = host.querySelector('[data-ss="q"]');
+        if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+      }
     }
 
     function close() { host.remove(); }
@@ -659,12 +852,32 @@
         state.fillNote = '';
         return render();
       }
+      var drop = e.target.closest('[data-ss="drop"]');
+      if (drop) {
+        state.infIds = state.infIds.filter(function (x) { return x !== drop.dataset.id; });
+        state.fillNote = '';
+        sync();
+        return render();
+      }
+      var pick = e.target.closest('[data-ss="pick"]');
+      if (pick) {
+        if (state.infIds.indexOf(pick.dataset.id) === -1) state.infIds.push(pick.dataset.id);
+        state.fillNote = '';
+        state.focusQ = true;
+        sync();
+        return render();
+      }
+      if (e.target.closest('[data-ss="all"]')) {
+        state.showAll = !state.showAll;
+        return render();
+      }
       if (e.target.closest('[data-ss="dropmis"]')) {
         var keep = matchSplit(state.ask, state.infIds, opts.people).match;
         var dropped = state.infIds.length - keep.length;
         state.infIds = keep;
         state.fillNote = 'Removed ' + dropped +
           (dropped === 1 ? ' profile that fit' : ' profiles that fit') + ' no band you are asking for.';
+        sync();
         return render();
       }
       if (e.target.closest('[data-ss="fill"]')) {
@@ -688,7 +901,7 @@
                     window.tiers.tierByKey(r.tier).name + ' is still ' + r.gap + ' short.';
                 }).join(' ')
               : ' — every band is covered now.');
-        if (opts.onFill) opts.onFill(add);
+        sync();
         return render();
       }
       if (e.target.closest('[data-ss="more"]')) {
@@ -737,6 +950,7 @@
         state[k] = e.target.value;
       }
       if (k === 'newn') state.newN = e.target.value;
+      if (k === 'q') { state.q = e.target.value; renderResults(); }
     });
 
     document.addEventListener('keydown', function esc2(e) {
@@ -753,6 +967,7 @@
   window.sendSheet = {
     coverage: coverage, bandRows: bandRows, summary: summary,
     candidatesFor: candidatesFor, fillGaps: fillGaps, matchSplit: matchSplit,
+    peopleRows: peopleRows, searchPeople: searchPeople,
     validate: validate, expiryFrom: expiryFrom, isExpired: isExpired,
     open: open
   };

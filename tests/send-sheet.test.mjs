@@ -221,3 +221,59 @@ test('matchSplit ignores ids the roster does not know', () => {
   assert.deepEqual(r.match, []);
   assert.deepEqual(r.mismatch, ['ghost'], 'unknown cannot be shown to fit');
 });
+
+/* ── Editing the list without leaving the sheet.
+
+   A mismatch used to be a dead end: the sheet told you someone did not fit
+   and the only way to act on it was to close the sheet, losing the ask, the
+   link settings and the reasoning. peopleRows draws the editable list and
+   searchPeople is how someone else gets onto it. */
+
+test('peopleRows marks the band each account lands in, and which was asked for', () => {
+  const rows = SS.peopleRows({tiktok: {mid: 2}}, ['both'], ROSTER);
+  assert.equal(rows.length, 1);
+  assert.deepEqual(rows[0].bands, [
+    {platform: 'tiktok',    tier: 'mid', followers: 60000, wanted: true},
+    {platform: 'instagram', tier: 'mid', followers: 60000, wanted: false}
+  ], 'same tier on both channels, but only TikTok Mid is in the ask');
+  assert.equal(rows[0].fits, true, 'one wanted band is enough');
+});
+
+test('peopleRows agrees with matchSplit about who fits', () => {
+  const ask = {tiktok: {mid: 2}};
+  const ids = ['mid1', 'big', 'igmid', 'both'];
+  const rows = SS.peopleRows(ask, ids, ROSTER);
+  const split = SS.matchSplit(ask, ids, ROSTER);
+  assert.deepEqual(rows.filter(r => r.fits).map(r => r.id), split.match);
+  assert.deepEqual(rows.filter(r => !r.fits).map(r => r.id), split.mismatch);
+});
+
+test('peopleRows treats everyone as fitting when nothing is asked for', () => {
+  assert.deepEqual(SS.peopleRows({}, ['big', 'igmid'], ROSTER).map(r => r.fits),
+    [true, true]);
+});
+
+test('peopleRows falls back to the id when the record has no name', () => {
+  const rows = SS.peopleRows({}, ['big', 'ghost'], ROSTER);
+  assert.equal(rows[0].name, 'big', 'these fixtures carry no name field');
+  assert.deepEqual(rows[1], {id: 'ghost', name: 'ghost', bands: [], fits: true},
+    'an id the roster does not know has no channels to show');
+});
+
+test('searchPeople matches a name or a handle, biggest following first', () => {
+  assert.deepEqual(SS.searchPeople('m', ROSTER, {}, 10).map(r => r.id),
+    ['mid1', 'mid2', 'mid3'], 'handles m1/m2/m3, ordered by reach');
+  assert.deepEqual(SS.searchPeople('B', ROSTER, {}, 10).map(r => r.id),
+    ['big', 'both'], 'case-insensitive, and reach is summed across channels');
+});
+
+test('searchPeople honours the exclude map and the limit', () => {
+  assert.deepEqual(SS.searchPeople('m', ROSTER, {mid1: true}, 10).map(r => r.id),
+    ['mid2', 'mid3']);
+  assert.equal(SS.searchPeople('m', ROSTER, {}, 2).length, 2);
+});
+
+test('an empty query returns nothing rather than the whole roster', () => {
+  assert.deepEqual(SS.searchPeople('', ROSTER, {}, 10), []);
+  assert.deepEqual(SS.searchPeople('   ', ROSTER, {}, 10), []);
+});

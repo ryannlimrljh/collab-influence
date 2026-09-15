@@ -895,7 +895,7 @@
 <script src="../shared/dropdown.js?v=2"></script>
 <script src="../shared/campaign-store.js?v=10"></script>
 <script src="../shared/campaign-form.js?v=13"></script>
-<script src="../shared/send-sheet.js?v=23"></script>
+<script src="../shared/send-sheet.js?v=24"></script>
 <script src="../shared/swing-modal.js?v=1"></script>
 <script>
 (function () {
@@ -2089,7 +2089,8 @@
         var n = S.addBatch(c.id, {name: r.name, infIds: r.infIds, ask: r.ask, recipient: r.recipient, expiresAt: r.expiresAt, requireName: r.requireName});
         openBatches = {}; openBatches[n] = true;
         renderAll();
-        toast('Selection list created — batch ' + n + ', ' + ids.length + (ids.length === 1 ? ' creator' : ' creators') + '. Copy the client link from its card.');
+        var sent = r.infIds.length;
+        toast('Selection list created — batch ' + n + ', ' + sent + (sent === 1 ? ' creator' : ' creators') + '. Copy the client link from its card.');
       }
     });
   }
