@@ -80,8 +80,10 @@ shared/           generated data + small runtime helpers
   send-sheet.js          the "send this list to the client" sheet, shared by the roster and campaign pages
   swing-modal.js         the fold-out card modal (flies out of what you clicked) and the influencer
                          profile view inside it; every popup on the campaign pages lives in it —
-                         profiles, batches, the campaign form, the roster picker, the send sheet
-                         and delete confirms (swingModal.confirm)
+                         profiles, batches, the campaign form, the send sheet and delete
+                         confirms (swingModal.confirm). Add by hand is not a popup: it sends
+                         you to the influencers page with ?for=<campaign>&band=plat/tier,
+                         which adds the ticked people to the roster and comes back
   tiers.js               follower brackets (Seeder … Mega) — the one place they are defined
 tests/            node:test suites over the shared files (see below)
 docs/superpowers/specs/   the approved design specs, newest is the campaign overhaul

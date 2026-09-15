@@ -484,8 +484,6 @@
     .cd-fill .t{flex:1 1 calc(100% - 48px); min-width:140px;}
     .cd-fill .acts{margin-left:auto;}
   }
-  .cd-pick-filter{display:flex; align-items:center; gap:var(--spacing-8); flex-wrap:wrap; font-size:var(--text-caption-size); color:var(--color-neutral-5);}
-  .cd-pick-filter[hidden]{display:none;}
 
   /* ── Activity — one stream, newest first. The machine's lines are
      neutral; a person's note carries a pale earth tint so their words
@@ -649,26 +647,6 @@
   .cmp-menu-item:hover{background:var(--color-neutral-2);}
   .cmp-menu-item .chk{margin-left:auto; color:var(--color-neutral-9);}
 
-  /* ── Roster picker — search the whole roster, tick people. Content of
-     the fold-out modal, so it lays itself out as a column inside it. */
-  .cd-picker{display:flex; flex-direction:column; gap:var(--spacing-16); padding:var(--spacing-24); flex:1; min-height:0;}
-  .cd-picker h3{padding-right:var(--spacing-32);}
-  .cd-picker .c-field{width:100%;}
-  .cd-picker-list{border:1px solid var(--color-neutral-3); border-radius:var(--radius-md);
-    max-height:min(46vh, 420px); overflow-y:auto;}
-  .cd-pick-row{display:flex; align-items:center; gap:var(--spacing-12); padding:10px var(--spacing-12);
-    border-bottom:1px solid var(--color-neutral-2); cursor:pointer;}
-  .cd-pick-row:last-child{border-bottom:0;}
-  .cd-pick-row:hover{background:var(--color-neutral-2);}
-  .cd-pick-row.is-disabled{opacity:.5; cursor:default;}
-  .cd-pick-row .c-checkbox-box{margin-top:0; font-size:12px;}
-  .cd-pick-row .c-card-profile-avatar{width:30px; height:30px; font-size:11px;}
-  .cd-pick-row .tier{margin-left:auto; flex:none;}
-  .cd-slot{display:inline-flex; align-items:center; gap:5px; white-space:nowrap;}
-  .cd-slot i{font-size:14px;}
-  .cd-picker-more{padding:var(--spacing-8) var(--spacing-12); font-size:var(--text-caption-size); color:var(--color-neutral-5);}
-  .cd-picker-foot{display:flex; align-items:center; gap:var(--spacing-8);}
-  .cd-picker-foot .cnt{flex:1; font-size:var(--text-body2-size); color:var(--color-neutral-5);}
 
   /* ── Deliverables — one section per confirmed creator, a table of what
      they owe. Fields edit in place and save on change; the two states are
@@ -882,26 +860,6 @@
 
 <div class="cmp-menu" id="cdMenu" role="menu"></div>
 
-<!-- Roster picker: Add by hand, or the start of a selection list. Built
-     here, lifted into the fold-out modal when it opens. -->
-<div hidden>
-  <div class="cd-picker" id="cdPicker">
-    <span class="c-herocard-eyebrow" id="cdPickEyebrow">Roster</span>
-    <h3 style="margin:0; font-size:var(--text-h4-size); line-height:var(--text-h4-lh); font-weight:var(--text-h4-weight);" id="cdPickTitle">Add influencers</h3>
-    <p class="c-cbrief-source" style="margin:-8px 0 0;" id="cdPickHint"></p>
-    <div class="cd-pick-filter" id="cdPickFilter" hidden></div>
-    <div class="c-field"><label for="cdPickSearch">Search the roster</label>
-      <div class="input-wrap has-leading-icon"><i class="ph ph-magnifying-glass icon-leading"></i>
-        <input id="cdPickSearch" placeholder="Name, handle or niche" autocomplete="off" /></div></div>
-    <div class="cd-picker-list" id="cdPickList"></div>
-    <div class="cd-picker-foot">
-      <span class="cnt" id="cdPickCount">Nobody selected yet</span>
-      <button class="c-btn c-btn-ghost c-btn-md" type="button" id="cdPickCancel">Cancel</button>
-      <button class="c-btn c-btn-primary c-btn-md" type="button" id="cdPickConfirm" disabled>Add</button>
-    </div>
-  </div>
-</div>
-
 <div class="c-toast-host" id="cdToasts"></div>
 
 <script src="../shared/keys.local.js"></script>
@@ -1000,6 +958,7 @@
   var id = params.get('id');
   var c = id ? S.get(id) : null;
   var tab = params.get('tab') || 'overview';
+  var addedByHand = Number(params.get('added')) || 0;
   var openBatches = {};
   var batchFilter = {};
   if (params.get('batch')) openBatches[Number(params.get('batch'))] = true;
@@ -2000,8 +1959,8 @@
   /* ── Selection panel interactions — one handler for the panel and for
      whatever the modal is showing, since both draw from the record. */
   function selectionClick(e){
-    /* The picker and the send sheet share the modal's body; they handle themselves. */
-    if (e.target.closest('#cdPicker, .ss-host, .sw-confirm')) return;
+    /* The send sheet and confirms share the modal's body; they handle themselves. */
+    if (e.target.closest('.ss-host, .sw-confirm')) return;
     if (e.target.closest('[data-sw-close]')) return window.swingModal.close();
     var who = e.target.closest('.cd-sp .who, .cd-sp .c-card-profile-avatar');
     if (who) { var row = who.closest('.cd-sp'); return openProfile(row.dataset.person, row.querySelector('.c-card-profile-avatar')); }
@@ -2024,7 +1983,7 @@
     var sb = e.target.closest('[data-send-band]');
     if (sb) { var ps = sb.dataset.sendBand.split('/'); return startSend({platform: ps[0], tier: ps[1]}, sb); }
     var ab = e.target.closest('[data-add-band]');
-    if (ab) { var pa = ab.dataset.addBand ? ab.dataset.addBand.split('/') : null; return openPicker('roster', pa ? {platform: pa[0], tier: pa[1]} : null, ab); }
+    if (ab) return goAddByHand(ab.dataset.addBand || '');
     /* Bulk selection on the people list. */
     var pp = e.target.closest('[data-pick-person]');
     if (pp) {
@@ -2118,7 +2077,7 @@
      re-render — the field you are typing in stays put. */
   function selectionChange(e){
     var t = e.target;
-    if (t.closest('#cdPicker, .ss-host, .sw-confirm')) return;
+    if (t.closest('.ss-host, .sw-confirm')) return;
     if (t.matches('[data-kult-remark]')) S.updatePick(c.id, Number(t.dataset.batch), t.dataset.inf, {kultRemark: t.value});
     else if (t.matches('[data-client-remark]')) S.updatePick(c.id, Number(t.dataset.batch), t.dataset.inf, {clientRemark: t.value});
     else if (t.matches('[data-batch-notes]')) S.updateBatch(c.id, Number(t.dataset.batchNotes), {notes: t.value});
@@ -2193,116 +2152,12 @@
     renderHeader();
   });
 
-  /* ── Roster picker. `roster` adds fills by hand; `send` gathers the
-     candidates for a batch. A band filter narrows the list to creators
-     on that platform (and at that tier), and can be loosened chip by chip. */
-  /* The picker is built in the page, then lifted into the fold-out modal
-     each time it opens, so its bindings are made once. */
-  var picker = E('cdPicker'), pickMode = 'roster', chosen = new Set(), pickFilter = {}, pickBand = null;
-  function openPicker(mode, band, anchor){
-    pickMode = mode; chosen.clear();
-    window.swingModal.open({anchor: anchor || null, width: 640, key: 'picker', label: mode === 'send' ? 'Create selection list' : 'Add influencers'}).appendChild(picker);
-    /* The band is the slot being filled; the filter is only what the list
-       shows. Widening the search must not change where the fill lands. */
-    pickBand = band ? {platform: band.platform || null, tier: band.tier || null} : null;
-    pickFilter = band ? {platform: band.platform || null, tier: band.tier || null} : {};
-    var k = (c.batches || []).length + 1;
-    E('cdPickEyebrow').textContent = mode === 'send' ? 'Selection list ' + k : 'Add by hand';
-    E('cdPickTitle').textContent = mode === 'send' ? 'Who should the client pick from?' : 'Add influencers to a slot';
-    E('cdPickHint').textContent = mode === 'send'
-      ? 'Tick the candidates, then set the ask and the link on the next step.'
-      : 'Added by hand — they skip the client\'s pick and land in the slot as confirmed.';
-    E('cdPickSearch').value = '';
-    renderPickList();
-    setTimeout(function(){ E('cdPickSearch').focus(); }, 260);
+  /* ── Add by hand happens on the influencers page, with its full
+     search and filters; it comes back here with what was ticked. The
+     band, if any, rides along so the fill lands in that slot. */
+  function goAddByHand(band){
+    location.href = 'influencers-v2.html?for=' + encodeURIComponent(c.id) + (band ? '&band=' + encodeURIComponent(band) : '');
   }
-  function closePicker(){ if (window.swingModal.isOpen('picker')) window.swingModal.close(); }
-  function channelOf(r, platform){
-    return (r.platforms || []).filter(function(p){ return p.platform === platform && p.handle; })[0] || null;
-  }
-  function paintPickFilter(){
-    var el = E('cdPickFilter');
-    var chips = [];
-    if (pickFilter.platform) chips.push('<button type="button" class="c-chip c-chip-filter is-active" data-drop-filter="platform">' + (PLAT_ICON[pickFilter.platform] || '') + ' ' + esc(PLAT_LABEL[pickFilter.platform] || pickFilter.platform) + ' <i class="ph ph-x"></i></button>');
-    if (pickFilter.tier) chips.push('<button type="button" class="c-chip c-chip-filter is-active" data-drop-filter="tier">' + esc(tierName(pickFilter.tier)) + ' <i class="ph ph-x"></i></button>');
-    el.hidden = !chips.length;
-    el.innerHTML = chips.length ? '<span>Showing</span>' + chips.join('') + '<span>— drop a chip to widen the search</span>' : '';
-  }
-  function renderPickList(){
-    var q = E('cdPickSearch').value.trim().toLowerCase();
-    var onRoster = {};
-    (c.roster || []).forEach(function(r){ if (r.state !== 'unavailable') { onRoster[r.inf] = true; onRoster[r.inf + '/' + r.platform] = true; } });
-    var hits = INF.filter(function(r){
-      if (pickFilter.platform) {
-        var ch = channelOf(r, pickFilter.platform); if (!ch) return false;
-        if (pickFilter.tier) { var t = tierOf(ch.followers); if (!t || t.key !== pickFilter.tier) return false; }
-      } else if (pickFilter.tier) {
-        if (!(r.platforms || []).some(function(p){ var t = p.handle && tierOf(p.followers); return t && t.key === pickFilter.tier; })) return false;
-      }
-      if (!q) return true;
-      var hay = [r.name].concat(r.niches || [], (r.platforms || []).map(function(p){ return p.handle; })).join(' ').toLowerCase();
-      return hay.indexOf(q) > -1;
-    });
-    var LIMIT = 60;
-    var list = E('cdPickList');
-    list.innerHTML = hits.slice(0, LIMIT).map(function(r){
-      var taken = pickFilter.platform ? onRoster[r.id + '/' + pickFilter.platform] : onRoster[r.id];
-      var on = chosen.has(r.id);
-      var ch = pickFilter.platform ? channelOf(r, pickFilter.platform)
-             : (r.platforms || []).filter(function(p){ return p.followers != null; }).sort(function(a, b){ return b.followers - a.followers; })[0];
-      var t = ch ? tierOf(ch.followers) : null;
-      var line = pickFilter.platform && ch ? '@' + ch.handle + ' · ' + fmtFollowers(ch.followers) + ((r.niches || []).length ? ' · ' + r.niches.join(', ') : '') : handlesLine(r);
-      return '<div class="cd-pick-row' + (taken ? ' is-disabled' : '') + '" data-pick="' + r.id + '"' + (taken ? ' title="Already in this slot"' : '') + '>' +
-        '<span class="c-checkbox-box' + (on || taken ? ' on' : '') + '">' + (on || taken ? '<i class="ph ph-check"></i>' : '') + '</span>' +
-        avatarHtml(r) + '<span class="t" style="min-width:0"><span class="n" style="display:block; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">' + esc(r.name) + '</span>' +
-        '<span class="s" style="display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis">' + esc(line) + '</span></span>' +
-        (t ? '<span class="tier c-badge c-badge-neutral">' + t.name + '</span>' : '') + '</div>';
-    }).join('') + (hits.length > LIMIT ? '<div class="cd-picker-more">Showing ' + LIMIT + ' of ' + hits.length + ' — keep typing to narrow it down.</div>' : '') +
-    (!hits.length ? '<div class="cd-picker-more">' + (q ? 'No profiles match “' + esc(q) + '”' : 'Nobody fits this band') + (pickFilter.platform || pickFilter.tier ? ' — drop a chip above to widen the search.' : '.') + '</div>' : '');
-    hydrateAvatars(list);
-    paintPickFilter();
-    paintPickCount();
-  }
-  function paintPickCount(){
-    var n = chosen.size;
-    E('cdPickCount').textContent = n ? n + (n === 1 ? ' profile selected' : ' profiles selected') : 'Nobody selected yet';
-    E('cdPickConfirm').disabled = !n;
-    E('cdPickConfirm').innerHTML = pickMode === 'send' ? 'Next: the ask and the link <i class="ph ph-arrow-right"></i>' : 'Add to the slot';
-  }
-  E('cdPickSearch').addEventListener('input', renderPickList);
-  E('cdPickFilter').addEventListener('click', function(e){
-    var d = e.target.closest('[data-drop-filter]'); if (!d) return;
-    pickFilter[d.dataset.dropFilter] = null;
-    renderPickList();
-  });
-  E('cdPickList').addEventListener('click', function(e){
-    var row = e.target.closest('[data-pick]'); if (!row || row.classList.contains('is-disabled')) return;
-    var idp = row.dataset.pick;
-    if (chosen.has(idp)) chosen.delete(idp); else chosen.add(idp);
-    var box = row.querySelector('.c-checkbox-box'); var on = chosen.has(idp);
-    box.classList.toggle('on', on); box.innerHTML = on ? '<i class="ph ph-check"></i>' : '';
-    paintPickCount();
-  });
-  E('cdPickCancel').addEventListener('click', closePicker);
-  E('cdPickConfirm').addEventListener('click', function(){
-    var ids = Array.from(chosen); if (!ids.length) return;
-    closePicker();
-    /* By hand: the fill takes the band's platform when the creator has it,
-       else their biggest channel; its tier is always the real one, and a
-       mismatch with the band is recorded as a stand-in for that slot. */
-    var band = pickBand || {};
-    S.addToRoster(c.id, ids.map(function(inf){
-      var rec = byInf[inf];
-      var ch = (band.platform && channelOf(rec, band.platform)) ||
-               (rec.platforms || []).filter(function(p){ return p.handle; }).sort(function(a,b){ return (b.followers||0) - (a.followers||0); })[0];
-      var t = ch ? tierOf(ch.followers) : null, tier = t ? t.key : null;
-      var inBand = ch && ch.platform === band.platform;
-      return {inf: inf, platform: ch ? ch.platform : null, tier: tier,
-              substitutedFor: inBand && band.tier && tier && tier !== band.tier ? band.tier : null};
-    }), 'team', null);
-    renderAll();
-    toast(ids.length + (ids.length === 1 ? ' creator' : ' creators') + ' added' + (band.platform ? ' to ' + (PLAT_LABEL[band.platform] || band.platform) + (band.tier ? ' · ' + tierName(band.tier) : '') : ' to the campaign') + '.');
-  });
 
   /* ── Header actions. */
   E('cdEdit').addEventListener('click', function(){
@@ -2347,6 +2202,10 @@
       if (!document.hidden) E('cdContent').classList.add('cd-arriving');
       renderAll();
       setTimeout(function(){ E('cdContent').classList.remove('cd-arriving'); }, 900);
+      if (addedByHand) {
+        toast(addedByHand + (addedByHand === 1 ? ' creator' : ' creators') + ' added by hand.');
+        var au = new URL(location.href); au.searchParams.delete('added'); history.replaceState(null, '', au);
+      }
     }, REDUCED ? 0 : 1000);
   }
 })();

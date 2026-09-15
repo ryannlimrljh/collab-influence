@@ -49,6 +49,8 @@
      it shifts by margin — padding here would reshape the panel instead
      of moving its edge. */
   .inf-selbar{margin-right:var(--spacing-16);}
+  .inf-forlink{display:inline-flex; align-items:center; gap:4px; font-weight:700; color:var(--color-navy); text-decoration:none;}
+  .inf-forlink:hover{text-decoration:underline;}
 
   /* ── Letter sections. The head is sticky against the scroll container
      and repaints on the warm canvas so cards slide under it cleanly. */
@@ -882,6 +884,9 @@
         </span>
         <span class="inf-selactions">
           <button class="c-btn c-btn-ghost c-btn-sm" type="button" id="infSelClear">Clear</button>
+          <button class="c-btn c-btn-secondary c-btn-md" type="button" id="infSelSheet" hidden>
+            <i class="ph ph-list-checks"></i> Create Selection List
+          </button>
           <button class="c-btn c-btn-primary c-btn-md" type="button" id="infSelGenerate">
             <i class="ph ph-plus"></i> Create Selection List
           </button>
@@ -1251,6 +1256,36 @@
   var shownIds = [];
 
   var all = [], byId = {};
+
+  /* ── Came here from a campaign to add by hand: ?for=<campaign>&band=plat/tier.
+     The campaign is remembered for the whole visit — the selection bar
+     becomes an Add box for it, the sheet defaults to it, and the band
+     pre-filters the roster to that tier. */
+  var forParams = new URLSearchParams(location.search);
+  var forId = forParams.get('for') || null;
+  var forBand = (function(){
+    var b = forParams.get('band'); if (!b) return null;
+    var parts = b.split('/'); return {platform: parts[0] || null, tier: parts[1] || null};
+  })();
+  function campaignFor(){ return forId && window.campaignStore ? campaignStore.get(forId) : null; }
+  function bandLabel(b){
+    var pl = PLATS.filter(function(p){ return p.key === b.platform; })[0];
+    var t = b.tier && window.tiers ? window.tiers.tierByKey(b.tier) : null;
+    return (pl ? pl.label : b.platform || '') + (t ? ' · ' + t.name : '');
+  }
+  /* The sub line: in campaign mode it leads with where you are adding
+     to and a way back, and the count follows. */
+  function setSub(text){
+    var fc = campaignFor(), el = document.getElementById('infSub');
+    if (!fc) { el.textContent = text; return; }
+    el.innerHTML = 'Adding by hand to <b>' + esc(fc.name) + '</b>' +
+      (forBand && forBand.platform ? ' · ' + esc(bandLabel(forBand)) + ' slot' : '') +
+      ' · <a class="inf-forlink" href="campaign.html?id=' + encodeURIComponent(fc.id) + '&tab=selection"><i class="ph ph-arrow-left"></i> Back to the campaign</a>' +
+      ' · ' + esc(text);
+  }
+  function backToCampaign(extra){
+    location.href = 'campaign.html?id=' + encodeURIComponent(forId) + '&tab=selection' + (extra || '');
+  }
   function refreshData(){
     all = window.influencerStore ? influencerStore.merged(INFLUENCERS) : INFLUENCERS.slice();
     all.sort(function(a, b){
@@ -1678,9 +1713,9 @@
           avatarIO.observe(img);
         });
       }
-      document.getElementById('infSub').textContent = isFiltered()
+      setSub(isFiltered()
         ? 'Showing ' + hits.length + ' of ' + all.length + ' influencers.'
-        : all.length + ' influencers, A to Z.';
+        : all.length + ' influencers, A to Z.');
       applyViewButtons();
       paintSelAll();
       renderRail();
@@ -1720,9 +1755,9 @@
       });
     }
 
-    document.getElementById('infSub').textContent = isFiltered()
+    setSub(isFiltered()
       ? 'Showing ' + hits.length + ' of ' + all.length + ' influencers.'
-      : all.length + ' influencers, A to Z.';
+      : all.length + ' influencers, A to Z.');
 
     applyViewButtons();
     paintSelAll();
@@ -1784,7 +1819,7 @@
       for (var j = 0; j < cols * 2; j++) cards += skCard();
       grid.innerHTML = cards;
     }
-    document.getElementById('infSub').textContent = 'Loading the roster…';
+    setSub('Loading the roster…');
   }
 
   /* ── Export — the current filtered view as CSV, KULT export columns. */
@@ -2665,6 +2700,40 @@
   /* ── Selection wiring. Toggling repaints just the one box and its
      card/row — never a full render, which would be both wasteful and
      visually noisy (the FLIP pass would fire on every tick). */
+  /* In campaign mode the bar is an Add box: ticking one profile is
+     enough to bring it up, and the primary action puts the set straight
+     on the campaign's roster by hand. */
+  function paintCampaignMode(){
+    var fc = campaignFor(); if (!fc) return;
+    setSub('The full talent roster, A to Z.');
+    document.getElementById('infSelHint').textContent = 'They join ' + fc.name + ' as confirmed, added by hand' +
+      (forBand && forBand.platform ? ', in the ' + bandLabel(forBand) + ' slot' : '') + '.';
+    document.getElementById('infSelGenerate').innerHTML = '<i class="ph ph-plus"></i> Add to campaign';
+    document.getElementById('infSelSheet').hidden = false;
+    if (forBand && forBand.tier && window.tiers) {
+      var t = window.tiers.tierByKey(forBand.tier);
+      if (t && applied.tier.indexOf(t.name) < 0) applied.tier.push(t.name);
+    }
+  }
+  function addByHand(){
+    var fc = campaignFor(); if (!fc || !selected.size) return;
+    var band = forBand || {};
+    /* The fill takes the band's platform when the creator has it, else
+       their biggest channel; its tier is always the real one, and a
+       mismatch with the band is recorded as a stand-in for that slot. */
+    var entries = Array.from(selected).map(function(id){
+      var rec = byId[id] || {};
+      var chans = (rec.platforms || []).filter(function(p){ return p.handle; });
+      var ch = (band.platform && chans.filter(function(p){ return p.platform === band.platform; })[0]) ||
+               chans.slice().sort(function(a, b){ return (b.followers || 0) - (a.followers || 0); })[0];
+      var t = ch ? tierOf(ch.followers) : null, tier = t ? t.key : null;
+      var inBand = ch && ch.platform === band.platform;
+      return {inf: id, platform: ch ? ch.platform : null, tier: tier,
+              substitutedFor: inBand && band.tier && tier && tier !== band.tier ? band.tier : null};
+    });
+    campaignStore.addToRoster(fc.id, entries, 'team', null);
+    backToCampaign('&added=' + entries.length);
+  }
   function paintSelBar(){
     var n = selected.size;
     document.getElementById('infSelBar').classList.toggle('is-on', !!n);
@@ -2779,12 +2848,18 @@
      for work that is not won yet. The sheet gathers the destination, the ask
      and the link options; writing to the store stays here. */
   document.getElementById('infSelGenerate').addEventListener('click', function () {
+    if (campaignFor()) return addByHand();
+    openSheet(this);
+  });
+  document.getElementById('infSelSheet').addEventListener('click', function () { openSheet(this); });
+  function openSheet(anchor) {
     if (!selected.size) return;
     window.sendSheet.open({
-      anchor: document.getElementById('infSelGenerate'),
+      anchor: anchor || document.getElementById('infSelGenerate'),
       infIds: Array.from(selected),
       people: byId,
       campaigns: campaignStore.merged(),
+      defaultCampaignId: forId || undefined,
       /* The sheet is where the list gets edited now — dropping a mismatch or
          searching someone in. Mirror that back onto the page's own set, so
          closing the sheet keeps the fix instead of reverting to whatever was
@@ -2816,7 +2891,7 @@
         location.href = 'campaign.html?id=' + encodeURIComponent(id) + '&tab=selection&batch=' + n;
       }
     });
-  });
+  }
 
   function mergeAsk(c, ask) { return window.campaignModel.mergeAsk(c, ask); }
   document.getElementById('infSelClear').addEventListener('click', function(){
@@ -2914,6 +2989,7 @@
      is-active is just a default, and during the skeleton beat it would
      otherwise advertise the wrong view. */
   applyViewButtons();
+  paintCampaignMode();
   renderSkeleton();
   setTimeout(function(){
     render();
