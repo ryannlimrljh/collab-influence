@@ -386,6 +386,66 @@
     '.ss-modal .c-table tr.ss-more button:hover{color:var(--color-neutral-9);}',
     '.ss-warn{margin-top:var(--spacing-12);}',
     '.ss-warn .ss-sub{margin-top:6px; font-weight:400; opacity:.75;}',
+
+    /* The assist reads as Collab AI, on the system pastel sweep the planner
+       already uses for "Draft it with Collab AI" — same gradient stops, same
+       keyframe, same reduced-motion guard. Not a second gradient invented
+       here: an AI action should look the same everywhere in the product. */
+    '.ss-ai-btn{position:relative; z-index:0; overflow:hidden; font-weight:800;}',
+    '.ss-ai-btn:hover{background:none;}',
+    ".ss-ai-btn::before, .ss-ai-btn::after{content:''; position:absolute; inset:0;",
+    '  border-radius:inherit; pointer-events:none;',
+    '  background-image:linear-gradient(90deg,var(--color-fire-pastel) 0%,',
+    '    var(--color-wood-pastel) 20%,var(--color-earth-pastel) 40%,',
+    '    var(--color-water-pastel) 60%,var(--color-gold-pastel) 80%,var(--color-fire-pastel) 100%);',
+    '  background-size:200% 100%; animation:c-prompt-bar-glow-move 4s linear infinite;}',
+    '.ss-ai-btn::before{z-index:-1; opacity:.18;}',
+    '.ss-ai-btn:hover::before{opacity:.32;}',
+    '.ss-ai-btn::after{z-index:1; padding:1px;',
+    '  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);',
+    '  -webkit-mask-composite:xor; mask-composite:exclude;}',
+    /* Working: the sweep speeds up and the fill deepens, so the button itself
+       is the progress indicator rather than a spinner bolted beside it. */
+    '.ss-ai-btn.is-working{cursor:default;}',
+    '.ss-ai-btn.is-working::before{opacity:.42; animation-duration:1.1s;}',
+    '.ss-ai-btn.is-working::after{animation-duration:1.1s;}',
+    '.ss-ai-btn.is-working i{animation:ss-ai-spin 1.1s var(--ease-standard) infinite;}',
+    '@keyframes ss-ai-spin{0%{transform:scale(1); opacity:1;}',
+    '  50%{transform:scale(1.35); opacity:.55;} 100%{transform:scale(1); opacity:1;}}',
+
+    /* Which rows Collab AI put there. The point of the tag is that its work is
+       reviewable: every one of these still has an x beside it. */
+    '.ss-ai-tag{display:inline-flex; align-items:center; gap:4px; flex:none;',
+    '  position:relative; z-index:0; overflow:hidden; padding:1px 8px;',
+    '  border-radius:var(--radius-pill); font-size:10px; font-weight:800;',
+    '  letter-spacing:.01em; color:rgba(8,8,8,.8);}',
+    ".ss-ai-tag::before, .ss-ai-tag::after{content:''; position:absolute; inset:0;",
+    '  border-radius:inherit; pointer-events:none;',
+    '  background-image:linear-gradient(90deg,var(--color-fire-pastel) 0%,',
+    '    var(--color-wood-pastel) 20%,var(--color-earth-pastel) 40%,',
+    '    var(--color-water-pastel) 60%,var(--color-gold-pastel) 80%,var(--color-fire-pastel) 100%);',
+    '  background-size:200% 100%; animation:c-prompt-bar-glow-move 4s linear infinite;}',
+    '.ss-ai-tag::before{z-index:-1; opacity:.22;}',
+    '.ss-ai-tag::after{z-index:1; padding:1px;',
+    '  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);',
+    '  -webkit-mask-composite:xor; mask-composite:exclude;}',
+    '.ss-ai-tag i{font-size:9px;}',
+    /* The rows it just added land rather than appear. */
+    '@keyframes ss-land{from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:none;}}',
+    '.ss-prow.is-new{animation:ss-land var(--duration-base) var(--ease-standard) both;}',
+
+    /* Add band with no number: the count is the field at fault, so it is the
+       field that answers — a red edge and two pulses, then back to normal. */
+    '@keyframes ss-nudge{0%,100%{box-shadow:0 0 0 0 transparent;}',
+    '  25%,75%{box-shadow:0 0 0 4px color-mix(in srgb, var(--color-red) 22%, transparent);}}',
+    '.ss-addrow input.is-bad{border-color:var(--color-red); color:var(--color-red);',
+    '  animation:ss-nudge 1.1s var(--ease-standard) 2;}',
+    '.ss-sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);',
+    '  clip-path:inset(50%); white-space:nowrap;}',
+    '@media (prefers-reduced-motion:reduce){',
+    '  .ss-ai-btn::before, .ss-ai-btn::after, .ss-ai-tag::before, .ss-ai-tag::after,',
+    '  .ss-ai-btn.is-working i, .ss-prow.is-new{animation:none;}',
+    '  .ss-addrow input.is-bad{animation:none;} }',
     '.ss-err{margin:var(--spacing-12) 0 0; color:var(--color-red); font-size:var(--text-caption-size);}',
     '@media (max-width:600px){ .ss-dest, .ss-grid{grid-template-columns:1fr;}',
     '  .ss-modal .c-table th.n, .ss-modal .c-table td.n{width:64px;}',
@@ -417,7 +477,8 @@
       campaignId: opts.defaultCampaignId || (opts.campaigns[0] && opts.campaigns[0].id) || '',
       leadName: '', leadBrand: '',
       ask: {}, name: '', recipient: '', expiryDays: 30, requireName: false,
-      showExtra: false, fillNote: '', q: '', showAll: false, focusQ: false,
+      showExtra: false, fillNote: '', fillAi: false, q: '', showAll: false, focusQ: false,
+      aiAdded: {}, aiBusy: false, newIds: {},
       newPlat: 'tiktok', newTier: 'mid', newN: '',
       infIds: opts.infIds || []
     };
@@ -479,11 +540,16 @@
     }
 
     function personHtml(r) {
-      return '<div class="ss-prow' + (r.fits ? '' : ' is-mis') + '">' +
+      return '<div class="ss-prow' + (r.fits ? '' : ' is-mis') +
+        (state.newIds[r.id] ? ' is-new' : '') + '">' +
         avatarHtml(r.id, '', r.name) +
         '<span class="nm">' + esc(r.name) +
           (r.fits ? '' : '<i class="ph-fill ph-warning-circle" ' +
             'title="Fits no band you are asking for"></i>') + '</span>' +
+        (state.aiAdded[r.id]
+          ? '<span class="ss-ai-tag" title="Collab AI added this one to close a gap. ' +
+            'Drop it like any other."><i class="ph-fill ph-sparkle"></i> Collab AI</span>'
+          : '') +
         bandChips(r.bands) +
         '<button type="button" class="c-icon-btn" data-ss="drop" data-id="' + esc(r.id) +
           '" title="Take off this list" aria-label="Take ' + esc(r.name) +
@@ -735,6 +801,7 @@
                             'value="' + (state.newN || '') + '" placeholder="0" aria-label="How many" />' +
                           '<button type="button" class="c-btn c-btn-secondary c-btn-sm" data-ss="addband">' +
                             '<i class="ph ph-plus"></i> Add band</button>' +
+                          '<span class="ss-sr" role="alert" data-ss="addalert"></span>' +
                         '</div></td></tr>'
                       : '') +
                     (extra.length
@@ -748,22 +815,28 @@
                       : '') +
                   '</tbody></table></div>' +
                 (sum.shortBands
-                  ? '<div class="c-banner c-banner-warning ss-warn">' +
-                    '<i class="ph-fill ph-warning icon"></i><div class="body"><p class="message">' +
+                  ? '<div class="c-banner c-banner-ai ss-warn" role="status">' +
+                    '<i class="ph-fill ph-sparkle icon"></i><div class="body"><p class="message">' +
                     sum.shortBands + (sum.shortBands === 1 ? ' band has' : ' bands have') +
-                    ' fewer profiles than you are asking the client to pick. You can still send — ' +
-                    'they will see the number and not be able to reach it.</p>' +
-                    '<p class="message ss-sub">Closing the gaps adds the biggest accounts in ' +
-                    'each short band from your influencer list — never anyone already on this ' +
-                    'list, already booked on this campaign, or already turned down by this ' +
-                    'client. You can drop any of them below afterwards.</p>' +
+                    ' fewer profiles than you are asking the client to pick — they will see a ' +
+                    'number they cannot reach.</p>' +
+                    '<p class="message ss-sub">Collab AI reads every short band and picks the ' +
+                    'biggest accounts that fit, skipping anyone already on this list, already ' +
+                    'booked on this campaign, or already turned down by this client. Everything ' +
+                    'it adds is tagged in the list below, and you can drop any of it.</p>' +
                     (state.fillNote ? '<p class="message"><b>' + esc(state.fillNote) + '</b></p>' : '') +
-                    '<div class="actions"><button type="button" class="action" data-ss="fill">' +
-                    'Add profiles to close the gaps</button></div></div></div>'
+                    '<div class="actions">' +
+                      '<button type="button" class="c-btn c-btn-ghost c-btn-sm ss-ai-btn" ' +
+                      'data-ss="fill"><i class="ph-fill ph-sparkle"></i> ' +
+                      'Let Collab AI fill the gaps</button></div></div></div>'
                   : (state.fillNote
-                    ? '<div class="c-banner c-banner-success ss-warn">' +
-                      '<i class="ph-fill ph-check-circle icon"></i><div class="body">' +
-                      '<p class="message">' + esc(state.fillNote) + '</p></div></div>'
+                    ? (state.fillAi
+                      ? '<div class="c-banner c-banner-ai ss-warn" role="status">' +
+                        '<i class="ph-fill ph-sparkle icon"></i><div class="body">' +
+                        '<p class="message">' + esc(state.fillNote) + '</p></div></div>'
+                      : '<div class="c-banner c-banner-success ss-warn" role="status">' +
+                        '<i class="ph-fill ph-check-circle icon"></i><div class="body">' +
+                        '<p class="message">' + esc(state.fillNote) + '</p></div></div>')
                     : ''))
               : '<p class="c-helper">Tick some profiles first and their channels and tiers appear here.</p>') +
           '</section>' +
@@ -834,6 +907,8 @@
         });
       }
 
+      state.newIds = {};
+
       /* Adding someone re-renders the whole sheet, which would otherwise drop
          you out of the search box mid-search. */
       if (state.focusQ) {
@@ -843,13 +918,34 @@
       }
     }
 
+    function working(btn, label) {
+      if (!btn) return;
+      btn.classList.add('is-working');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ph-fill ph-sparkle"></i> ' + esc(label);
+    }
+
     function close() { host.remove(); }
 
     host.addEventListener('click', function (e) {
       if (e.target === host || e.target.closest('[data-ss="close"], [data-ss="cancel"]')) return close();
       if (e.target.closest('[data-ss="addband"]')) {
         var n = Math.max(0, Math.floor(Number(state.newN) || 0));
-        if (!n) return;
+        if (!n) {
+          var box = host.querySelector('[data-ss="newn"]');
+          var alert = host.querySelector('[data-ss="addalert"]');
+          if (box) {
+            box.setAttribute('aria-invalid', 'true');
+            /* Re-adding the class alone will not restart a running animation;
+               reading offsetWidth between the two forces the reflow that does. */
+            box.classList.remove('is-bad');
+            void box.offsetWidth;
+            box.classList.add('is-bad');
+            box.focus();
+          }
+          if (alert) alert.textContent = 'Enter how many profiles the client should pick in this band.';
+          return;
+        }
         state.ask[state.newPlat] = state.ask[state.newPlat] || {};
         state.ask[state.newPlat][state.newTier] = n;
         askTouched = true;
@@ -880,34 +976,64 @@
         var keep = matchSplit(state.ask, state.infIds, opts.people).match;
         var dropped = state.infIds.length - keep.length;
         state.infIds = keep;
+        state.fillAi = false;
         state.fillNote = 'Removed ' + dropped +
           (dropped === 1 ? ' profile that fit' : ' profiles that fit') + ' no band you are asking for.';
         sync();
         return render();
       }
-      if (e.target.closest('[data-ss="fill"]')) {
+      var fillBtn = e.target.closest('[data-ss="fill"]');
+      if (fillBtn) {
+        if (state.aiBusy) return;
         var rows = bandRows(state.ask, state.infIds, opts.people);
         var short = rows.filter(function (r) { return r.gap > 0; });
-        var wanted = short.reduce(function (a, r) { return a + r.gap; }, 0);
-        var add = fillGaps(rows, opts.people, excluded());
-        state.infIds = state.infIds.concat(add);
 
-        /* Say what happened, including what could not happen: a band the
-           roster cannot fill is the thing worth knowing, and it is invisible
-           if the only feedback is rows appearing. */
-        var left = bandRows(state.ask, state.infIds, opts.people)
-          .filter(function (r) { return r.gap > 0; });
-        state.fillNote = !add.length
-          ? 'Nothing in the roster fits the bands that are short.'
-          : 'Added ' + add.length + (add.length === 1 ? ' profile' : ' profiles') +
-            (left.length
-              ? ', but ' + left.map(function (r) {
-                  return esc(PLAT_LABEL[r.platform] || r.platform) + ' ' +
-                    window.tiers.tierByKey(r.tier).name + ' is still ' + r.gap + ' short.';
-                }).join(' ')
-              : ' — every band is covered now.');
-        sync();
-        return render();
+        function landIt() {
+          state.aiBusy = false;
+          var add = fillGaps(rows, opts.people, excluded());
+          state.infIds = state.infIds.concat(add);
+          state.newIds = {};
+          add.forEach(function (id) { state.aiAdded[id] = true; state.newIds[id] = true; });
+
+          /* Say what happened, including what could not happen: a band the
+             list cannot fill is the thing worth knowing, and it is invisible
+             if the only feedback is rows appearing. */
+          var left = bandRows(state.ask, state.infIds, opts.people)
+            .filter(function (r) { return r.gap > 0; });
+          state.fillAi = true;
+          state.fillNote = !add.length
+            ? 'Nothing in your influencer list fits the bands that are short.'
+            : 'Added ' + add.length + (add.length === 1 ? ' profile' : ' profiles') +
+              (left.length
+                ? ', but ' + left.map(function (r) {
+                    return esc(PLAT_LABEL[r.platform] || r.platform) + ' ' +
+                      window.tiers.tierByKey(r.tier).name + ' is still ' + r.gap + ' short.';
+                  }).join(' ')
+                : ' — every band is covered now.');
+          sync();
+          render();
+        }
+
+        /* The search itself is instant — a sort over a list already in memory.
+           Showing it anyway is not theatre: it is the only moment in which
+           something visibly works on the user's behalf, and naming the band it
+           is on makes the answer that lands legible rather than magical.
+           Anyone who has asked not to see motion skips straight to the result. */
+        var still = window.matchMedia &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (still) return landIt();
+
+        state.aiBusy = true;
+        working(fillBtn, 'Reading your influencer list…');
+        if (short[0]) {
+          setTimeout(function () {
+            working(host.querySelector('[data-ss="fill"]'),
+              'Matching ' + (PLAT_LABEL[short[0].platform] || short[0].platform) + ' · ' +
+              window.tiers.tierByKey(short[0].tier).name + '…');
+          }, 430);
+        }
+        setTimeout(landIt, 950);
+        return;
       }
       if (e.target.closest('[data-ss="more"]')) {
         state.showExtra = !state.showExtra;
@@ -932,8 +1058,16 @@
 
     host.addEventListener('change', function (e) {
       var t = e.target;
-      if (t.name === 'ssMode') { state.mode = t.value; askTouched = false; return render(); }
-      if (t.dataset.ss === 'campaign') { state.campaignId = t.value; askTouched = false; return render(); }
+      /* The note reports a run against one destination's ask. Change the
+         destination and it is describing something that is no longer on screen. */
+      if (t.name === 'ssMode') {
+        state.mode = t.value; askTouched = false; state.fillNote = '';
+        return render();
+      }
+      if (t.dataset.ss === 'campaign') {
+        state.campaignId = t.value; askTouched = false; state.fillNote = '';
+        return render();
+      }
       if (t.dataset.ss === 'ask') {
         askTouched = true;
         var n = Math.max(0, Number(t.value) || 0);
@@ -954,7 +1088,13 @@
       if (k === 'leadName' || k === 'leadBrand' || k === 'name' || k === 'recipient') {
         state[k] = e.target.value;
       }
-      if (k === 'newn') state.newN = e.target.value;
+      if (k === 'newn') {
+        state.newN = e.target.value;
+        e.target.classList.remove('is-bad');
+        e.target.removeAttribute('aria-invalid');
+        var al = host.querySelector('[data-ss="addalert"]');
+        if (al) al.textContent = '';
+      }
       if (k === 'q') { state.q = e.target.value; renderResults(); }
     });
 
