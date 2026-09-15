@@ -138,6 +138,15 @@
     return d.toISOString().slice(0, 10);
   }
 
+  /* Inclusive of the expiry day: a link that expires today still opens.
+     Plain string comparison is safe because both sides are ISO yyyy-mm-dd,
+     which sorts lexicographically, and it avoids a timezone rounding that
+     would close a link a day early for anyone east of the server. */
+  function isExpired(batch, todayISO) {
+    var e = batch && batch.expiresAt;
+    return !!e && String(e) < String(todayISO);
+  }
+
   var PLAT_LABEL = {tiktok: 'TikTok', instagram: 'Instagram', xhs: 'Xiaohongshu'};
   var EXPIRY_OPTIONS = [
     {days: 14, label: '14 days'}, {days: 30, label: '30 days'},
@@ -600,7 +609,7 @@
   window.sendSheet = {
     coverage: coverage, bandRows: bandRows, summary: summary,
     candidatesFor: candidatesFor, fillGaps: fillGaps,
-    validate: validate, expiryFrom: expiryFrom,
+    validate: validate, expiryFrom: expiryFrom, isExpired: isExpired,
     open: open
   };
 })();

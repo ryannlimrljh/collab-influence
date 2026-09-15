@@ -167,3 +167,27 @@ test('candidatesFor lists one band, biggest first, excluding the excluded', () =
     ['mid1', 'mid2', 'mid3', 'both']);
   assert.deepEqual(SS.candidatesFor('tiktok', 'macro', ROSTER, {big: true}), []);
 });
+
+/* ── The link's own terms. A batch records when it lapses; the share page
+   has to honour that, and the boundary is the part worth pinning. */
+
+test('a link is expired only once its date has passed', () => {
+  assert.equal(SS.isExpired({expiresAt: '2026-09-13'}, '2026-09-14'), true);
+  assert.equal(SS.isExpired({expiresAt: '2026-09-14'}, '2026-09-14'), false,
+    'the last day still opens');
+  assert.equal(SS.isExpired({expiresAt: '2026-09-15'}, '2026-09-14'), false);
+});
+
+test('a link with no expiry never lapses', () => {
+  assert.equal(SS.isExpired({expiresAt: null}, '2026-09-14'), false);
+  assert.equal(SS.isExpired({}, '2026-09-14'), false);
+  assert.equal(SS.isExpired(null, '2026-09-14'), false);
+});
+
+test('expiryFrom and isExpired agree on the boundary', () => {
+  const sent = '2026-09-14';
+  const at = SS.expiryFrom(sent, 14);
+  assert.equal(at, '2026-09-28');
+  assert.equal(SS.isExpired({expiresAt: at}, '2026-09-28'), false, 'open on the day itself');
+  assert.equal(SS.isExpired({expiresAt: at}, '2026-09-29'), true, 'closed the day after');
+});

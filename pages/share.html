@@ -154,6 +154,13 @@
   .sh-gate{max-width:520px; margin:18vh auto; text-align:center;}
   .sh-gate h1{font-size:var(--text-h4-size); font-weight:800; margin:0 0 var(--spacing-8);}
   .sh-gate p{color:var(--color-neutral-6); margin:0;}
+  .sh-gate-form{display:flex; gap:var(--spacing-8); margin-top:var(--spacing-20);
+    justify-content:center; flex-wrap:wrap;}
+  .sh-gate-form input{height:44px; min-width:220px; padding:0 var(--spacing-12);
+    border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm);
+    font-family:inherit; font-size:var(--text-body2-size); background:#fff;}
+  .sh-gate-form input:focus{outline:none; border-color:var(--color-navy);
+    box-shadow:var(--shadow-focus);}
 
   @media (max-width: 560px){
     .sh-wrap{padding-left:var(--spacing-16); padding-right:var(--spacing-16);}
@@ -173,6 +180,7 @@
 <script src="../shared/tiers.js?v=1"></script>
 <script src="../shared/campaign-model.js?v=8"></script>
 <script src="../shared/campaign-store.js?v=10"></script>
+<script src="../shared/send-sheet.js?v=19"></script>
 <script>
 (function () {
   'use strict';
@@ -217,11 +225,51 @@
     return;
   }
 
+  /* A batch records when it lapses. The gate is inclusive of the expiry day
+     and names the date, so the client can say which link they were sent
+     rather than just being told no. */
+  if (window.sendSheet && window.sendSheet.isExpired(batch, S.today())) {
+    E('shRoot').innerHTML = '<div class="sh-gate"><h1>This link has closed</h1>' +
+      '<p>It was open until ' + esc(S.fmtDate(batch.expiresAt, true)) +
+      '. Ask your contact at KULT to reopen it.</p></div>';
+    return;
+  }
+
+  /* Who is answering, when the sender asked for it. Kept per link in this
+     browser, beside the answers, so a reload does not ask twice. It records
+     who chose — it is not authentication, and anyone with the link can still
+     open it. */
+  var NAME_KEY = 'collab-share-name-' + campaign.id + '-' + batch.n;
+  function signer() {
+    try { return localStorage.getItem(NAME_KEY) || ''; } catch (e) { return ''; }
+  }
+  if (batch.requireName && !signer()) {
+    E('shRoot').innerHTML = '<div class="sh-gate"><h1>' + esc(campaign.name) + '</h1>' +
+      '<p>Before you start — who should we record these choices against?</p>' +
+      '<div class="sh-gate-form">' +
+        '<input id="shWho" placeholder="Your name" aria-label="Your name" autocomplete="name" />' +
+        '<button class="c-btn c-btn-primary c-btn-md" type="button" id="shWhoGo">Continue</button>' +
+      '</div></div>';
+    E('shWhoGo').addEventListener('click', function () {
+      var v = E('shWho').value.trim();
+      if (!v) return E('shWho').focus();
+      try { localStorage.setItem(NAME_KEY, v); } catch (e) {}
+      location.reload();
+    });
+    E('shWho').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') E('shWhoGo').click();
+    });
+    E('shWho').focus();
+    return;
+  }
+
   /* ── Shell */
   E('shRoot').innerHTML =
     '<header class="sh-head">' +
       '<h1>' + esc(campaign.name) + '</h1>' +
       '<p class="sub">' + esc(campaign.brand || '') +
+        (signer() ? ' · answering as ' + esc(signer()) : '') +
+        (batch.expiresAt ? ' · open until ' + esc(S.fmtDate(batch.expiresAt, true)) : '') +
         (batch.sentAt ? ' · sent ' + esc(S.fmtDate(batch.sentAt, true)) : '') + '</p>' +
       '<p class="ask">Please pick your line-up. Each creator is shown once, with a ' +
         'separate choice for every channel they post on — approve a creator on ' +
