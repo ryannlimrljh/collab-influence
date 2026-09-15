@@ -168,7 +168,36 @@
   /* ── Tabs — the DLS component, panels crossfade. */
   .cd-tabs{margin-bottom:var(--spacing-20);}
   .c-tab .count{margin-left:var(--spacing-4); font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-5);}
-  .cd-panel{display:none; animation:cd-fade var(--duration-fast) var(--ease-standard) both;}
+  .cd-panel{display:none;}
+  /* ── Motion. Every keyframe here sits behind no-preference; with reduced
+     motion the page simply arrives. What moves says something: a number
+     counting to where it is, a ring drawing its share, dots landing one by
+     one, rows dealing in when a tab opens, a sentence swapping when the
+     state changed under it. */
+  @media (prefers-reduced-motion:no-preference){
+    .cd-panel.is-on{animation:cd-fade var(--duration-fast) var(--ease-standard) both;}
+    @keyframes cd-pop{from{opacity:0; transform:scale(.7);} to{opacity:1; transform:none;}}
+    @keyframes cd-rise{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
+    @keyframes cd-deal{from{opacity:0; transform:translateX(var(--ox, 0px)) translateY(18px) rotate(calc(var(--rot, 0deg) * 3));} to{opacity:1; transform:translateX(var(--ox, 0px)) rotate(var(--rot, 0deg));}}
+    @keyframes cd-ring-draw{from{stroke-dasharray:0 4000;}}
+    @keyframes cd-tl-grow{from{width:0;}}
+    @keyframes cd-swap{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+    @keyframes cd-tick{0%{transform:scale(.6);} 60%{transform:scale(1.18);} 100%{transform:scale(1);}}
+    .cd-brandmark:not([hidden]){animation:cd-pop .32s var(--ease-settle) both;}
+    .cd-ring2 .seg{animation:cd-ring-draw .8s var(--ease-settle) both;}
+    .cd-dots i{animation:cd-pop .28s var(--ease-settle) both; animation-delay:calc(var(--i, 0) * 12ms);}
+    .cd-tl-fill{animation:cd-tl-grow .9s var(--ease-settle) both;}
+    .cd-next .say.is-swap{animation:cd-swap .38s var(--ease-settle) both;}
+    .cd-bulk{animation:cd-rise .26s var(--ease-settle) both;}
+    .cd-panel.is-fresh .cd-sp, .cd-panel.is-fresh .cd-act, .cd-panel.is-fresh .cd-dl, .cd-panel.is-fresh .cd-card, .cd-panel.is-fresh .cd-sum{animation:cd-rise .36s var(--ease-settle) both; animation-delay:calc(var(--i, 0) * 45ms);}
+    .cd-panel.is-fresh .cd-list, .cd-panel.is-fresh .cd-list-empty{animation:cd-deal .5s var(--ease-settle) both; animation-delay:calc(120ms + var(--i, 0) * 70ms);}
+    .cd-sp .c-checkbox-box.is-tick{animation:cd-tick .3s var(--ease-settle);}
+    .cd-kpi .cnt.is-live{transition:none;}
+    #cdPage .c-btn, .cd-fchip, .cd-slot, .cd-kpi{transition-property:transform, background, border-color, box-shadow, color; transition-duration:var(--duration-fast); transition-timing-function:var(--ease-standard);}
+    #cdPage .c-btn:active, .cd-fchip:active, .cd-sum .bands .cd-slot:active{transform:scale(.96);}
+    .cd-fchip:hover, .cd-sum .bands .cd-slot:hover{transform:translateY(-1px);}
+    .cd-kpi:active{transform:scale(.99);}
+  }
   .cd-panel.is-on{display:block;}
   @keyframes cd-fade{from{opacity:0;} to{opacity:1;}}
 
@@ -1006,7 +1035,7 @@
     var r = (size - stroke) / 2, C = 2 * Math.PI * r, total = parts.reduce(function(a, p){ return a + p.n; }, 0), off = 0;
     var segs = parts.filter(function(p){ return p.n > 0 && p.color; }).map(function(p){
       var len = total ? p.n / total * C : 0;
-      var h = '<circle class="seg" cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" fill="none" stroke="' + p.color + '" stroke-width="' + stroke + '" stroke-dasharray="' + len + ' ' + (C - len) + '" stroke-dashoffset="' + (-off) + '"/>';
+      var h = '<circle class="seg" cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" fill="none" stroke="' + p.color + '" stroke-width="' + stroke + '" style="stroke-dasharray:' + len + ' ' + (C - len) + '; animation-delay:' + (off / C * 300).toFixed(0) + 'ms" stroke-dashoffset="' + (-off) + '"/>';
       off += len; return h;
     }).join('');
     return '<span class="cd-ring2" style="width:' + size + 'px; height:' + size + 'px"><svg viewBox="0 0 ' + size + ' ' + size + '" width="' + size + '" height="' + size + '" aria-hidden="true">' +
@@ -1021,7 +1050,9 @@
     var html = parts.map(function(p, i){
       var n = i === parts.length - 1 ? Math.round(total * scale) - used : Math.round(p.n * scale);
       used += n;
-      return new Array(Math.max(0, n) + 1).join('<i class="' + (p.cls || '') + '"></i>');
+      var out = '';
+      for (var k = 0; k < Math.max(0, n); k++) out += '<i class="' + (p.cls || '') + '" style="--i:' + (used - n + k) + '"></i>';
+      return out;
     }).join('');
     return '<span class="cd-dots' + (cls ? ' ' + cls : '') + '" role="img" aria-label="' + parts.map(function(p){ return p.n + ' ' + (p.label || ''); }).join(', ') + '">' + html + '</span>';
   }
@@ -1030,7 +1061,7 @@
     var want = 0, confirmed = 0, approved = 0;
     groups.forEach(function(g){ want += g.want; g.fills.forEach(function(r){ if (r.state === 'confirmed') confirmed += 1; else if (r.state === 'approved') approved += 1; }); });
     var slots = want
-      ? kpi('selection', 'Slots', 'ph-squares-four', '<span>' + confirmed + '<small> / ' + want + '</small></span>',
+      ? kpi('selection', 'Slots', 'ph-squares-four', '<span><b class="cnt" data-to="' + confirmed + '">' + confirmed + '</b><small> / ' + want + '</small></span>',
           approved ? approved + ' pending · ' + Math.max(0, want - confirmed - approved) + ' open' : Math.max(0, want - confirmed) + ' open',
           {bar: dotGrid([{n: confirmed, cls: 'f', label: 'filled'}, {n: approved, cls: 'p', label: 'pending'}, {n: Math.max(0, want - confirmed - approved), label: 'open'}], 40)})
       : kpi('overview', 'Slots', 'ph-squares-four', null, 'no ask yet');
@@ -1038,21 +1069,41 @@
     var client;
     if (last) {
       var picks = last.picks || [], answered = picks.filter(function(p){ return M.pickStatus(p) !== 'none'; }).length;
-      client = kpi('selection', 'Client', 'ph-chat-circle-text', '<span>' + answered + '<small> / ' + picks.length + '</small></span>',
+      client = kpi('selection', 'Client', 'ph-chat-circle-text', '<span><b class="cnt" data-to="' + answered + '">' + answered + '</b><small> / ' + picks.length + '</small></span>',
         'answered · batch ' + last.n + (last.sentAt ? ' · ' + S.fmtDate(last.sentAt) : ''),
         {ring: ringSvg([{n: answered, color: 'var(--color-navy)'}, {n: picks.length - answered}], 44, 5)});
     } else client = kpi('selection', 'Client', 'ph-chat-circle-text', null, 'nothing sent yet');
     var d = M.deliverableCounts(c);
     var ring = ringSvg([{n: d.done, color: 'var(--color-green)'}, {n: d.total - d.done}], 44, 5);
     var deliv = d.total
-      ? kpi('deliverables', 'Deliverables', 'ph-film-strip', '<span>' + d.done + '<small> / ' + d.total + '</small></span>', 'posted', {ring: ring})
+      ? kpi('deliverables', 'Deliverables', 'ph-film-strip', '<span><b class="cnt" data-to="' + d.done + '">' + d.done + '</b><small> / ' + d.total + '</small></span>', 'posted', {ring: ring})
       : kpi('deliverables', 'Deliverables', 'ph-film-strip', null, M.confirmedCreators(c).length ? 'nothing planned yet' : 'nobody confirmed yet');
     var m = S.money(c);
     var margin = m.quote != null
-      ? kpi('overview', 'Margin', 'ph-currency-dollar', S.fmtRM(m.margin), 'on a quote of ' + S.fmtRM(m.quote),
+      ? kpi('overview', 'Margin', 'ph-currency-dollar', m.margin == null ? null : 'RM <b class="cnt" data-to="' + Math.round(m.margin) + '" data-fmt="num">' + S.fmtNum(m.margin) + '</b>', 'on a quote of ' + S.fmtRM(m.quote),
           {ring: m.marginPct != null ? '<span class="pill ' + ((m.margin || 0) >= 0 ? 'up' : 'down') + '">' + m.marginPct + '%</span>' : ''})
       : kpi('overview', 'Margin', 'ph-currency-dollar', null, 'no quote yet');
     E('cdKpis').innerHTML = slots + client + deliv + margin;
+    countUp(E('cdKpis'));
+  }
+  /* Count a figure up to where it is, once per value: a tile whose number
+     did not change since the last render just shows it. */
+  var lastCounts = {}, lastSay = null;
+  function countUp(root){
+    root.querySelectorAll('.cnt[data-to]').forEach(function(el, i){
+      var to = Number(el.dataset.to), key = el.closest('.cd-kpi') ? el.closest('.cd-kpi').querySelector('.k').textContent + i : i;
+      var fmt = el.dataset.fmt === 'num' ? S.fmtNum : String;
+      if (REDUCED || document.hidden || lastCounts[key] === to) { lastCounts[key] = to; el.textContent = fmt(to); return; }
+      var from = lastCounts[key] == null ? 0 : lastCounts[key], t0 = performance.now(), dur = 620;
+      lastCounts[key] = to;
+      (function step(now){
+        var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+        el.textContent = fmt(Math.round(from + (to - from) * e));
+        if (p < 1) requestAnimationFrame(step);
+      })(t0);
+      /* Frames stall in a hidden tab; the figure must land regardless. */
+      setTimeout(function(){ if (el.isConnected) el.textContent = fmt(to); }, dur + 60);
+    });
   }
   E('cdKpis').addEventListener('click', function(e){
     var b = e.target.closest('[data-next]'); if (b) setTab(b.dataset.next.slice(4));
@@ -1062,13 +1113,14 @@
   function renderNext(){
     var n = M.nextUp(c), el = E('cdNext'), body = E('cdNextBody');
     var say = esc(n.sentence).replace('{date}', esc(n.date ? S.fmtDate(n.date) : 'earlier'));
+    var swapped = lastSay != null && lastSay !== say; lastSay = say;
     function btn(a, primary){
       if (!a) return '';
       return '<button class="c-btn ' + (primary ? 'c-btn-secondary' : 'c-btn-ghost') + ' c-btn-md" type="button" data-next="' + a.action + '">' + esc(a.label) + '</button>';
     }
     el.classList.toggle('is-quiet', !n.primary);
     body.innerHTML = '<span class="eyebrow"><i class="ph-fill ph-sparkle"></i>Next up</span>' +
-      '<span class="say">' + say + '</span>' +
+      '<span class="say' + (swapped ? ' is-swap' : '') + '">' + say + '</span>' +
       (n.primary || n.secondary ? '<span class="acts">' + btn(n.primary, true) + btn(n.secondary, false) + '</span>' : '');
   }
   E('cdNext').addEventListener('click', function(e){
@@ -1308,7 +1360,7 @@
   }
   var picked = {};   /* bulk selection on the people list, by influencer id */
   function tilt(key){ var h = 0; for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) & 0xffff; return ((h % 37) / 10 - 1.8).toFixed(2); }
-  function personHtml(inf, fills){
+  function personHtml(inf, fills, idx){
     var rec = byInf[inf] || {id: inf, name: 'Unknown profile', platforms: []};
     var slots = M.slotsOf(c);
     var chips = fills.map(function(r){
@@ -1319,7 +1371,7 @@
         '<i class="' + st + ' st"></i><i class="ph ph-caret-down caret"></i></button>';
     }).join('');
     var src = fills[0], prov = src.batch == null ? '<i class="ph ph-hand"></i>by hand' : '<i class="ph ph-paper-plane-tilt"></i>batch ' + src.batch;
-    return '<div class="cd-sp' + (picked[inf] ? ' is-picked' : '') + (fills.some(function(r){ return r.state === 'approved'; }) ? ' is-pending' : '') + '" data-person="' + esc(inf) + '">' +
+    return '<div class="cd-sp' + (picked[inf] ? ' is-picked' : '') + (fills.some(function(r){ return r.state === 'approved'; }) ? ' is-pending' : '') + '" data-person="' + esc(inf) + '" style="--i:' + (idx || 0) + '">' +
       '<span class="c-checkbox-box' + (picked[inf] ? ' on' : '') + '" role="checkbox" aria-checked="' + !!picked[inf] + '" tabindex="0" data-pick-person="' + esc(inf) + '" aria-label="Select ' + esc(rec.name) + '">' + (picked[inf] ? '<i class="ph ph-check"></i>' : '') + '</span>' +
       avatarHtml(rec) + '<span class="who"><span class="n">' + esc(rec.name) + '</span><span class="s">' + esc(handlesLine(rec)) + '</span></span>' +
       '<span class="right"><span class="prov">' + prov + '</span></span>' +
@@ -1332,7 +1384,7 @@
     var stack = b.picks.slice(0, 5).map(function(p){ var rec = byInf[p.inf]; return rec ? avatarHtml(rec) : ''; }).join('') +
       (b.picks.length > 5 ? '<span class="more">+' + (b.picks.length - 5) + '</span>' : '');
     var open = modalKind === 'batch' && modalBatch === b.n;
-    return '<div class="cd-list' + (open ? ' is-open' : '') + '" data-list="' + b.n + '" style="--rot:' + tilt('b' + b.n + (b.name || '')) + 'deg; --ox:' + ([0, 6, -4, 3][i % 4]) + 'px; --z:' + (i + 1) + '">' +
+    return '<div class="cd-list' + (open ? ' is-open' : '') + '" data-list="' + b.n + '" style="--rot:' + tilt('b' + b.n + (b.name || '')) + 'deg; --ox:' + ([0, 6, -4, 3][i % 4]) + 'px; --z:' + (i + 1) + '; --i:' + i + '">' +
       '<span class="eyebrow">Batch ' + b.n + (b.sentAt ? ' · ' + esc(S.fmtDate(b.sentAt)) : '') + '</span><span class="nm">' + esc(b.name || 'Batch ' + b.n) + '</span>' +
       '<span class="meta">' + b.picks.length + (b.picks.length === 1 ? ' creator' : ' creators') + (b.recipient ? ' · to ' + esc(b.recipient) : '') + (b.expiresAt ? ' · expires ' + esc(S.fmtDate(b.expiresAt)) : '') + '</span>' +
       '<div class="mid"><span class="cd-stack">' + stack + '</span><span class="ans">' + ringSvg([{n: counts.selected, color: 'var(--color-green)'}, {n: counts.kiv, color: 'var(--color-amber)'}, {n: counts.rejected + counts.unavailable, color: 'var(--color-red)'}, {n: counts.none}], 34, 4) + '<span><b>' + answered + '</b>/' + b.picks.length + '<br>answered</span></span></div>' +
@@ -1376,7 +1428,7 @@
         '<button class="c-btn c-btn-ghost c-btn-sm cd-trash" type="button" data-bulk="remove" style="width:auto; padding:0 10px"><i class="ph ph-trash"></i> Remove</button>' +
         '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-bulk="clear">Clear</button></div>';
       else people += '<div class="cd-bulk" style="background:transparent; padding:4px 0; color:var(--color-neutral-5)"><span class="c-checkbox-box" role="checkbox" aria-checked="false" tabindex="0" data-pick-all aria-label="Select everyone" style="margin:0 6px 0 0; font-size:11px; cursor:pointer"></span>Select all · tick people to confirm, mark unavailable, send or remove them together</div>';
-      people += order.map(function(inf){ return personHtml(inf, byPerson[inf]); }).join('');
+      people += order.map(function(inf, i){ return personHtml(inf, byPerson[inf], i); }).join('');
     }
     people += '</div>';
     var lists = '<div class="cd-lists-col"><div class="cd-lists-h"><h3>Selection lists<span class="sub">' + (batches.length ? batches.length + ' sent' : 'none yet') + '</span></h3></div>' +
@@ -1600,6 +1652,7 @@
       t.classList.toggle('active', on); t.setAttribute('aria-selected', String(on));
     });
     document.querySelectorAll('.cd-panel').forEach(function(p){ p.classList.toggle('is-on', p.id === 'pan-' + key); });
+    freshen(E('pan-' + key));
     var u = new URL(location.href);
     if (key === 'overview') u.searchParams.delete('tab'); else u.searchParams.set('tab', key);
     history.replaceState(null, '', u);
@@ -1608,10 +1661,23 @@
     var t = e.target.closest('[data-tab]'); if (t) setTab(t.dataset.tab);
   });
 
+  /* Index a panel's top-level pieces and let the CSS deal them in; the
+     class comes off after the run so a later re-render stays still. */
+  var freshTimer = null;
+  function freshen(panel){
+    if (!panel || REDUCED || document.hidden) return;
+    clearTimeout(freshTimer);
+    document.querySelectorAll('.cd-panel.is-fresh').forEach(function(p){ p.classList.remove('is-fresh'); });
+    var kids = panel.querySelectorAll('.cd-sum, .cd-card, .cd-act, .cd-dl, .cd-sect, .cd-noask');
+    kids.forEach(function(el, i){ if (!el.style.getPropertyValue('--i')) el.style.setProperty('--i', Math.min(i, 10)); });
+    panel.classList.add('is-fresh');
+    freshTimer = setTimeout(function(){ panel.classList.remove('is-fresh'); }, 1200);
+  }
   function renderAll(){
     reload();
     if (!c) return missing();
     renderHeader(); renderOverview(); renderKol(); renderDocs(); renderDrafts(); renderActivity();
+    if (!renderAll.ran) { renderAll.ran = true; freshen(E('pan-' + tab)); }
   }
   /* ── Activity. */
   var actFilter = 'all', actDraft = '', actFlashAt = null;
@@ -1883,7 +1949,12 @@
     if (ab) { var pa = ab.dataset.addBand ? ab.dataset.addBand.split('/') : null; return openPicker('roster', pa ? {platform: pa[0], tier: pa[1]} : null); }
     /* Bulk selection on the people list. */
     var pp = e.target.closest('[data-pick-person]');
-    if (pp) { var idp = pp.dataset.pickPerson; if (picked[idp]) delete picked[idp]; else picked[idp] = true; renderKol(); return; }
+    if (pp) {
+      var idp = pp.dataset.pickPerson; if (picked[idp]) delete picked[idp]; else picked[idp] = true;
+      renderKol();
+      var box = E('pan-selection').querySelector('[data-pick-person="' + idp + '"]'); if (box && picked[idp]) box.classList.add('is-tick');
+      return;
+    }
     if (e.target.closest('[data-pick-all]')) { (c.roster || []).forEach(function(r){ picked[r.inf] = true; }); renderKol(); return; }
     var bulk = e.target.closest('[data-bulk]');
     if (bulk) {
