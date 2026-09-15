@@ -1049,7 +1049,7 @@
 <script src="../shared/campaign-model.js?v=9"></script>
 <script src="../shared/dropdown.js?v=3"></script>
 <script src="../shared/campaign-store.js?v=12"></script>
-<script src="../shared/campaign-form.js?v=16"></script>
+<script src="../shared/campaign-form.js?v=17"></script>
 <script src="../shared/send-sheet.js?v=38"></script>
 <script src="../shared/swing-modal.js?v=5"></script>
 <script>
@@ -1751,7 +1751,9 @@
     var list = c.files || [];
     return '<div class="cd-sect"><h3>Files</h3><span class="sub">' + (list.length ? list.length + (list.length === 1 ? ' file' : ' files') : 'The brief, decks, the IO') + '</span></div>' +
       '<div class="cd-files">' +
-        '<label class="cf-drop" id="cdDrop" for="cd-file"><i class="ph ph-paperclip"></i><span><b>Add files</b> — drop them here or <u>browse</u>. PDF, decks, images.</span><input type="file" id="cd-file" multiple hidden /></label>' +
+        '<label class="cf-drop" id="cdDrop" for="cd-file"><span class="ic"><i class="ph ph-cloud-arrow-up"></i></span>' +
+          '<span class="t"><b>Add files</b></span><span class="s">Drop the brief, a deck or the IO here — PDF, PowerPoint, images.</span>' +
+          '<span class="c-btn c-btn-secondary c-btn-sm"><i class="ph ph-folder-open"></i> Browse files</span><input type="file" id="cd-file" multiple hidden /></label>' +
         (list.length ? '<ul class="cf-flist cd-flist">' + list.map(function(f, i){
           return '<li style="--i:' + i + '"><i class="ph ' + S.fileIcon(f) + '"></i><span class="nm" title="' + esc(f.name) + '">' + esc(f.name) + '</span>' +
             '<span class="sz">' + esc(S.fmtSize(f.size)) + ' · ' + esc(S.fmtDate(f.addedAt)) + '</span>' +

@@ -130,12 +130,17 @@
 .cf-io-hint{display:flex; align-items:center; gap:6px; margin-top:6px; font-size:var(--text-caption-size); color:var(--color-neutral-5);}\
 .cf-io-hint button{border:0; background:transparent; padding:0; font:inherit; font-size:inherit; font-weight:700; color:var(--color-neutral-9); text-decoration:underline; text-underline-offset:2px; cursor:pointer;}\
 .cf-money{font-variant-numeric:tabular-nums;}\
-.cf-drop{display:flex; align-items:center; gap:var(--spacing-12); padding:var(--spacing-12) var(--spacing-16); border:1px dashed var(--color-neutral-4); border-radius:var(--radius-md); background:var(--color-neutral-1); cursor:pointer; font-size:var(--text-body2-size); color:var(--color-neutral-6); transition:border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);}\
-.cf-drop i{font-size:20px; color:var(--color-neutral-5); flex:none;}\
-.cf-drop b{color:var(--color-neutral-9);}\
+.cf-drop{display:flex; flex-direction:column; align-items:center; text-align:center; gap:6px; padding:var(--spacing-20) var(--spacing-16) var(--spacing-16); border:1.5px dashed var(--color-neutral-4); border-radius:var(--radius-lg); background:var(--color-neutral-2); cursor:pointer; color:var(--color-neutral-6); transition:border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);}\
+.cf-drop .ic{width:44px; height:44px; border-radius:var(--radius-pill); background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); display:flex; align-items:center; justify-content:center; margin-bottom:2px; transition:transform var(--duration-fast) var(--ease-standard);}\
+.cf-drop .ic i{font-size:22px; color:var(--color-neutral-7);}\
+.cf-drop .t{font-size:var(--text-body1-size); color:var(--color-neutral-9);}\
+.cf-drop .t b{font-weight:800;}\
 .cf-drop .opt{font-weight:400; color:var(--color-neutral-5); font-size:var(--text-caption-size); margin-left:4px;}\
-.cf-drop u{color:var(--color-navy); text-decoration:underline; text-underline-offset:2px;}\
-.cf-drop:hover, .cf-drop.is-over{border-color:var(--color-obsidian); background:var(--color-neutral-2);}\
+.cf-drop .s{font-size:var(--text-caption-size); color:var(--color-neutral-5); max-width:420px;}\
+.cf-drop .c-btn{margin-top:6px; pointer-events:none;}\
+.cf-drop:hover, .cf-drop.is-over{border-color:var(--color-obsidian); background:var(--color-neutral-1);}\
+.cf-drop:hover .ic, .cf-drop.is-over .ic{transform:translateY(-2px) scale(1.06);}\
+.cf-drop.is-over{transform:scale(1.005);}\
 .cf-flist{list-style:none; margin:var(--spacing-8) 0 0; padding:0; display:flex; flex-direction:column; gap:4px;}\
 .cf-flist:empty{display:none;}\
 .cf-flist li{display:flex; align-items:center; gap:var(--spacing-8); padding:6px 8px 6px 10px; border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); background:var(--color-neutral-1); font-size:var(--text-caption-size); animation:cf-fade var(--duration-fast) var(--ease-standard) both;}\
@@ -180,7 +185,11 @@
           <div class="c-field span2"><label for="cf-desc">Description<span class="opt">(optional)</span></label>\
             <textarea id="cf-desc" rows="2" placeholder="What the campaign is for, in a line or two"></textarea></div>\
           <div class="span2 cf-files" id="cfFiles">\
-            <label class="cf-drop" id="cfDrop" for="cf-file"><i class="ph ph-paperclip"></i><span><b>Attach the brief</b><span class="opt">(optional)</span> — drop files here or <u>browse</u>. PDF, decks, images.</span>\
+            <label class="cf-drop" id="cfDrop" for="cf-file">\
+              <span class="ic"><i class="ph ph-cloud-arrow-up"></i></span>\
+              <span class="t"><b>Attach the brief</b><span class="opt">(optional)</span></span>\
+              <span class="s">Drop the brief, a deck or the IO here — PDF, PowerPoint, images, up to a few files.</span>\
+              <span class="c-btn c-btn-secondary c-btn-sm"><i class="ph ph-folder-open"></i> Browse files</span>\
               <input type="file" id="cf-file" multiple hidden /></label>\
             <ul class="cf-flist" id="cfFlist"></ul>\
           </div>\
