@@ -329,3 +329,49 @@ test('sameAsk ignores key order and zero bands', () => {
   assert.equal(M.sameAsk({tiktok: {mid: 2, nano: 0}}, {tiktok: {mid: 2}}), true);
   assert.equal(M.sameAsk({}, null), true);
 });
+
+/* ── Deliverables: whose court, the queue, the plan. */
+test('waitingOn reads the ball\'s court off status and the client\'s word', () => {
+  assert.equal(M.waitingOn({status: 'not_started', clientApproval: 'pending'}).key, 'creator');
+  assert.equal(M.waitingOn({status: 'drafted', clientApproval: 'pending'}).key, 'team');
+  assert.equal(M.waitingOn({status: 'review', clientApproval: 'pending'}).key, 'client');
+  assert.equal(M.waitingOn({status: 'review', clientApproval: 'changes'}).key, 'creator');
+  assert.equal(M.waitingOn({status: 'review', clientApproval: 'approved'}).key, 'team');
+  assert.equal(M.waitingOn({status: 'approved', clientApproval: 'approved'}).key, 'creator');
+  assert.equal(M.waitingOn({status: 'posted', clientApproval: 'approved'}).key, 'done');
+});
+
+test('overdue and due-soon never count a posted deliverable', () => {
+  assert.equal(M.isOverdue({dueAt: '2026-09-10', status: 'drafted'}, '2026-09-15'), true);
+  assert.equal(M.isOverdue({dueAt: '2026-09-10', status: 'posted'}, '2026-09-15'), false);
+  assert.equal(M.isDueSoon({dueAt: '2026-09-20', status: 'drafted'}, '2026-09-15', 7), true);
+  assert.equal(M.isDueSoon({dueAt: '2026-09-30', status: 'drafted'}, '2026-09-15', 7), false);
+  assert.equal(M.isDueSoon({dueAt: '2026-09-14', status: 'drafted'}, '2026-09-15', 7), false, 'yesterday is overdue, not soon');
+});
+
+test('deliverableQueue counts every court, the late and the near', () => {
+  const q = M.deliverableQueue({deliverables: [
+    {dueAt: '2026-09-10', status: 'drafted', clientApproval: 'pending'},
+    {dueAt: '2026-09-18', status: 'review', clientApproval: 'pending'},
+    {dueAt: '2026-09-18', status: 'posted', clientApproval: 'approved'},
+    {dueAt: '', status: 'not_started', clientApproval: 'pending'}
+  ]}, '2026-09-15');
+  assert.deepEqual(q, {all: 4, team: 1, client: 1, creator: 1, overdue: 1, soon: 1, posted: 1});
+});
+
+test('planDeliverables covers each confirmed channel once and spreads the dates', () => {
+  const c = {
+    start: '2026-09-01', end: '2026-09-30',
+    roster: [
+      {inf: 'inf-001', platform: 'tiktok', state: 'confirmed'},
+      {inf: 'inf-001', platform: 'instagram', state: 'confirmed'},
+      {inf: 'inf-002', platform: 'tiktok', state: 'approved'},
+      {inf: 'inf-003', platform: 'tiktok', state: 'confirmed'}
+    ],
+    deliverables: [{id: 'd1', inf: 'inf-001', platform: 'tiktok', status: 'drafted'}]
+  };
+  const plan = M.planDeliverables(c, '2026-09-15');
+  assert.deepEqual(plan.map(p => p.inf + '/' + p.platform + '/' + p.kind), ['inf-001/instagram/reel', 'inf-003/tiktok/video']);
+  assert.deepEqual(plan.map(p => p.dueAt), ['2026-09-20', '2026-09-25'], 'evenly between today and the end');
+  assert.equal(M.planDeliverables({roster: [], deliverables: []}, '2026-09-15').length, 0);
+});

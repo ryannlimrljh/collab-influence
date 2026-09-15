@@ -781,6 +781,62 @@
     font-size:var(--text-body2-size); color:var(--color-neutral-5);}
   .cd-dl-legacy{margin:0 0 var(--spacing-16); font-size:var(--text-caption-size); color:var(--color-neutral-5);}
   .cd-dl-row.is-new td{animation:cd-act-in 420ms var(--ease-settle) both;}
+  /* ── The queue over the sections: who the ball is with, what is late,
+     what is due this week. A chip filters the rows below it. */
+  .cd-dlq{display:flex; align-items:center; gap:var(--spacing-8); flex-wrap:wrap; margin-bottom:var(--spacing-16);}
+  .cd-dlq .c-chip .n{margin-left:6px; font-weight:800; font-variant-numeric:tabular-nums;}
+  .cd-dlq .c-chip .cmp-dot{width:6px; height:6px; border-radius:var(--radius-pill); margin-right:6px;}
+  .cd-dlq .c-chip.is-active .cmp-dot{background:currentColor !important;}
+  .cd-dlq .sp{flex:1;}
+  .cd-dl.is-quiet{opacity:.45;}
+  .cd-dl.is-quiet .cd-dl-wrap, .cd-dl.is-quiet .cd-dl-empty{display:none;}
+  .cd-dl-row{cursor:pointer;}
+  .cd-dl-row.is-hid{display:none;}
+  .cd-dl-table td.st{white-space:nowrap;}
+  .cd-wait{display:inline-flex; align-items:center; gap:4px; margin-top:4px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
+  .cd-wait::before{content:''; width:5px; height:5px; border-radius:var(--radius-pill); background:currentColor;}
+  .cd-wait.is-team{color:#8A5A00;} .cd-wait.is-client{color:var(--color-navy);} .cd-wait.is-done{color:var(--color-green);}
+  .cd-dl-row.is-late td{box-shadow:inset 3px 0 0 var(--color-red);}
+  /* ── The review card: one deliverable, everything about it, the
+     decision at the bottom. */
+  .cd-review{display:flex; flex-direction:column; min-height:0; flex:1;}
+  .cd-review .rv-head{display:flex; align-items:center; gap:var(--spacing-12); padding:var(--spacing-24) var(--spacing-48) var(--spacing-16) var(--spacing-24);}
+  .cd-review .rv-head .c-card-profile-avatar{width:44px; height:44px; flex:none; font-size:13px;}
+  .cd-review .rv-head .t{min-width:0; flex:1;}
+  .cd-review .rv-head .n{display:block; font-size:var(--text-h5-size); font-weight:800; color:var(--color-neutral-9); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cd-review .rv-head .s{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:2px; font-size:var(--text-caption-size); color:var(--color-neutral-5);}
+  .cd-review .rv-head .s b{color:var(--color-neutral-9);}
+  .cd-review .rv-head .s .late{color:var(--color-red); font-weight:700;}
+  .cd-review .rv-wait{display:flex; align-items:center; gap:var(--spacing-8); margin:0 var(--spacing-24); padding:10px var(--spacing-12); border-radius:var(--radius-md);
+    background:var(--color-neutral-2); font-size:var(--text-body2-size); font-weight:700; color:var(--color-neutral-9);}
+  .cd-review .rv-wait.is-team{background:var(--color-gold-bg); color:#8A5A00;} .cd-review .rv-wait.is-client{background:var(--color-water-bg); color:var(--color-navy);}
+  .cd-review .rv-wait.is-done{background:var(--color-earth-bg); color:var(--color-green);}
+  .cd-review .rv-wait small{margin-left:auto; font-weight:500; color:inherit; opacity:.8;}
+  .cd-review .rv-body{flex:1; min-height:0; overflow-y:auto; padding:var(--spacing-16) var(--spacing-24) var(--spacing-24); display:flex; flex-direction:column; gap:var(--spacing-16);}
+  .cd-review h5{margin:0 0 var(--spacing-8); font-size:var(--text-caption-size); font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
+  .cd-review .rv-track{display:flex; align-items:center; gap:0;}
+  .cd-review .rv-step{flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; padding:6px 2px; border:0; background:none; font:inherit; font-size:11px; font-weight:700; color:var(--color-neutral-5); cursor:pointer; position:relative;}
+  .cd-review .rv-step .dot{width:22px; height:22px; border-radius:var(--radius-pill); border:2px solid var(--color-neutral-3); background:var(--color-neutral-1); display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--color-neutral-1); transition:transform var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);}
+  .cd-review .rv-step:not(:first-child)::before{content:''; position:absolute; left:-50%; right:50%; top:16px; height:2px; background:var(--color-neutral-3); z-index:0;}
+  .cd-review .rv-step .dot{position:relative; z-index:1;}
+  .cd-review .rv-step.is-done .dot, .cd-review .rv-step.is-on .dot{background:var(--color-obsidian); border-color:var(--color-obsidian);}
+  .cd-review .rv-step.is-done::before, .cd-review .rv-step.is-on::before{background:var(--color-obsidian);}
+  .cd-review .rv-step.is-on{color:var(--color-neutral-9);} .cd-review .rv-step.is-on .dot{box-shadow:0 0 0 4px var(--color-neutral-2); transform:scale(1.1);}
+  .cd-review .rv-step:hover .dot{transform:scale(1.12);}
+  .cd-review .rv-seg{display:inline-flex; border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); overflow:hidden; background:var(--color-neutral-1);}
+  .cd-review .rv-seg button{border:0; background:none; font:inherit; font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-6); padding:7px 12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;}
+  .cd-review .rv-seg button + button{border-left:1px solid var(--color-neutral-3);}
+  .cd-review .rv-seg button:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}
+  .cd-review .rv-seg button.is-on{background:var(--color-obsidian); color:var(--color-neutral-1);}
+  .cd-review .rv-seg .cmp-dot{width:6px; height:6px; border-radius:var(--radius-pill);}
+  .cd-review .rv-grid{display:grid; grid-template-columns:1fr 1fr; gap:var(--spacing-12);}
+  .cd-review .rv-grid .c-field, .cd-review .c-field{width:100%;}
+  .cd-review .c-field textarea{min-height:64px;}
+  .cd-review .rv-link{display:flex; gap:6px; align-items:center;}
+  .cd-review .rv-link input{flex:1; min-width:0;}
+  .cd-review .rv-foot{flex:none; display:flex; align-items:center; gap:var(--spacing-8); padding:var(--spacing-16) var(--spacing-24); border-top:1px solid var(--color-neutral-3);}
+  .cd-review .rv-foot .sp{flex:1;}
+  @media (max-width:640px){ .cd-review .rv-grid{grid-template-columns:1fr;} }
   .c-switch-track{cursor:pointer;}
 
   .c-toast-host{z-index:500;}
@@ -967,9 +1023,9 @@
 <script src="../shared/influencer-store.js?v=2"></script>
 <script src="../shared/campaigns-data.js?v=6"></script>
 <script src="../shared/tiers.js?v=1"></script>
-<script src="../shared/campaign-model.js?v=8"></script>
+<script src="../shared/campaign-model.js?v=9"></script>
 <script src="../shared/dropdown.js?v=3"></script>
-<script src="../shared/campaign-store.js?v=10"></script>
+<script src="../shared/campaign-store.js?v=11"></script>
 <script src="../shared/campaign-form.js?v=14"></script>
 <script src="../shared/send-sheet.js?v=38"></script>
 <script src="../shared/swing-modal.js?v=5"></script>
@@ -1681,7 +1737,100 @@
       }).join('') + '</tbody></table></div>';
     hydrateAvatars(pan);
   }
-  var dlFlashId = null;
+  var dlFlashId = null, dlFilter = 'all';
+  /* Does a deliverable pass the queue chip that is on? */
+  function dlShow(d){
+    if (dlFilter === 'all') return true;
+    if (dlFilter === 'overdue') return M.isOverdue(d, S.today());
+    if (dlFilter === 'soon') return M.isDueSoon(d, S.today(), 7);
+    var w = M.waitingOn(d);
+    return dlFilter === 'posted' ? w.key === 'done' : w.key === dlFilter;
+  }
+  /* ── The review card: one deliverable in the fold-out, with the ball's
+     court on a banner, the status as a track, the client's word as a
+     switch, the link, the caption and both notes, and the one decision
+     that moves it on at the bottom. */
+  function reviewHtml(d){
+    var rec = byInf[d.inf] || {id: d.inf, name: 'Unknown profile', platforms: []};
+    var ch = (rec.platforms || []).filter(function(x){ return x.platform === d.platform; })[0];
+    var late = M.isOverdue(d, S.today()), w = M.waitingOn(d);
+    var idx = S.DELIV_STATUS.map(function(s){ return s.key; }).indexOf(d.status);
+    var track = S.DELIV_STATUS.map(function(s, i){
+      return '<button type="button" class="rv-step' + (i < idx ? ' is-done' : i === idx ? ' is-on' : '') + '" data-rv-status="' + s.key + '" aria-pressed="' + (i === idx) + '">' +
+        '<span class="dot">' + (i < idx ? '<i class="ph ph-check"></i>' : '') + '</span>' + s.label + '</button>';
+    }).join('');
+    var seg = S.CLIENT_APPROVAL.map(function(p){
+      return '<button type="button" class="' + (p.key === d.clientApproval ? 'is-on' : '') + '" data-rv-client="' + p.key + '" aria-pressed="' + (p.key === d.clientApproval) + '"><span class="cmp-dot" style="background:' + p.dot + '"></span>' + p.label + '</button>';
+    }).join('');
+    var act = d.status === 'not_started' ? {key: 'drafted', label: 'Mark drafted', icon: 'ph-pencil-simple'}
+      : d.status === 'drafted' ? {key: 'review', label: 'Start review', icon: 'ph-eye'}
+      : d.status === 'review' ? {key: 'approved', label: 'Approve', icon: 'ph-check'}
+      : d.status === 'approved' ? {key: 'posted', label: 'Mark posted', icon: 'ph-megaphone'} : null;
+    return '<div class="cd-review" data-review="' + esc(d.id) + '">' +
+      '<div class="rv-head">' + avatarHtml(rec) + '<span class="t"><span class="n">' + esc(rec.name) + '</span>' +
+        '<span class="s">' + (PLAT_ICON[d.platform] || '') + '<b>' + esc((PLAT_LABEL[d.platform] || d.platform) + ' ' + d.kind) + '</b>' + (ch ? ' · @' + esc(ch.handle) : '') +
+        (d.dueAt ? ' · <span class="' + (late ? 'late' : '') + '">' + (late ? 'was due ' : 'due ') + esc(S.fmtDate(d.dueAt)) + '</span>' : ' · no due date') + '</span></span></div>' +
+      '<div class="rv-wait is-' + w.key + '"><i class="ph ' + (w.key === 'team' ? 'ph-eye' : w.key === 'client' ? 'ph-chat-circle-text' : w.key === 'done' ? 'ph-check-circle' : 'ph-user') + '"></i>' + esc(w.say) +
+        '<small>' + (w.key === 'team' ? 'your move' : w.key === 'client' ? 'waiting on their word' : w.key === 'done' ? 'live' : 'nothing for you to do yet') + '</small></div>' +
+      '<div class="rv-body">' +
+        '<div><h5>Status</h5><div class="rv-track">' + track + '</div></div>' +
+        '<div><h5>What the client said</h5><div class="rv-seg">' + seg + '</div></div>' +
+        '<div class="c-field"><label for="rv-link">Link</label><span class="rv-link"><input id="rv-link" data-rv-field="link" value="' + esc(d.link || '') + '" placeholder="Draft or live link" />' +
+          (d.link ? '<a class="c-btn c-btn-secondary c-btn-sm c-btn-icon" href="' + esc(d.link) + '" target="_blank" rel="noopener" aria-label="Open link" title="Open link"><i class="ph ph-arrow-square-out"></i></a>' : '') + '</span></div>' +
+        '<div class="c-field"><label for="rv-caption">Caption</label><textarea id="rv-caption" data-rv-field="caption" placeholder="The caption as it will go out">' + esc(d.caption || '') + '</textarea></div>' +
+        '<div class="rv-grid">' +
+          '<div class="c-field"><label for="rv-int">Internal note</label><textarea id="rv-int" data-rv-field="internalNote" placeholder="For the team">' + esc(d.internalNote || '') + '</textarea></div>' +
+          '<div class="c-field"><label for="rv-cli">Client note</label><textarea id="rv-cli" data-rv-field="clientNote" placeholder="What the client said">' + esc(d.clientNote || '') + '</textarea></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="rv-foot">' +
+        '<button class="c-btn c-btn-ghost c-btn-sm cd-trash" type="button" data-rv-remove><i class="ph ph-trash"></i> Remove</button><span class="sp"></span>' +
+        (d.status === 'review' ? '<button class="c-btn c-btn-secondary c-btn-md" type="button" data-rv-status="drafted" data-rv-back><i class="ph ph-arrow-counter-clockwise"></i> Ask for changes</button>' : '') +
+        (act ? '<button class="c-btn c-btn-primary c-btn-md" type="button" data-rv-status="' + act.key + '"><i class="ph ' + act.icon + '"></i> ' + act.label + '</button>' : '') +
+      '</div></div>';
+  }
+  var reviewId = null;
+  function openReview(did, anchor){
+    var d = (c.deliverables || []).filter(function(x){ return x.id === did; })[0]; if (!d) return;
+    reviewId = did;
+    var body = window.swingModal.open({anchor: anchor, width: 600, key: 'review', label: 'Review deliverable', html: reviewHtml(d), onClose: function(){ reviewId = null; }});
+    hydrateAvatars(body);
+  }
+  function refreshReview(){
+    var d = (c.deliverables || []).filter(function(x){ return x.id === reviewId; })[0];
+    if (!d || !window.swingModal.isOpen('review')) return;
+    hydrateAvatars(window.swingModal.setBody(reviewHtml(d)));
+  }
+  function reviewClick(e){
+    var box = e.target.closest('.cd-review'); if (!box || !reviewId) return;
+    var st = e.target.closest('[data-rv-status]');
+    if (st) {
+      var patch = {status: st.dataset.rvStatus};
+      if (st.hasAttribute('data-rv-back')) patch.clientApproval = 'changes';
+      S.updateDeliverable(c.id, reviewId, patch);
+      renderAll(); refreshReview();
+      var lbl = S.DELIV_STATUS.filter(function(s){ return s.key === patch.status; })[0];
+      toast(st.hasAttribute('data-rv-back') ? 'Sent back for changes.' : 'Marked ' + (lbl ? lbl.label.toLowerCase() : patch.status) + '.');
+      return;
+    }
+    var cl = e.target.closest('[data-rv-client]');
+    if (cl) { S.updateDeliverable(c.id, reviewId, {clientApproval: cl.dataset.rvClient}); renderAll(); refreshReview(); return; }
+    if (e.target.closest('[data-rv-remove]')) {
+      var x = (c.deliverables || []).filter(function(y){ return y.id === reviewId; })[0];
+      S.removeDeliverable(c.id, reviewId);
+      window.swingModal.close(); renderAll();
+      toast((x ? (PLAT_LABEL[x.platform] || x.platform) + ' ' + x.kind : 'Deliverable') + ' removed.', 'danger');
+    }
+  }
+  function reviewChange(e){
+    var f = e.target.closest('[data-rv-field]'); if (!f || !reviewId) return;
+    var patch = {}; patch[f.dataset.rvField] = f.value;
+    S.updateDeliverable(c.id, reviewId, patch);
+    reload(); renderDrafts(); renderHeader();
+    if (f.dataset.rvField === 'link') refreshReview();
+  }
+  window.swingModal.body().addEventListener('click', reviewClick);
+  window.swingModal.body().addEventListener('change', reviewChange);
   function dlBadge(list, key, attr, did){
     var p = list.filter(function(x){ return x.key === key; })[0] || list[0];
     return '<button type="button" class="cmp-stage" ' + attr + '="' + p.key + '" data-did="' + did + '" aria-haspopup="menu">' +
@@ -1691,15 +1840,15 @@
     var opts = [];
     channels.forEach(function(pl){ (S.DELIV_KINDS[pl] || []).forEach(function(k){ opts.push({v: pl + '/' + k, l: (PLAT_LABEL[pl] || pl) + ' · ' + k}); }); });
     if (!opts.some(function(o){ return o.v === d.platform + '/' + d.kind; })) opts.unshift({v: d.platform + '/' + d.kind, l: (PLAT_LABEL[d.platform] || d.platform) + ' · ' + d.kind});
-    var late = d.dueAt && d.dueAt < S.today() && d.status !== 'posted';
-    return '<tr class="cd-dl-row' + (d.id === dlFlashId ? ' is-new' : '') + '" data-did="' + esc(d.id) + '">' +
+    var late = M.isOverdue(d, S.today()), w = M.waitingOn(d);
+    return '<tr class="cd-dl-row' + (d.id === dlFlashId ? ' is-new' : '') + (late ? ' is-late' : '') + (dlShow(d) ? '' : ' is-hid') + '" data-did="' + esc(d.id) + '" title="Open to review">' +
       '<td><span class="kind">' + (PLAT_ICON[d.platform] || '') + '<select data-dl="kind" data-did="' + esc(d.id) + '" aria-label="Kind">' + opts.map(function(o){
         return '<option value="' + esc(o.v) + '"' + (o.v === d.platform + '/' + d.kind ? ' selected' : '') + '>' + esc(o.l) + '</option>'; }).join('') + '</select></span></td>' +
       '<td><input type="date" data-dl="dueAt" data-did="' + esc(d.id) + '" value="' + esc(d.dueAt || '') + '" class="' + (late ? 'is-late' : '') + '" aria-label="Due date"' + (late ? ' title="Past due"' : '') + ' /></td>' +
       '<td><span class="lnk"><input data-dl="link" data-did="' + esc(d.id) + '" value="' + esc(d.link || '') + '" placeholder="Paste a link" aria-label="Link" />' +
         (d.link ? '<a href="' + esc(d.link) + '" target="_blank" rel="noopener" title="Open link" aria-label="Open link"><i class="ph ph-arrow-square-out"></i></a>' : '') + '</span></td>' +
       '<td><input data-dl="caption" data-did="' + esc(d.id) + '" value="' + esc(d.caption || '') + '" placeholder="Caption" aria-label="Caption" /></td>' +
-      '<td>' + dlBadge(S.DELIV_STATUS, d.status, 'data-dl-status', d.id) + '</td>' +
+      '<td class="st">' + dlBadge(S.DELIV_STATUS, d.status, 'data-dl-status', d.id) + '<br><span class="cd-wait is-' + w.key + '">' + esc(w.say) + '</span></td>' +
       '<td>' + dlBadge(S.CLIENT_APPROVAL, d.clientApproval, 'data-dl-client', d.id) + '</td>' +
       '<td><input data-dl="internalNote" data-did="' + esc(d.id) + '" value="' + esc(d.internalNote || '') + '" placeholder="For the team" aria-label="Internal note" /></td>' +
       '<td><input data-dl="clientNote" data-did="' + esc(d.id) + '" value="' + esc(d.clientNote || '') + '" placeholder="What the client said" aria-label="Client note" /></td>' +
@@ -1717,6 +1866,20 @@
     var counts = {};
     S.DELIV_STATUS.forEach(function(st){ counts[st.key] = list.filter(function(x){ return x.status === st.key; }).length; });
     var html = '';
+    /* The queue and the plan sit above everything. */
+    var q = M.deliverableQueue(c, S.today()), plan = M.planDeliverables(c, S.today(), S.DELIV_KINDS);
+    if (!q[dlFilter] && dlFilter !== 'all') dlFilter = 'all';
+    function chip(key, label, tone){
+      var n = q[key]; if (!n && key !== 'all') return '';
+      return '<button type="button" class="c-chip c-chip-filter' + (dlFilter === key ? ' is-active' : '') + '" data-dl-filter="' + key + '">' +
+        (tone ? '<span class="cmp-dot" style="background:' + tone + '"></span>' : '') + label + '<span class="n">' + n + '</span></button>';
+    }
+    html += '<div class="cd-dlq" role="group" aria-label="Deliverables queue">' +
+      chip('all', 'All') + chip('team', 'Needs our review', '#8A5A00') + chip('client', 'With the client', 'var(--color-navy)') +
+      chip('creator', 'With creators', 'var(--color-neutral-4)') + chip('overdue', 'Overdue', 'var(--color-red)') + chip('soon', 'Due this week', 'var(--color-amber)') +
+      chip('posted', 'Posted', 'var(--color-green)') + '<span class="sp"></span>' +
+      (plan.length ? '<button class="c-btn c-btn-secondary c-btn-sm" type="button" data-dl-plan title="One per confirmed channel that has nothing planned yet, due dates spread across the run"><i class="ph-fill ph-sparkle"></i> Plan ' + plan.length + (plan.length === 1 ? ' deliverable' : ' deliverables') + '</button>' : '') +
+      '</div>';
     if (list.length) {
       html += '<div class="cd-sum"><div class="cd-sum-line"><span class="say"><b>' + list.length + (list.length === 1 ? ' deliverable' : ' deliverables') + '</b>' +
         S.DELIV_STATUS.slice().reverse().filter(function(st){ return counts[st.key]; }).map(function(st){
@@ -1738,11 +1901,12 @@
       var channels = fills.map(function(r){ return r.platform; });
       var mine = list.filter(function(x){ return x.inf === inf; });
       var posted = mine.filter(function(x){ return x.status === 'posted'; }).length;
+      var shown = mine.filter(dlShow).length, quiet = dlFilter !== 'all' && !shown;
       var chips = fills.map(function(r){
         var ch = (rec.platforms || []).filter(function(x){ return x.platform === r.platform; })[0];
         return '<span class="ch">' + (PLAT_ICON[r.platform] || '') + (ch ? '@' + esc(ch.handle) : esc(PLAT_LABEL[r.platform] || r.platform)) + (r.tier ? ' · ' + esc(tierName(r.tier)) : '') + '</span>';
       }).join('');
-      return '<div class="cd-dl" data-dl-creator="' + esc(inf) + '"><div class="cd-dl-head">' + avatarHtml(rec) +
+      return '<div class="cd-dl' + (quiet ? ' is-quiet' : '') + '" data-dl-creator="' + esc(inf) + '"><div class="cd-dl-head">' + avatarHtml(rec) +
         '<span class="t"><span class="n">' + esc(rec.name) + '</span><span class="s">' + chips + '</span></span>' +
         '<span class="cnt">' + (mine.length ? '<b>' + mine.length + '</b>' + (mine.length === 1 ? ' deliverable' : ' deliverables') + ' · <b>' + posted + '</b> posted' : 'nothing planned') + '</span>' +
         '<button class="c-btn c-btn-secondary c-btn-sm" type="button" data-dl-add="' + esc(inf) + '" data-plat="' + esc(channels[0] || 'tiktok') + '"><i class="ph ph-plus"></i> Add deliverable</button></div>' +
@@ -2058,7 +2222,7 @@
      whatever the modal is showing, since both draw from the record. */
   function selectionClick(e){
     /* The send sheet and confirms share the modal's body; they handle themselves. */
-    if (e.target.closest('.ss-host, .sw-confirm')) return;
+    if (e.target.closest('.ss-host, .sw-confirm, .cd-review')) return;
     if (e.target.closest('[data-sw-close]')) return window.swingModal.close();
     var who = e.target.closest('.cd-sp .who, .cd-sp .c-card-profile-avatar');
     if (who) { var row = who.closest('.cd-sp'); return openProfile(row.dataset.person, row.querySelector('.c-card-profile-avatar')); }
@@ -2177,7 +2341,7 @@
      re-render — the field you are typing in stays put. */
   function selectionChange(e){
     var t = e.target;
-    if (t.closest('.ss-host, .sw-confirm')) return;
+    if (t.closest('.ss-host, .sw-confirm, .cd-review')) return;
     if (t.matches('[data-kult-remark]')) S.updatePick(c.id, Number(t.dataset.batch), t.dataset.inf, {kultRemark: t.value});
     else if (t.matches('[data-client-remark]')) S.updatePick(c.id, Number(t.dataset.batch), t.dataset.inf, {clientRemark: t.value});
     else if (t.matches('[data-batch-notes]')) S.updateBatch(c.id, Number(t.dataset.batchNotes), {notes: t.value});
@@ -2225,6 +2389,17 @@
 
   E('pan-deliverables').addEventListener('click', function(e){
     var go = e.target.closest('[data-go-tab]'); if (go) return setTab(go.dataset.goTab);
+    var fl = e.target.closest('[data-dl-filter]');
+    if (fl) { dlFilter = fl.dataset.dlFilter; renderDrafts(); return; }
+    if (e.target.closest('[data-dl-plan]')) {
+      var items = M.planDeliverables(c, S.today(), S.DELIV_KINDS);
+      var ids = S.addDeliverables(c.id, items);
+      renderAll();
+      toast('Planned ' + ids.length + (ids.length === 1 ? ' deliverable' : ' deliverables') + ' — due dates spread across the run. Edit any of them.');
+      return;
+    }
+    var row = e.target.closest('tr.cd-dl-row');
+    if (row && !e.target.closest('input, select, button, a')) return openReview(row.dataset.did, row);
     var add = e.target.closest('[data-dl-add]');
     if (add) {
       var did = S.addDeliverable(c.id, {inf: add.dataset.dlAdd, platform: add.dataset.plat, dueAt: c.end || ''});

@@ -245,6 +245,77 @@
     return {done: (d && Number(d.done)) || 0, total: (d && Number(d.total)) || 0, list: false};
   }
 
+  /* ── Deliverables: whose court the ball is in, read off status and the
+     client's word. The team reviews drafts; a draft in review is with
+     the client until they answer; their answer hands it back — to the
+     creator for changes, to us to approve; approved is the creator's to
+     post. */
+  function waitingOn(d) {
+    if (!d) return null;
+    switch (d.status) {
+      case 'posted':   return {key: 'done',    say: 'Posted'};
+      case 'approved': return {key: 'creator', say: 'Creator to post'};
+      case 'review':
+        if (d.clientApproval === 'changes')  return {key: 'creator', say: 'Creator to revise'};
+        if (d.clientApproval === 'approved') return {key: 'team',    say: 'Us to approve'};
+        return {key: 'client', say: 'With the client'};
+      case 'drafted':  return {key: 'team',    say: 'Us to review'};
+      default:         return {key: 'creator', say: 'Creator to draft'};
+    }
+  }
+  function isOverdue(d, today) { return !!(d && d.dueAt && today && d.dueAt < today && d.status !== 'posted'); }
+  function isDueSoon(d, today, days) {
+    if (!d || !d.dueAt || !today || d.status === 'posted') return false;
+    return d.dueAt >= today && d.dueAt <= addDays(today, days == null ? 7 : days);
+  }
+  function addDays(iso, n) {
+    var p = String(iso).split('-').map(Number);
+    var t = Date.UTC(p[0], p[1] - 1, p[2]) + n * 86400000;
+    return new Date(t).toISOString().slice(0, 10);
+  }
+  function daysBetween(a, b) {
+    var pa = String(a).split('-').map(Number), pb = String(b).split('-').map(Number);
+    return Math.round((Date.UTC(pb[0], pb[1] - 1, pb[2]) - Date.UTC(pa[0], pa[1] - 1, pa[2])) / 86400000);
+  }
+  /* The queue: how many sit with us, the client, the creators; overdue;
+     due within the week; posted. */
+  function deliverableQueue(c, today) {
+    var list = Array.isArray(c && c.deliverables) ? c.deliverables : [];
+    var q = {all: list.length, team: 0, client: 0, creator: 0, overdue: 0, soon: 0, posted: 0};
+    list.forEach(function (d) {
+      var w = waitingOn(d);
+      if (w.key === 'done') q.posted += 1; else q[w.key] += 1;
+      if (isOverdue(d, today)) q.overdue += 1;
+      if (isDueSoon(d, today, 7)) q.soon += 1;
+    });
+    return q;
+  }
+  /* The plan the roster implies: one deliverable per confirmed channel
+     fill that has none yet, the channel's first kind, due dates spread
+     evenly across what is left of the run. */
+  function planDeliverables(c, today, kinds) {
+    kinds = kinds || {tiktok: ['video'], instagram: ['reel', 'post', 'story'], xhs: ['note']};
+    var have = {};
+    (Array.isArray(c && c.deliverables) ? c.deliverables : []).forEach(function (d) { have[d.inf + '/' + d.platform] = true; });
+    var items = [];
+    ((c && c.roster) || []).forEach(function (r) {
+      if (r.state !== 'confirmed' || !r.platform) return;
+      var k = r.inf + '/' + r.platform;
+      if (have[k]) return;
+      have[k] = true;
+      items.push({inf: r.inf, platform: r.platform, kind: (kinds[r.platform] || ['post'])[0], dueAt: ''});
+    });
+    var start = c && c.start && today && c.start > today ? c.start : today;
+    var end = c && c.end;
+    if (start && end && end > start && items.length) {
+      var span = daysBetween(start, end);
+      items.forEach(function (it, i) { it.dueAt = addDays(start, Math.round(span * (i + 1) / (items.length + 1))); });
+    } else if (end) {
+      items.forEach(function (it) { it.dueAt = end; });
+    }
+    return items;
+  }
+
   /* Distinct creators holding at least one confirmed channel fill. */
   function confirmedCreators(c) {
     var seen = {};
@@ -354,6 +425,7 @@
     slotsOf: slotsOf, askFor: askFor, derivedPax: derivedPax, slotStatus: slotStatus,
     shortfallOf: shortfallOf, coverageOf: coverageOf,
     deliverableCounts: deliverableCounts, confirmedCreators: confirmedCreators, nextUp: nextUp,
+    waitingOn: waitingOn, isOverdue: isOverdue, isDueSoon: isDueSoon, deliverableQueue: deliverableQueue, planDeliverables: planDeliverables,
     groupTier: groupTier, mergeAsk: mergeAsk, sameAsk: sameAsk, groupsOf: groupsOf
   };
 })();

@@ -411,6 +411,24 @@
         'Planned a ' + kindLabel(rec) + ' for ' + nameOf(rec.inf), {deliverable: rec.id, inf: rec.inf}));
       return rec.id;
     },
+    /* Many at once — the plan — with one line in the activity. */
+    addDeliverables: function (id, items) {
+      var c = get(id); if (!c || !items || !items.length) return [];
+      var list = delivList(c), ids = [], who = {};
+      items.forEach(function (d) {
+        var rec = Object.assign({
+          id: 'd-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e6).toString(36),
+          inf: null, platform: 'tiktok', kind: null, dueAt: '', link: '', caption: '',
+          status: 'not_started', clientApproval: 'pending', internalNote: '', clientNote: ''
+        }, d || {});
+        if (!rec.kind) rec.kind = (DELIV_KINDS[rec.platform] || ['post'])[0];
+        list.push(rec); ids.push(rec.id); who[rec.inf] = true;
+      });
+      var n = Object.keys(who).length;
+      update(id, {deliverables: list}, entry('deliverable',
+        'Planned ' + ids.length + (ids.length === 1 ? ' deliverable' : ' deliverables') + ' across ' + n + (n === 1 ? ' creator' : ' creators'), {planned: ids.length}));
+      return ids;
+    },
     updateDeliverable: function (id, did, patch) {
       var c = get(id); if (!c) return null;
       var before = delivList(c).filter(function (x) { return x.id === did; })[0];
