@@ -226,6 +226,11 @@
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .cmp-table thead th:first-child{border-top-left-radius:var(--radius-lg);}
   .cmp-table thead th:last-child{border-top-right-radius:var(--radius-lg);}
+  /* And the bottom two, for exactly the same reason. Hovering the last
+     row fills its cells, and without these the fill paints square over
+     the wrapper's curve. */
+  .cmp-table tbody tr:last-child td:first-child{border-bottom-left-radius:var(--radius-lg);}
+  .cmp-table tbody tr:last-child td:last-child{border-bottom-right-radius:var(--radius-lg);}
   .cmp-table tbody tr:last-child td:first-child{border-bottom-left-radius:var(--radius-lg);}
   .cmp-table tbody tr:last-child td:last-child{border-bottom-right-radius:var(--radius-lg);}
   .cmp-table tbody tr{cursor:pointer;}

@@ -261,8 +261,21 @@
   .inf-selall.is-all{background:var(--color-earth-bg);
     color:var(--color-neutral-9);}
   /* A selected row reads by fill, not by border: a 2px edge inside a
-     table would push every neighbouring cell a pixel. */
-  .c-table tbody tr.is-selected{background:var(--color-neutral-2);}
+     table would push every neighbouring cell a pixel.
+
+     The fill is painted on the cells, not the row. The wrapper does not
+     clip (see the header corners below), so the last row's fill has to
+     carry the bottom corners itself — and border-radius on a <tr> is
+     ignored by every browser, so a row-level fill would paint square
+     over the curve however much radius it was given. Moving it to the
+     cells means the DLS's selected marker has to move too, or the first
+     cell's new background would cover it. */
+  .c-table tbody tr.is-selected{background:none; box-shadow:none;}
+  .c-table tbody tr.is-selected > td{background:var(--color-neutral-2);}
+  .c-table tbody tr.is-selected > td:first-child{
+    box-shadow:inset 2px 0 0 var(--color-obsidian);}
+  .c-table tbody tr.is-interactive:hover{background:none;}
+  .c-table tbody tr.is-interactive:hover > td{background:var(--color-neutral-2);}
   /* The DLS reveals row boxes on hover, which reads as a missing
      control in a list this long — an empty 40px column with a lone
      header box above it. Selection is a primary action here, so the
@@ -587,6 +600,10 @@
     transition:border-radius var(--duration-fast) var(--ease-standard);}
   .inf-table thead th:first-child{border-top-left-radius:var(--radius-lg);}
   .inf-table thead th:last-child{border-top-right-radius:var(--radius-lg);}
+  /* The bottom two, which were never done: a hovered or selected last
+     row filled straight through the wrapper's curve. */
+  .inf-table tbody tr:last-child td:first-child{border-bottom-left-radius:var(--radius-lg);}
+  .inf-table tbody tr:last-child td:last-child{border-bottom-right-radius:var(--radius-lg);}
   /* Once pinned, the header spans a hard edge against the rows still
      scrolling under it — rounded corners there would leave two notches
      of background showing through. */
