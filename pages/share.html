@@ -180,7 +180,7 @@
 <script src="../shared/tiers.js?v=1"></script>
 <script src="../shared/campaign-model.js?v=8"></script>
 <script src="../shared/campaign-store.js?v=10"></script>
-<script src="../shared/send-sheet.js?v=32"></script>
+<script src="../shared/send-sheet.js?v=33"></script>
 <script>
 (function () {
   'use strict';
@@ -271,9 +271,8 @@
         (signer() ? ' · answering as ' + esc(signer()) : '') +
         (batch.expiresAt ? ' · open until ' + esc(S.fmtDate(batch.expiresAt, true)) : '') +
         (batch.sentAt ? ' · sent ' + esc(S.fmtDate(batch.sentAt, true)) : '') + '</p>' +
-      '<p class="ask">Please pick your line-up. Each creator is shown once, with a ' +
-        'separate choice for every channel they post on — approve a creator on ' +
-        'TikTok without taking their Instagram.</p>' +
+      '<p class="ask">Pick your line-up. Each channel is a separate choice — ' +
+        'you can take a creator on TikTok without their Instagram.</p>' +
     '</header>' +
     '<div class="sh-contract"><div class="sh-chips" id="shChips"></div></div>' +
     '<div class="sh-filters">' +

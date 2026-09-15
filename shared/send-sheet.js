@@ -582,8 +582,8 @@
           (r.fits ? '' : '<i class="ph-fill ph-warning-circle" ' +
             'title="Fits no band you are asking for"></i>') + '</span>' +
         (state.aiAdded[r.id]
-          ? '<span class="ss-ai-tag" title="Collab AI added this one to close a gap. ' +
-            'Drop it like any other."><i class="ph-fill ph-sparkle"></i> Collab AI</span>'
+          ? '<span class="ss-ai-tag" title="Added by Collab AI to close a gap">' +
+            '<i class="ph-fill ph-sparkle"></i> Collab AI</span>'
           : '') +
         bandChips(r.bands) +
         '<button type="button" class="c-icon-btn" data-ss="drop" data-id="' + esc(r.id) +
@@ -598,8 +598,8 @@
       if (!String(state.q || '').trim()) return '';
       var res = searchPeople(state.q, opts.people, excluded(), 6);
       if (!res.length) {
-        return '<p class="c-helper">Nobody matches — or everyone who does is ' +
-          'already on this list, already booked, or already turned down.</p>';
+        return '<p class="c-helper">No match, or they are already listed, ' +
+          'booked, or turned down.</p>';
       }
       return peopleRows(state.ask, res.map(function (r) { return r.id; }), opts.people)
         .map(function (r) {
@@ -718,15 +718,15 @@
       function stillNeeds() {
         if (!c) return '';
         if (!model().derivedPax(c)) {
-          return 'No pax set on this campaign yet — set them below and they save to it.';
+          return 'No pax set yet — set them below.';
         }
         var rows = askRows();
         return rows.length
-          ? 'Still needs to fill: ' + rows.map(function (r) {
+          ? 'Still open: ' + rows.map(function (r) {
               return esc(PLAT_LABEL[r.platform] || r.platform) + ' ' +
                 esc(window.tiers.tierByKey(r.tier).name) + ' ×' + r.want;
             }).join(', ')
-          : 'Every slot on this campaign is already filled.';
+          : 'Every slot is filled.';
       }
 
       /* The last column answers one question — can the client actually pick
@@ -762,11 +762,8 @@
               (opts.lockCampaign && c ? ' · for ' + esc(c.name) : '') +
               (split.mismatch.length
                 ? '<br><span class="ss-mis"><i class="ph-fill ph-warning-circle"></i> ' +
-                  split.mismatch.length + ' of them ' +
-                  (split.mismatch.length === 1 ? 'does not fit' : 'do not fit') +
-                  ' any band you are asking for ' +
-                  '<button type="button" data-ss="dropmis">Remove ' +
-                  (split.mismatch.length === 1 ? 'it' : 'them') + '</button></span>'
+                  split.mismatch.length + ' fit no band you asked for ' +
+                  '<button type="button" data-ss="dropmis">Remove</button></span>'
                 : '') + '</p>' +
             '</div></div>' +
           '<button class="c-icon-btn" type="button" data-ss="close" aria-label="Close">' +
@@ -780,9 +777,9 @@
               '<h5 class="ss-sec-h">Send to</h5>' +
               '<div class="ss-dest">' +
                 choiceHtml('existing', state.mode === 'existing', 'Existing campaign',
-                  'Adds a list to a campaign you already have.') +
+                  'Work you have already won.') +
                 choiceHtml('lead', state.mode === 'lead', 'New campaign (lead)',
-                  'For work you have not won yet.') +
+                  'Work you have not won yet.') +
               '</div>' +
               '<div class="ss-destbody">' + (state.mode === 'existing'
                 ? '<div class="c-field"><label for="ssCampaign">Campaign</label>' +
@@ -801,19 +798,18 @@
                     '<span class="ss-opt">(optional)</span></label>' +
                     '<input id="ssLeadBrand" data-ss="leadBrand" value="' + esc(state.leadBrand) +
                     '" placeholder="e.g. Shopee" /></div>' +
-                  '<span class="c-helper span2">Starts at stage Lead and stays out of the ' +
-                  'active counts until you mark it won.</span></div>') +
+                  '<span class="c-helper span2">Stays out of active counts ' +
+                  'until you mark it won.</span></div>') +
               '</div>' +
             '</section>') +
 
           '<section class="ss-sec">' +
-            '<h5 class="ss-sec-h">Pax to select <span class="opt">per platform and tier</span></h5>' +
-            '<p class="ss-lede">How many profiles the client should pick in each band, and ' +
-            'whether the ones you have ticked can cover it.' +
+            '<h5 class="ss-sec-h">Pax to select</h5>' +
             (askLocked
-              ? ' <span class="ss-lock"><i class="ph ph-lock-simple"></i> Set on ' +
-                esc(c.name) + ' — change it on the campaign.</span>'
-              : '') + '</p>' +
+              ? '<p class="ss-lede"><span class="ss-lock">' +
+                '<i class="ph ph-lock-simple"></i> Set on ' + esc(c.name) +
+                ' — change it there.</span></p>'
+              : '') +
             (cov.length || !askLocked
               ? '<div class="c-table-standalone-wrap">' +
                   '<table class="c-table c-table-standalone"><thead><tr>' +
@@ -821,7 +817,7 @@
                     '<th class="n">Profiles sent</th>' +
                     '<th class="note">Can they pick that many?</th></tr></thead><tbody>' +
                     (asked.length ? asked.map(rowHtml).join('')
-                      : '<tr class="ss-none"><td colspan="4">No bands yet — add the first one below.</td></tr>') +
+                      : '<tr class="ss-none"><td colspan="4">No bands yet — add one below.</td></tr>') +
                     (!askLocked
                       ? '<tr class="ss-add"><td colspan="4">' +
                         '<div class="ss-addrow">' +
@@ -848,28 +844,25 @@
                       ? '<tr class="ss-more"><td colspan="4">' +
                         '<button type="button" data-ss="more">' +
                         '<i class="ph ph-caret-' + (state.showExtra ? 'up' : 'down') + '"></i> ' +
-                        (state.showExtra ? 'Hide the ' : 'Show the ') + extra.length +
+                        (state.showExtra ? 'Hide ' : 'Show ') + extra.length +
                         ' other band' + (extra.length === 1 ? '' : 's') +
-                        ' you are sending</button></td></tr>' +
+                        '</button></td></tr>' +
                         (state.showExtra ? extra.map(rowHtml).join('') : '')
                       : '') +
                   '</tbody></table></div>' +
                 (sum.shortBands
                   ? '<div class="c-banner c-banner-ai ss-warn" role="status">' +
                     '<i class="ph-fill ph-sparkle icon"></i><div class="body"><p class="message">' +
-                    sum.shortBands + (sum.shortBands === 1 ? ' band has' : ' bands have') +
-                    ' fewer profiles than you are asking the client to pick — they will see a ' +
-                    'number they cannot reach.</p>' +
-                    '<p class="message ss-sub">Collab AI reads every short band and picks the ' +
-                    'biggest accounts that fit, skipping anyone already on this list, already ' +
-                    'booked on this campaign, or already turned down by this client. Everything ' +
-                    'it adds is tagged in the list below, and you can drop any of it.</p>' +
+                    sum.shortBands + (sum.shortBands === 1 ? ' band is' : ' bands are') +
+                    ' short — the client will see a number they cannot reach.</p>' +
+                    '<p class="message ss-sub">Collab AI picks the biggest accounts that fit, ' +
+                    'skipping anyone already listed, booked, or turned down.</p>' +
                     '<div class="actions">' +
                       '<button type="button" class="c-btn c-btn-ghost c-btn-sm ss-ai-btn" ' +
                       'data-ss="fill"><i class="ph-fill ph-sparkle"></i> ' +
                       'Let Collab AI fill the gaps</button></div></div></div>'
                   : '')
-              : '<p class="c-helper">Tick some profiles first and their channels and tiers appear here.</p>') +
+              : '<p class="c-helper">Tick some profiles and their bands appear here.</p>') +
           '</section>' +
 
           '<section class="ss-sec" data-ss="whosec">' +
@@ -877,9 +870,6 @@
               prows.length + (prows.length === 1 ? ' profile' : ' profiles') +
               (split.mismatch.length ? ' · ' + split.mismatch.length + ' off the brief' : '') +
               '</span></h5>' +
-            '<p class="ss-lede">Drop anyone who does not belong, add anyone missing. ' +
-            'The table above follows along, so a mismatch is something you fix here ' +
-            'rather than a reason to close this and start again.</p>' +
             (state.fillNote
               ? '<p class="ss-ainote' + (state.fillAi ? ' is-ai' : '') + '" role="status">' +
                 '<i class="ph-fill ph-' + (state.fillAi ? 'sparkle' : 'check-circle') + '"></i>' +
@@ -887,7 +877,7 @@
               : '') +
             '<div class="ss-plist" data-ss="plist">' +
               (shownP.length ? shownP.map(personHtml).join('')
-                : '<p class="c-helper">Nobody on this list yet — search for someone below.</p>') +
+                : '<p class="c-helper">Nobody yet — search below.</p>') +
               (ordered.length > PEEK
                 ? '<button type="button" class="ss-allbtn" data-ss="all">' +
                   '<i class="ph ph-caret-' + (state.showAll ? 'up' : 'down') + '"></i> ' +
@@ -914,15 +904,15 @@
               '<div class="c-field span2"><label for="ssRecipient">Client contact ' +
                 '<span class="ss-opt">(optional)</span></label>' +
                 '<input id="ssRecipient" data-ss="recipient" value="' + esc(state.recipient) +
-                '" placeholder="Name or email — recorded against their answers" /></div>' +
+                '" placeholder="Name or email" /></div>' +
             '</div>' +
             '<label class="c-choice" style="margin-top:var(--spacing-12)">' +
               '<input type="checkbox" data-ss="requireName"' +
                 (state.requireName ? ' checked' : '') + ' />' +
               '<span class="c-checkbox-box' + (state.requireName ? ' on' : '') + '">' +
                 (state.requireName ? '<i class="ph-bold ph-check"></i>' : '') + '</span>' +
-              '<span class="text"><span class="label">Ask for a name before responding</span>' +
-              '<span class="desc">Records who made the choices.</span></span></label>' +
+              '<span class="text"><span class="label">Ask for a name before ' +
+              'responding</span></span></label>' +
             '<p class="ss-err" data-ss="err" hidden></p>' +
           '</section>' +
 
@@ -931,7 +921,7 @@
         '<div class="c-modal-foot">' +
           '<button class="c-btn c-btn-secondary c-btn-md" type="button" data-ss="cancel">Cancel</button>' +
           '<button class="c-btn c-btn-primary c-btn-md" type="button" data-ss="send">' +
-            '<i class="ph ph-paper-plane-tilt"></i> Create selection list</button>' +
+            '<i class="ph ph-paper-plane-tilt"></i> Create list</button>' +
         '</div></div>';
 
       /* The DLS dropdown replaces each native select in place, keeping the
@@ -1030,14 +1020,14 @@
           .filter(function (r) { return r.gap > 0; });
         state.fillAi = true;
         state.fillNote = !add.length
-          ? 'Nothing in your influencer list fits the bands that are short.'
+          ? 'Nothing in your list fits the short bands.'
           : 'Added ' + add.length + (add.length === 1 ? ' profile' : ' profiles') +
             (left.length
               ? ', but ' + left.map(function (r) {
                   return (PLAT_LABEL[r.platform] || r.platform) + ' ' +
-                    window.tiers.tierByKey(r.tier).name + ' is still ' + r.gap + ' short.';
+                    window.tiers.tierByKey(r.tier).name + ' still ' + r.gap + ' short.';
                 }).join(' ')
-              : ' — every band is covered now.');
+              : ' — all bands covered.');
       }
 
       var still = window.matchMedia &&
@@ -1126,7 +1116,7 @@
             box.classList.add('is-bad');
             box.focus();
           }
-          if (alert) alert.textContent = 'Enter how many profiles the client should pick in this band.';
+          if (alert) alert.textContent = 'Enter how many.';
           return;
         }
         state.ask[state.newPlat] = state.ask[state.newPlat] || {};
@@ -1160,8 +1150,7 @@
         var dropped = state.infIds.length - keep.length;
         state.infIds = keep;
         state.fillAi = false;
-        state.fillNote = 'Removed ' + dropped +
-          (dropped === 1 ? ' profile that fit' : ' profiles that fit') + ' no band you are asking for.';
+        state.fillNote = 'Removed ' + dropped + ' that fit no band you asked for.';
         sync();
         return render();
       }
