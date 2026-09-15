@@ -309,8 +309,11 @@
      with a chip per channel fill, a checkbox for bulk work. Right: the
      selection lists as a loose stack of cards, each tilted a hair the
      way the mothership's feedback wall hangs its notes. */
-  .cd-selgrid{display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:var(--spacing-16); align-items:start;}
-  .cd-people{grid-column:span 4;}
+  /* The two columns share one row: the people card stretches to the
+     height of the lists column, never below its own floor. */
+  .cd-selgrid{display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:var(--spacing-16); align-items:stretch;}
+  .cd-people{grid-column:span 4; min-height:340px; display:flex; flex-direction:column;}
+  .cd-people .cd-people-empty{flex:1; display:flex; flex-direction:column; justify-content:center;}
   .cd-lists-col{grid-column:span 2; min-width:0;}
   @media (max-width:1000px){ .cd-people, .cd-lists-col{grid-column:span 6;} }
   .cd-bulk{display:flex; align-items:center; gap:var(--spacing-8); flex-wrap:wrap; padding:8px 12px; margin:0 0 var(--spacing-4);
@@ -380,7 +383,12 @@
   .cd-list .foot{display:flex; align-items:center; gap:var(--spacing-4); margin-top:var(--spacing-12); padding-top:var(--spacing-12); border-top:1px solid var(--color-neutral-2);}
   .cd-list .foot .sp{flex:1;}
   .cd-list-empty{border:1px dashed var(--color-neutral-3); border-radius:var(--radius-lg); padding:var(--spacing-24) var(--spacing-16); text-align:center;
-    color:var(--color-neutral-5); font-size:var(--text-body2-size); transform:rotate(-1.2deg);}
+    color:var(--color-neutral-5); font-size:var(--text-body2-size); transform:rotate(-1.2deg); position:relative; z-index:0; background:transparent;
+    transition:transform var(--duration-base) var(--ease-settle), border-color var(--duration-fast) var(--ease-standard);}
+  .cd-list + .cd-list-empty{margin-top:var(--spacing-8); transform:rotate(.8deg);}
+  .cd-list-empty:hover{transform:rotate(0deg) translateY(-2px); border-color:var(--color-neutral-5);}
+  .cd-list-empty.is-add{padding:var(--spacing-16);}
+  .cd-list-empty.is-add h4{font-size:var(--text-body2-size);}
   .cd-list-empty .ghosts{display:flex; justify-content:center; padding-left:10px; margin-bottom:var(--spacing-12);}
   .cd-list-empty .ghosts i{width:30px; height:30px; border-radius:var(--radius-pill); background:var(--color-neutral-2); border:2px solid var(--color-neutral-1); margin-left:-10px; display:block;}
   .cd-list-empty h4{margin:0 0 4px; color:var(--color-neutral-9);}
@@ -852,7 +860,7 @@
 <script src="../shared/dropdown.js?v=2"></script>
 <script src="../shared/campaign-store.js?v=10"></script>
 <script src="../shared/campaign-form.js?v=13"></script>
-<script src="../shared/send-sheet.js?v=19"></script>
+<script src="../shared/send-sheet.js?v=22"></script>
 <script src="../shared/swing-modal.js?v=1"></script>
 <script>
 (function () {
@@ -1314,7 +1322,7 @@
     return '<div class="cd-sp' + (picked[inf] ? ' is-picked' : '') + (fills.some(function(r){ return r.state === 'approved'; }) ? ' is-pending' : '') + '" data-person="' + esc(inf) + '">' +
       '<span class="c-checkbox-box' + (picked[inf] ? ' on' : '') + '" role="checkbox" aria-checked="' + !!picked[inf] + '" tabindex="0" data-pick-person="' + esc(inf) + '" aria-label="Select ' + esc(rec.name) + '">' + (picked[inf] ? '<i class="ph ph-check"></i>' : '') + '</span>' +
       avatarHtml(rec) + '<span class="who"><span class="n">' + esc(rec.name) + '</span><span class="s">' + esc(handlesLine(rec)) + '</span></span>' +
-      '<span class="right"><span class="prov">' + prov + '</span><button class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-trash" type="button" data-roster-remove="' + esc(inf) + '" data-roster-plat="" aria-label="Remove from the campaign"><i class="ph ph-trash"></i></button></span>' +
+      '<span class="right"><span class="prov">' + prov + '</span></span>' +
       '<span class="chips">' + chips + '</span></div>';
   }
   function listCardHtml(b, i){
@@ -1372,10 +1380,11 @@
     }
     people += '</div>';
     var lists = '<div class="cd-lists-col"><div class="cd-lists-h"><h3>Selection lists<span class="sub">' + (batches.length ? batches.length + ' sent' : 'none yet') + '</span></h3></div>' +
+      '<div class="cd-lists">' + batches.slice().reverse().map(listCardHtml).join('') +
       (batches.length
-        ? '<div class="cd-lists">' + batches.slice().reverse().map(listCardHtml).join('') + '</div>'
-        : '<div class="cd-lists"><div class="cd-list-empty"><div class="ghosts"><i></i><i></i><i></i></div><h4>No selection list yet</h4>Pick who the client should see, and the link lands here.' +
-          '<div style="margin-top:var(--spacing-12)"><button class="c-btn c-btn-secondary c-btn-sm" type="button" data-new-list><i class="ph ph-plus"></i> Create Selection List</button></div></div></div>') + '</div>';
+        ? '<div class="cd-list-empty is-add"><h4>Another list?</h4><div style="margin-top:var(--spacing-8)"><button class="c-btn c-btn-ghost c-btn-sm" type="button" data-new-list><i class="ph ph-plus"></i> Create Selection List</button></div></div>'
+        : '<div class="cd-list-empty"><div class="ghosts"><i></i><i></i><i></i></div><h4>No selection list yet</h4>Pick who the client should see, and the link lands here.' +
+          '<div style="margin-top:var(--spacing-12)"><button class="c-btn c-btn-secondary c-btn-sm" type="button" data-new-list><i class="ph ph-plus"></i> Create Selection List</button></div></div>') + '</div></div>';
     html += '<div class="cd-selgrid">' + people + lists + '</div>';
     var pan = E('pan-selection');
     pan.innerHTML = html;

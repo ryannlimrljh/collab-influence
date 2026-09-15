@@ -95,6 +95,28 @@
     return add;
   }
 
+  /* Which of the ticked profiles answer the ask and which do not. A creator
+     counts as fitting if any one of their channels lands in a band being
+     asked for — the client only needs one reason to book them. With no ask
+     at all nothing can fail it, so everyone fits. */
+  function matchSplit(ask, infIds, people) {
+    var wanted = {};
+    model().slotsOf({requirement: ask || {}}).forEach(function (s) {
+      wanted[s.platform + '/' + s.tier] = true;
+    });
+    var none = !Object.keys(wanted).length;
+    var match = [], mismatch = [];
+    (infIds || []).forEach(function (id) {
+      if (none) { match.push(id); return; }
+      var fits = model().channelsOf(people[id]).some(function (ch) {
+        var t = window.tiers.tierOf(ch.followers);
+        return t && wanted[ch.platform + '/' + t.key];
+      });
+      (fits ? match : mismatch).push(id);
+    });
+    return {match: match, mismatch: mismatch};
+  }
+
   function summary(ask, infIds, people) {
     var rows = coverage(ask, infIds, people);
     var channels = 0;
@@ -227,6 +249,42 @@
     '.ss-modal .c-table td.n input::-webkit-outer-spin-button,',
     '.ss-modal .c-table td.n input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}',
     '.ss-modal .c-table td.n input:focus{outline:none; border:2px solid var(--color-obsidian);}',
+    /* Faces, on the campaign page's own stack recipe. */
+    '.ss-head-id{min-width:0;}',
+    '.ss-who{display:flex; align-items:flex-start; gap:var(--spacing-12); margin-top:6px;}',
+    '.ss-stack{display:flex; align-items:center; padding-left:7px; flex:none;}',
+    '.ss-stack .c-card-profile-avatar{width:28px; height:28px; margin-left:-7px;',
+    '  border:2px solid var(--color-neutral-1); border-radius:var(--radius-pill);',
+    '  object-fit:cover; background:var(--color-neutral-2); color:var(--color-neutral-6);',
+    '  display:inline-flex; align-items:center; justify-content:center;',
+    '  font-size:10px; font-weight:800;}',
+    /* Still going to the client, so dimmed and ringed rather than hidden. */
+    '.ss-stack .c-card-profile-avatar.is-mis{opacity:.45; border-color:var(--color-amber);}',
+    '.ss-stack .more{display:inline-flex; align-items:center; justify-content:center;',
+    '  width:28px; height:28px; margin-left:-7px; border-radius:var(--radius-pill);',
+    '  border:2px solid var(--color-neutral-1); background:var(--color-neutral-2);',
+    '  font-size:10px; font-weight:800; color:var(--color-neutral-6);}',
+    '.ss-mis{display:inline-flex; align-items:center; gap:4px; margin-top:2px; color:#8A5A00;}',
+    '.ss-mis button{border:0; background:none; padding:0; font:inherit; color:inherit;',
+    '  text-decoration:underline; text-underline-offset:3px; cursor:pointer;}',
+
+    /* The add-a-band row, so a lead can ask for something it has nobody for. */
+    '.ss-modal .c-table tr.ss-add td{padding:0; background:var(--color-neutral-2);',
+    '  border-bottom:1px solid var(--color-neutral-3);}',
+    '.ss-addrow{display:flex; gap:6px; align-items:center; padding:8px var(--spacing-12); flex-wrap:nowrap;}',
+    '.ss-addrow .c-btn{flex:none; white-space:nowrap;}',
+    /* The DLS dropdown wraps each select in .cf-dd, which is block and
+       100% wide by default — right in a stacked form, wrong in a toolbar
+       row, where it stacks the three controls vertically. */
+    '.ss-addrow .cf-dd{flex:1 1 118px; width:auto; min-width:0;}',
+    '.ss-addrow .cf-dd .c-dropdown-input{height:36px;}',
+    '.ss-addrow select{height:36px; min-width:120px; border:1px solid var(--color-neutral-3);',
+    '  border-radius:var(--radius-sm); padding:0 10px; font:inherit;',
+    '  font-size:var(--text-body2-size); background:var(--color-neutral-1);}',
+    '.ss-addrow input{width:60px; flex:none; height:36px; text-align:center; font:inherit; font-weight:800;',
+    '  border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm);',
+    '  background:var(--color-neutral-1); -moz-appearance:textfield;}',
+    '.ss-addrow input::-webkit-outer-spin-button, .ss-addrow input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}',
     '.ss-lede{margin:-4px 0 var(--spacing-12); font-size:var(--text-caption-size); color:var(--color-neutral-6);}',
     '.ss-lock{display:inline-flex; align-items:center; gap:4px; color:var(--color-neutral-5);}',
     '.ss-modal .c-table td.n input:disabled{background:var(--color-neutral-2); color:var(--color-neutral-7); border-color:var(--color-neutral-2); cursor:default;}',
@@ -266,6 +324,7 @@
       leadName: '', leadBrand: '',
       ask: {}, name: '', recipient: '', expiryDays: 30, requireName: false,
       showExtra: false, fillNote: '',
+      newPlat: 'tiktok', newTier: 'mid', newN: '',
       infIds: opts.infIds || []
     };
 
@@ -351,6 +410,35 @@
       if (!asked.length) { asked = extra; extra = []; }
       var sum = summary(state.ask, state.infIds, opts.people);
       var c = destinationCampaign();
+      var split = matchSplit(state.ask, state.infIds, opts.people);
+
+      /* Faces, not just a count: the same overlapping stack the campaign
+         page uses for a roster. A profile that answers no band being asked
+         for is dimmed and ringed rather than hidden — it is still going to
+         the client, so it should still be visible. */
+      function stackHtml() {
+        var mis = {};
+        split.mismatch.forEach(function (id) { mis[id] = true; });
+        var ids = state.infIds.slice(0, 7);
+        if (!ids.length) return '';
+        return '<span class="ss-stack">' + ids.map(function (id) {
+          var rec = opts.people[id];
+          if (!rec) return '';
+          var m = (window.AVATAR_FILES || {})[id] || {};
+          var src = m.tt ? '../assets/avatars/' + id + '-tt.jpg'
+                  : m.ig ? '../assets/avatars/' + id + '-ig.jpg' : null;
+          var parts = String(rec.name || '?').replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/);
+          var ini = esc(((parts[0] || '?')[0] + (parts[1] ? parts[1][0] : '')).toUpperCase());
+          var cls = 'c-card-profile-avatar' + (mis[id] ? ' is-mis' : '');
+          var title = esc(rec.name || id) + (mis[id] ? ' — fits no band you are asking for' : '');
+          return src
+            ? '<img class="' + cls + '" src="' + esc(src) + '" alt="" title="' + title + '" />'
+            : '<span class="' + cls + '" title="' + title + '">' + ini + '</span>';
+        }).join('') +
+        (state.infIds.length > 7 ? '<span class="more">+' + (state.infIds.length - 7) + '</span>' : '') +
+        '</span>';
+      }
+
       /* When the campaign already defines the ask, it is the source of truth
          and these numbers are shown, not typed. Editing them here would
          rewrite the campaign silently. A campaign with no ask yet is the one
@@ -396,10 +484,21 @@
         '<div class="c-modal ss-modal" role="dialog" aria-modal="true" aria-labelledby="ssTitle">' +
 
         '<div class="c-modal-head">' +
-          '<div><h4 id="ssTitle">Create selection list</h4>' +
-            '<p class="sub">' + sum.candidates + (sum.candidates === 1 ? ' profile' : ' profiles') +
-            ' · ' + sum.channels + ' channel accounts' +
-            (opts.lockCampaign && c ? ' · for ' + esc(c.name) : '') + '</p></div>' +
+          '<div class="ss-head-id">' +
+            '<h4 id="ssTitle">Create selection list</h4>' +
+            '<div class="ss-who">' + stackHtml() +
+              '<p class="sub">' + sum.candidates + (sum.candidates === 1 ? ' profile' : ' profiles') +
+              ' · ' + sum.channels + ' channel accounts' +
+              (opts.lockCampaign && c ? ' · for ' + esc(c.name) : '') +
+              (split.mismatch.length
+                ? '<br><span class="ss-mis"><i class="ph-fill ph-warning-circle"></i> ' +
+                  split.mismatch.length + ' of them ' +
+                  (split.mismatch.length === 1 ? 'does not fit' : 'do not fit') +
+                  ' any band you are asking for ' +
+                  '<button type="button" data-ss="dropmis">Remove ' +
+                  (split.mismatch.length === 1 ? 'it' : 'them') + '</button></span>'
+                : '') + '</p>' +
+            '</div></div>' +
           '<button class="c-icon-btn" type="button" data-ss="close" aria-label="Close">' +
             '<i class="ph ph-x"></i></button>' +
         '</div>' +
@@ -452,6 +551,27 @@
                     '<th class="n">Profiles sent</th>' +
                     '<th class="note">Can they pick that many?</th></tr></thead><tbody>' +
                     asked.map(rowHtml).join('') +
+                    (!askLocked
+                      ? '<tr class="ss-add"><td colspan="4">' +
+                        '<div class="ss-addrow">' +
+                          '<select data-ss="newplat" aria-label="Channel to add">' +
+                            S.PLATFORMS.map(function (pl) {
+                              return '<option value="' + pl.key + '"' +
+                                (state.newPlat === pl.key ? ' selected' : '') + '>' +
+                                esc(pl.label) + '</option>';
+                            }).join('') + '</select>' +
+                          '<select data-ss="newtier" aria-label="Tier to add">' +
+                            window.tiers.TIERS.map(function (t) {
+                              return '<option value="' + t.key + '"' +
+                                (state.newTier === t.key ? ' selected' : '') + '>' +
+                                esc(t.name) + '</option>';
+                            }).join('') + '</select>' +
+                          '<input type="number" min="1" inputmode="numeric" data-ss="newn" ' +
+                            'value="' + (state.newN || '') + '" placeholder="0" aria-label="How many" />' +
+                          '<button type="button" class="c-btn c-btn-secondary c-btn-sm" data-ss="addband">' +
+                            '<i class="ph ph-plus"></i> Add band</button>' +
+                        '</div></td></tr>'
+                      : '') +
                     (extra.length
                       ? '<tr class="ss-more"><td colspan="4">' +
                         '<button type="button" data-ss="more">' +
@@ -526,6 +646,24 @@
 
     host.addEventListener('click', function (e) {
       if (e.target === host || e.target.closest('[data-ss="close"], [data-ss="cancel"]')) return close();
+      if (e.target.closest('[data-ss="addband"]')) {
+        var n = Math.max(0, Math.floor(Number(state.newN) || 0));
+        if (!n) return;
+        state.ask[state.newPlat] = state.ask[state.newPlat] || {};
+        state.ask[state.newPlat][state.newTier] = n;
+        askTouched = true;
+        state.newN = '';
+        state.fillNote = '';
+        return render();
+      }
+      if (e.target.closest('[data-ss="dropmis"]')) {
+        var keep = matchSplit(state.ask, state.infIds, opts.people).match;
+        var dropped = state.infIds.length - keep.length;
+        state.infIds = keep;
+        state.fillNote = 'Removed ' + dropped +
+          (dropped === 1 ? ' profile that fit' : ' profiles that fit') + ' no band you are asking for.';
+        return render();
+      }
       if (e.target.closest('[data-ss="fill"]')) {
         var rows = bandRows(state.ask, state.infIds, opts.people);
         var short = rows.filter(function (r) { return r.gap > 0; });
@@ -583,6 +721,8 @@
         else delete state.ask[t.dataset.plat][t.dataset.tier];
         return render();
       }
+      if (t.dataset.ss === 'newplat') { state.newPlat = t.value; return; }
+      if (t.dataset.ss === 'newtier') { state.newTier = t.value; return; }
       if (t.dataset.ss === 'requireName') { state.requireName = t.checked; return; }
       if (t.dataset.ss === 'expiryDays') { state.expiryDays = Number(t.value); return; }
     });
@@ -593,6 +733,7 @@
       if (k === 'leadName' || k === 'leadBrand' || k === 'name' || k === 'recipient') {
         state[k] = e.target.value;
       }
+      if (k === 'newn') state.newN = e.target.value;
     });
 
     document.addEventListener('keydown', function esc2(e) {
@@ -608,7 +749,7 @@
 
   window.sendSheet = {
     coverage: coverage, bandRows: bandRows, summary: summary,
-    candidatesFor: candidatesFor, fillGaps: fillGaps,
+    candidatesFor: candidatesFor, fillGaps: fillGaps, matchSplit: matchSplit,
     validate: validate, expiryFrom: expiryFrom, isExpired: isExpired,
     open: open
   };

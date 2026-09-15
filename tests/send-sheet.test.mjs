@@ -191,3 +191,33 @@ test('expiryFrom and isExpired agree on the boundary', () => {
   assert.equal(SS.isExpired({expiresAt: at}, '2026-09-28'), false, 'open on the day itself');
   assert.equal(SS.isExpired({expiresAt: at}, '2026-09-29'), true, 'closed the day after');
 });
+
+/* ── Does a ticked profile actually answer the ask?
+
+   Someone can be on the list without fitting any band being asked for —
+   worth saying, because the client sees them and wonders why. */
+
+test('matchSplit sorts the ticked into fits and does-not-fit', () => {
+  const ask = {tiktok: {mid: 2}};
+  const r = SS.matchSplit(ask, ['mid1', 'big', 'igmid'], ROSTER);
+  assert.deepEqual(r.match, ['mid1'], 'a TikTok Mid answers a TikTok Mid ask');
+  assert.deepEqual(r.mismatch, ['big', 'igmid'], 'a Macro and an Instagram Mid do not');
+});
+
+test('matchSplit counts a creator that fits on any one channel', () => {
+  const ask = {instagram: {mid: 1}};
+  const r = SS.matchSplit(ask, ['both'], ROSTER);
+  assert.deepEqual(r.match, ['both'], 'fits on Instagram, never mind TikTok');
+});
+
+test('matchSplit treats everyone as fitting when nothing is asked for', () => {
+  const r = SS.matchSplit({}, ['mid1', 'big'], ROSTER);
+  assert.deepEqual(r.mismatch, [], 'no ask means nothing can fail it');
+  assert.equal(r.match.length, 2);
+});
+
+test('matchSplit ignores ids the roster does not know', () => {
+  const r = SS.matchSplit({tiktok: {mid: 1}}, ['ghost'], ROSTER);
+  assert.deepEqual(r.match, []);
+  assert.deepEqual(r.mismatch, ['ghost'], 'unknown cannot be shown to fit');
+});
