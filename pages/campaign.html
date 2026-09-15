@@ -74,17 +74,18 @@
   .cd-rail-head .hint{margin-left:auto; text-transform:none; letter-spacing:0; font-weight:600; display:inline-flex; align-items:center; gap:4px;}
   .cd-rail-head kbd{font-family:inherit; font-size:10px; line-height:1; padding:3px 5px; border:1px solid var(--color-neutral-3); border-bottom-width:2px;
     border-radius:4px; background:var(--color-neutral-1); color:var(--color-neutral-6);}
-  /* One row, whole cards only. The width is split into as many cards
-     as fit at 220px or more (--rail-n, set from the track's width), so
-     the row is always an exact number of cards wide; snapping to card
-     starts then keeps both edges whole wherever it comes to rest, and
-     the end of the row is the last card's edge. Sideways scroll, no
-     scrollbar. */
+  /* One row that runs to the page edges, the way the board does on the
+     list: the track bleeds out over the gutters, the first card sits on
+     the content margin, and whatever does not fit slides under the edge
+     of the page instead of stopping at the column. It snaps to card
+     starts, scrolls sideways, and shows no scrollbar. */
   .cd-rail-track{display:flex; gap:12px; overflow-x:auto; overscroll-behavior-x:contain;
-    margin:0 -4px; padding:6px 4px var(--spacing-12); scroll-snap-type:x mandatory; scroll-padding:0 4px;
+    margin:0 calc(var(--page-gutter) * -1); padding:6px 0 var(--spacing-12) var(--page-gutter);
+    scroll-snap-type:x mandatory; scroll-padding-left:var(--page-gutter);
     scrollbar-width:none; -ms-overflow-style:none;}
   .cd-rail-track::-webkit-scrollbar{display:none;}
-  .cd-rcard{flex:none; width:calc((100% - 12px * (var(--rail-n, 4) - 1)) / var(--rail-n, 4)); display:flex; flex-direction:column; gap:var(--spacing-12); padding:var(--spacing-12) 14px;
+  .cd-rail-track::after{content:''; flex:none; width:calc(var(--page-gutter) - 12px);}
+  .cd-rcard{flex:none; width:232px; display:flex; flex-direction:column; gap:var(--spacing-12); padding:var(--spacing-12) 14px;
     background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); box-shadow:var(--shadow-1);
     text-decoration:none; color:inherit; scroll-snap-align:start;
     transition:transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);}
@@ -2266,27 +2267,16 @@
         '<span class="cd-rtxt"><span class="n">' + esc(x.name) + '</span><span class="s"><span class="cmp-dot" style="background:' + (st.dot || 'var(--color-neutral-4)') + '"></span>' + esc(st.label || x.stage) + (x.brand ? ' · ' + esc(x.brand) : '') + '</span></span></span>' +
       '<span class="cd-rfoot"><span>' + (want ? '<b>' + filled + '</b> / ' + want + ' slots' : '<span class="dash">No ask yet</span>') + '</span><span>' + esc(S.fmtRange(x.start, x.end) || '') + '</span></span></a>';
   }
-  /* How many whole cards fit. Re-run on any resize. */
-  var RAIL_GAP = 12, RAIL_MIN = 220;
-  function railLayout(){
-    var track = E('cdRailTrack'), W = track.clientWidth - 8; if (W <= 0) return;
-    var n = Math.max(1, Math.floor((W + RAIL_GAP) / (RAIL_MIN + RAIL_GAP)));
-    track.style.setProperty('--rail-n', n);
-    /* A new card size leaves the old offset mid-card; re-align at once. */
-    railFocus(true);
-  }
-  /* The current campaign into view: the row scrolls so its card starts
-     the view, or as far as the row goes, which right-aligns the last
-     cards to the edge. */
+  /* The current campaign into view: its card on the content margin, or
+     as far as the row goes. */
   function railFocus(silent){
     var track = E('cdRailTrack'), cur = track.querySelector('.is-current'); if (!cur) return;
-    track.scrollTo({left: Math.max(0, cur.offsetLeft - track.offsetLeft - 4), behavior: silent || REDUCED ? 'auto' : 'smooth'});
+    var gutter = parseFloat(getComputedStyle(track).paddingLeft) || 0;
+    track.scrollTo({left: Math.max(0, cur.offsetLeft - track.offsetLeft - gutter), behavior: silent || REDUCED ? 'auto' : 'smooth'});
   }
-  if (window.ResizeObserver) new ResizeObserver(function(){ if (E('cdRailTrack').children.length) railLayout(); }).observe(E('cdRailTrack'));
   function renderRail(){
     var track = E('cdRailTrack');
     track.innerHTML = S.merged().map(railCard).join('');
-    railLayout();
     if (window.collabBrand) track.querySelectorAll('[data-rail-logo]').forEach(function(el){
       var img = el.querySelector('img'), brand = el.dataset.railLogo; if (!brand) return;
       window.collabBrand.attach(img, brand, function(ok){ img.hidden = !ok; });
