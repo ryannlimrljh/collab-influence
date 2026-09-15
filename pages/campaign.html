@@ -916,7 +916,7 @@
 <script src="../shared/dropdown.js?v=3"></script>
 <script src="../shared/campaign-store.js?v=10"></script>
 <script src="../shared/campaign-form.js?v=14"></script>
-<script src="../shared/send-sheet.js?v=37"></script>
+<script src="../shared/send-sheet.js?v=38"></script>
 <script src="../shared/swing-modal.js?v=4"></script>
 <script>
 (function () {
@@ -2131,17 +2131,18 @@
 
   /* ── Creating a selection list: straight into the shared send sheet
      with this campaign locked as the destination, the same sheet the
-     influencers page uses. It opens with nobody on it and Collab AI
-     fills the open slots with the best-fitting accounts, to be swapped
-     out or added to by search there. A band narrows the ask to that
-     one slot; otherwise the ask is whatever is still open. */
+     influencers page uses. It opens with nobody on it and the AI box
+     offering to build the list for the open slots — the user's call to
+     press — or people are added from the influencer list there. A band
+     narrows the ask to that one slot; otherwise the ask is whatever is
+     still open. */
   function startSend(band, anchor){
     setTab('selection');
     openSendSheet([], anchor, band);
   }
   function openSendSheet(ids, anchor, band){
     window.sendSheet.open({
-      anchor: anchor || null, band: band || null, autoFill: !ids.length,
+      anchor: anchor || null, band: band || null,
       infIds: ids, people: byInf, campaigns: S.merged(), defaultCampaignId: c.id, lockCampaign: true,
       onSend: function(r){
         /* Sending against an edited ask updates the campaign's own ask, so

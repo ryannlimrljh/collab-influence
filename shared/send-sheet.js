@@ -560,11 +560,10 @@
   }
 
   /* opts: {infIds, people, campaigns, defaultCampaignId, lockCampaign,
-            band, autoFill, onSend, onSelection}
+            band, onSend, onSelection}
      `band` {platform, tier} narrows the ask to that one band — the campaign
-     page opening the sheet for a single slot. `autoFill` runs the Collab AI
-     gap fill as soon as the sheet is up, so a list opened with nobody on it
-     arrives already populated with the best-fitting accounts to judge.
+     page opening the sheet for a single slot. A list opened with nobody on
+     it shows the AI box straight away; the fill is the user's to trigger.
      onSelection fires on every change to who is on the list, so the page that
      opened the sheet can keep its own selection in step — the sheet is now
      where you edit the list, and closing it must not undo that.
@@ -1451,13 +1450,6 @@
       var f = host.querySelector('select, input');
       if (f) f.focus();
     }, 60);
-    /* Opened for a campaign's open slots with nobody on it yet: the assist
-       runs itself once the panel has landed, so what the user first sees is
-       the suggested list being built, not an empty one. */
-    if (opts.autoFill) setTimeout(function () {
-      var b = host.querySelector('[data-ss="fill"]');
-      if (b && !state.aiBusy && host.isConnected) runAssist(b);
-    }, 650);
   }
 
   window.sendSheet = {
