@@ -1601,9 +1601,7 @@
       '<span class="r"><button class="c-btn c-btn-ghost c-btn-sm" type="button" data-add-band=""><i class="ph ph-plus"></i> Add by hand</button>' +
       '<button class="c-btn c-btn-primary c-btn-sm" type="button" id="cdNewBatch"><i class="ph ph-plus"></i> Create Selection List</button></span></div>';
     if (!order.length) {
-      people += '<div class="cd-people-empty"><i class="ph ph-user-plus"></i><h4>Nobody selected yet</h4>Create a selection list for the client to pick from, or add someone by hand.' +
-        '<div class="acts"><button class="c-btn c-btn-secondary c-btn-sm" type="button" data-add-band=""><i class="ph ph-plus"></i> Add by hand</button>' +
-        '<button class="c-btn c-btn-primary c-btn-sm" type="button" data-new-list><i class="ph ph-plus"></i> Create Selection List</button></div></div>';
+      people += '<div class="cd-people-empty"><i class="ph ph-user-plus"></i><h4>Nobody selected yet</h4>Create a selection list for the client to pick from, or add someone by hand — both are above.</div>';
     } else {
       if (nPicked) people += '<div class="cd-bulk"><b>' + nPicked + '</b>&nbsp;selected<span class="sp"></span>' +
         (pendingPicked ? '<button class="c-btn c-btn-secondary c-btn-sm" type="button" data-bulk="confirmed"><i class="ph ph-check"></i> Confirm (' + pendingPicked + ')</button>' : '') +
