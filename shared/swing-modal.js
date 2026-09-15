@@ -26,7 +26,10 @@
     '.sw-modal.is-shown .sw-backdrop{opacity:.88; transition-duration:.5s;}',
     '.sw-panel{position:relative; display:flex; flex-direction:column; width:min(var(--sw-w, 480px), calc(100vw - var(--spacing-32)));',
     '  max-height:min(760px, calc(100dvh - var(--spacing-60))); background:var(--color-neutral-1); border:1px solid var(--color-neutral-3);',
-    '  border-radius:var(--radius-lg); box-shadow:0 25px 50px -12px rgba(0,0,0,.25); transform-origin:top left; opacity:0; transition:opacity .3s var(--ease-standard);}',
+    '  border-radius:var(--radius-lg); box-shadow:0 25px 50px -12px rgba(0,0,0,.25); transform-origin:top left; opacity:0; transition:opacity .3s var(--ease-standard);',
+    /* Clipped to its own corners, so a form's head or a sheet's foot with
+       a background of its own cannot square them off. */
+    '  overflow:hidden;}',
     '.sw-modal.is-shown .sw-panel{opacity:1;}',
     '.sw-panel.is-swinging-open{animation:sw-open .8s cubic-bezier(.25,.9,.35,1) both;}',
     '.sw-panel.is-swinging-closed{animation:sw-close .55s cubic-bezier(.3,.6,.35,1) both;}',
