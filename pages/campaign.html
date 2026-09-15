@@ -752,51 +752,61 @@
   .cd-dl-head .ch i{font-size:12px;}
   .cd-dl-head .cnt{font-size:var(--text-caption-size); color:var(--color-neutral-5); font-variant-numeric:tabular-nums; flex:none;}
   .cd-dl-head .cnt b{color:var(--color-neutral-9);}
-  .cd-dl-wrap{overflow-x:auto;}
-  .cd-dl-table{width:100%; min-width:1040px; border-collapse:collapse; table-layout:fixed;}
-  .cd-dl-table th{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow);
-    color:var(--color-neutral-5); text-align:left; padding:8px 10px; border-bottom:1px solid var(--color-neutral-2); white-space:nowrap;}
-  .cd-dl-table th:first-child, .cd-dl-table td:first-child{padding-left:var(--spacing-16);}
-  .cd-dl-table td{padding:6px 10px; border-bottom:1px solid var(--color-neutral-2); vertical-align:middle;}
-  .cd-dl-table tr:last-child td{border-bottom:0;}
-  .cd-dl-table tr:hover td{background:var(--color-neutral-2);}
-  .cd-dl-table input, .cd-dl-table select{width:100%; height:32px; padding:0 8px; border:1px solid transparent; border-radius:var(--radius-sm);
-    background:transparent; font:inherit; font-size:var(--text-caption-size); color:var(--color-neutral-9);
-    transition:border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);}
-  .cd-dl-table input::placeholder{color:var(--color-neutral-4);}
-  .cd-dl-table tr:hover input, .cd-dl-table tr:hover select{border-color:var(--color-neutral-3); background:var(--color-neutral-1);}
-  .cd-dl-table input:focus, .cd-dl-table select:focus{outline:none; border-color:var(--color-obsidian); background:var(--color-neutral-1); box-shadow:var(--shadow-focus);}
-  .cd-dl-table select{appearance:none; -webkit-appearance:none; padding-right:22px;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23777' stroke-width='1.5'/%3E%3C/svg%3E");
-    background-repeat:no-repeat; background-position:right 8px center;}
-  .cd-dl-table .kind{display:flex; align-items:center; gap:6px;}
-  .cd-dl-table .kind i{font-size:var(--icon-sm); color:var(--color-neutral-6); flex:none;}
-  .cd-dl-table .lnk{display:flex; align-items:center; gap:4px;}
-  .cd-dl-table .lnk a{flex:none; width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
-    border-radius:var(--radius-sm); color:var(--color-neutral-6);}
-  .cd-dl-table .lnk a:hover{background:var(--color-neutral-3); color:var(--color-neutral-9);}
-  .cd-dl-table input.is-late{color:var(--color-red); font-weight:700;}
-  .cd-dl-table .cmp-stage{max-width:100%;}
   .cd-dl-empty{display:flex; align-items:center; justify-content:center; gap:var(--spacing-8); padding:var(--spacing-16);
     font-size:var(--text-body2-size); color:var(--color-neutral-5);}
   .cd-dl-legacy{margin:0 0 var(--spacing-16); font-size:var(--text-caption-size); color:var(--color-neutral-5);}
-  .cd-dl-row.is-new td{animation:cd-act-in 420ms var(--ease-settle) both;}
   /* ── The queue over the sections: who the ball is with, what is late,
      what is due this week. A chip filters the rows below it. */
-  .cd-dlq{display:flex; align-items:center; gap:var(--spacing-8); flex-wrap:wrap; margin-bottom:var(--spacing-16);}
+  .cd-dlq{margin-bottom:var(--spacing-16);}
+  .cd-dlq-row{display:flex; align-items:center; gap:var(--spacing-8); flex-wrap:wrap;}
+  .cd-dlq-bar{display:flex; align-items:center; gap:var(--spacing-12); margin-top:var(--spacing-12);}
+  .cd-dlq-bar .c-progress-track{flex:1;}
+  .cd-dlq-bar .lg{display:flex; gap:var(--spacing-12); flex:none; font-size:11px; color:var(--color-neutral-5); font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .cd-dlq-bar .lg span{display:inline-flex; align-items:center; gap:4px;}
+  .cd-dlq-bar .lg b{color:var(--color-neutral-9);}
+  /* ── One deliverable, one line: what it is, when, the caption, where it
+     stands and whose move it is. Nothing to type here — the row opens
+     the review card. */
+  .cd-dl-list{display:flex; flex-direction:column;}
+  .cd-dli{display:grid; grid-template-columns:172px 112px minmax(0, 1fr) 132px 150px 20px; align-items:center; gap:var(--spacing-12);
+    min-height:52px; padding:8px var(--spacing-16); border-bottom:1px solid var(--color-neutral-2); cursor:pointer; text-align:left; width:100%;
+    background:none; border-left:0; border-right:0; border-top:0; font:inherit; color:inherit;
+    transition:background var(--duration-fast) var(--ease-standard);}
+  .cd-dli:last-child{border-bottom:0;}
+  .cd-dli:hover{background:var(--color-neutral-2);}
+  .cd-dli:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:-2px;}
+  .cd-dli.is-hid{display:none;}
+  .cd-dli.is-late{box-shadow:inset 3px 0 0 var(--color-red);}
+  .cd-dli.is-new{animation:cd-act-in 420ms var(--ease-settle) both;}
+  .cd-dli .kind{display:flex; align-items:center; gap:8px; min-width:0; font-weight:700; color:var(--color-neutral-9); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cd-dli .kind i{font-size:var(--icon-sm); color:var(--color-neutral-6); flex:none;}
+  .cd-dli .due{font-size:var(--text-caption-size); color:var(--color-neutral-6); font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .cd-dli .due.is-late{color:var(--color-red); font-weight:700;}
+  .cd-dli .due .dash{color:var(--color-neutral-4);}
+  .cd-dli .cap{display:flex; align-items:center; gap:8px; min-width:0; font-size:var(--text-body2-size); color:var(--color-neutral-7);}
+  .cd-dli .cap .t{min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cd-dli .cap .t.dash{color:var(--color-neutral-4);}
+  .cd-dli .cap .lk{flex:none; font-size:var(--icon-sm); color:var(--color-neutral-4);}
+  .cd-dli .cap .lk.on{color:var(--color-navy);}
+  .cd-dli .st{display:inline-flex; align-items:center; gap:6px; height:24px; padding:0 10px; border-radius:var(--radius-pill); border:1px solid var(--color-neutral-3);
+    font-size:11px; font-weight:700; color:var(--color-neutral-9); white-space:nowrap; justify-self:start;}
+  .cd-dli .st .cmp-dot{width:6px; height:6px; border-radius:var(--radius-pill);}
+  .cd-dli .court{display:flex; flex-direction:column; gap:2px; min-width:0;}
+  .cd-dli .court .cd-wait{margin-top:0;}
+  .cd-dli .court .cw{font-size:11px; color:var(--color-neutral-5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cd-dli .court .cw.is-ok{color:var(--color-green);} .cd-dli .court .cw.is-ch{color:#8A5A00;}
+  .cd-dli .chev{color:var(--color-neutral-4); justify-self:end;}
+  .cd-dli:hover .chev{color:var(--color-neutral-7);}
+  @media (max-width:900px){ .cd-dli{grid-template-columns:150px 1fr 120px 20px;} .cd-dli .cap, .cd-dli .court .cw{display:none;} }
   .cd-dlq .c-chip .n{margin-left:6px; font-weight:800; font-variant-numeric:tabular-nums;}
   .cd-dlq .c-chip .cmp-dot{width:6px; height:6px; border-radius:var(--radius-pill); margin-right:6px;}
   .cd-dlq .c-chip.is-active .cmp-dot{background:currentColor !important;}
   .cd-dlq .sp{flex:1;}
   .cd-dl.is-quiet{opacity:.45;}
-  .cd-dl.is-quiet .cd-dl-wrap, .cd-dl.is-quiet .cd-dl-empty{display:none;}
-  .cd-dl-row{cursor:pointer;}
-  .cd-dl-row.is-hid{display:none;}
-  .cd-dl-table td.st{white-space:nowrap;}
+  .cd-dl.is-quiet .cd-dl-list, .cd-dl.is-quiet .cd-dl-empty{display:none;}
   .cd-wait{display:inline-flex; align-items:center; gap:4px; margin-top:4px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
   .cd-wait::before{content:''; width:5px; height:5px; border-radius:var(--radius-pill); background:currentColor;}
   .cd-wait.is-team{color:#8A5A00;} .cd-wait.is-client{color:var(--color-navy);} .cd-wait.is-done{color:var(--color-green);}
-  .cd-dl-row.is-late td{box-shadow:inset 3px 0 0 var(--color-red);}
   /* ── The review card: one deliverable, everything about it, the
      decision at the bottom. */
   .cd-review{display:flex; flex-direction:column; min-height:0; flex:1;}
@@ -1831,28 +1841,17 @@
   }
   window.swingModal.body().addEventListener('click', reviewClick);
   window.swingModal.body().addEventListener('change', reviewChange);
-  function dlBadge(list, key, attr, did){
-    var p = list.filter(function(x){ return x.key === key; })[0] || list[0];
-    return '<button type="button" class="cmp-stage" ' + attr + '="' + p.key + '" data-did="' + did + '" aria-haspopup="menu">' +
-      '<span class="cmp-dot" style="background:' + p.dot + '"></span><span class="t">' + p.label + '</span><i class="ph ph-caret-down"></i></button>';
-  }
-  function dlRow(d, channels){
-    var opts = [];
-    channels.forEach(function(pl){ (S.DELIV_KINDS[pl] || []).forEach(function(k){ opts.push({v: pl + '/' + k, l: (PLAT_LABEL[pl] || pl) + ' · ' + k}); }); });
-    if (!opts.some(function(o){ return o.v === d.platform + '/' + d.kind; })) opts.unshift({v: d.platform + '/' + d.kind, l: (PLAT_LABEL[d.platform] || d.platform) + ' · ' + d.kind});
+  function dlItem(d){
     var late = M.isOverdue(d, S.today()), w = M.waitingOn(d);
-    return '<tr class="cd-dl-row' + (d.id === dlFlashId ? ' is-new' : '') + (late ? ' is-late' : '') + (dlShow(d) ? '' : ' is-hid') + '" data-did="' + esc(d.id) + '" title="Open to review">' +
-      '<td><span class="kind">' + (PLAT_ICON[d.platform] || '') + '<select data-dl="kind" data-did="' + esc(d.id) + '" aria-label="Kind">' + opts.map(function(o){
-        return '<option value="' + esc(o.v) + '"' + (o.v === d.platform + '/' + d.kind ? ' selected' : '') + '>' + esc(o.l) + '</option>'; }).join('') + '</select></span></td>' +
-      '<td><input type="date" data-dl="dueAt" data-did="' + esc(d.id) + '" value="' + esc(d.dueAt || '') + '" class="' + (late ? 'is-late' : '') + '" aria-label="Due date"' + (late ? ' title="Past due"' : '') + ' /></td>' +
-      '<td><span class="lnk"><input data-dl="link" data-did="' + esc(d.id) + '" value="' + esc(d.link || '') + '" placeholder="Paste a link" aria-label="Link" />' +
-        (d.link ? '<a href="' + esc(d.link) + '" target="_blank" rel="noopener" title="Open link" aria-label="Open link"><i class="ph ph-arrow-square-out"></i></a>' : '') + '</span></td>' +
-      '<td><input data-dl="caption" data-did="' + esc(d.id) + '" value="' + esc(d.caption || '') + '" placeholder="Caption" aria-label="Caption" /></td>' +
-      '<td class="st">' + dlBadge(S.DELIV_STATUS, d.status, 'data-dl-status', d.id) + '<br><span class="cd-wait is-' + w.key + '">' + esc(w.say) + '</span></td>' +
-      '<td>' + dlBadge(S.CLIENT_APPROVAL, d.clientApproval, 'data-dl-client', d.id) + '</td>' +
-      '<td><input data-dl="internalNote" data-did="' + esc(d.id) + '" value="' + esc(d.internalNote || '') + '" placeholder="For the team" aria-label="Internal note" /></td>' +
-      '<td><input data-dl="clientNote" data-did="' + esc(d.id) + '" value="' + esc(d.clientNote || '') + '" placeholder="What the client said" aria-label="Client note" /></td>' +
-      '<td><button class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-trash" type="button" data-dl-remove="' + esc(d.id) + '" aria-label="Remove deliverable"><i class="ph ph-trash"></i></button></td></tr>';
+    var st = S.DELIV_STATUS.filter(function(x){ return x.key === d.status; })[0] || S.DELIV_STATUS[0];
+    var cw = d.clientApproval === 'approved' ? '<span class="cw is-ok">Client approved</span>' : d.clientApproval === 'changes' ? '<span class="cw is-ch">Changes asked</span>' : '';
+    return '<button type="button" class="cd-dli' + (d.id === dlFlashId ? ' is-new' : '') + (late ? ' is-late' : '') + (dlShow(d) ? '' : ' is-hid') + '" data-did="' + esc(d.id) + '" aria-label="Review ' + esc((PLAT_LABEL[d.platform] || d.platform) + ' ' + d.kind) + '">' +
+      '<span class="kind">' + (PLAT_ICON[d.platform] || '') + esc((PLAT_LABEL[d.platform] || d.platform) + ' ' + d.kind) + '</span>' +
+      '<span class="due' + (late ? ' is-late' : '') + '">' + (d.dueAt ? (late ? 'Late · ' : 'Due ') + esc(S.fmtDate(d.dueAt)) : '<span class="dash">No date</span>') + '</span>' +
+      '<span class="cap"><i class="ph ph-link lk' + (d.link ? ' on' : '') + '" title="' + (d.link ? 'Has a link' : 'No link yet') + '"></i><span class="t' + (d.caption ? '' : ' dash') + '">' + esc(d.caption || 'No caption yet') + '</span></span>' +
+      '<span class="st"><span class="cmp-dot" style="background:' + st.dot + '"></span>' + esc(st.label) + '</span>' +
+      '<span class="court"><span class="cd-wait is-' + w.key + '">' + esc(w.say) + '</span>' + cw + '</span>' +
+      '<i class="ph ph-caret-right chev"></i></button>';
   }
   function renderDrafts(){
     var pan = E('pan-deliverables');
@@ -1874,22 +1873,23 @@
       return '<button type="button" class="c-chip c-chip-filter' + (dlFilter === key ? ' is-active' : '') + '" data-dl-filter="' + key + '">' +
         (tone ? '<span class="cmp-dot" style="background:' + tone + '"></span>' : '') + label + '<span class="n">' + n + '</span></button>';
     }
-    html += '<div class="cd-dlq" role="group" aria-label="Deliverables queue">' +
+    html += '<div class="cd-dlq"><div class="cd-dlq-row" role="group" aria-label="Deliverables queue">' +
       chip('all', 'All') + chip('team', 'Needs our review', '#8A5A00') + chip('client', 'With the client', 'var(--color-navy)') +
       chip('creator', 'With creators', 'var(--color-neutral-4)') + chip('overdue', 'Overdue', 'var(--color-red)') + chip('soon', 'Due this week', 'var(--color-amber)') +
       chip('posted', 'Posted', 'var(--color-green)') + '<span class="sp"></span>' +
       (plan.length ? '<button class="c-btn c-btn-secondary c-btn-sm" type="button" data-dl-plan title="One per confirmed channel that has nothing planned yet, due dates spread across the run"><i class="ph-fill ph-sparkle"></i> Plan ' + plan.length + (plan.length === 1 ? ' deliverable' : ' deliverables') + '</button>' : '') +
+      '</div>' +
+      (list.length
+        ? '<div class="cd-dlq-bar"><div class="c-progress-track size-compact stacked" role="img" aria-label="' + counts.posted + ' of ' + list.length + ' posted">' +
+          S.DELIV_STATUS.slice().reverse().filter(function(st){ return st.key !== 'not_started' && counts[st.key]; }).map(function(st){
+            return '<div class="c-progress-stack-segment" style="width:' + (counts[st.key] / list.length * 100) + '%; background:' + st.dot + '"></div>';
+          }).join('') + '<div class="c-progress-stack-remainder"></div></div>' +
+          '<span class="lg">' + S.DELIV_STATUS.slice().reverse().filter(function(st){ return counts[st.key]; }).map(function(st){
+            return '<span><span class="cmp-dot" style="background:' + st.dot + '"></span><b>' + counts[st.key] + '</b> ' + st.label.toLowerCase() + '</span>';
+          }).join('') + '</span></div>'
+        : '') +
       '</div>';
-    if (list.length) {
-      html += '<div class="cd-sum"><div class="cd-sum-line"><span class="say"><b>' + list.length + (list.length === 1 ? ' deliverable' : ' deliverables') + '</b>' +
-        S.DELIV_STATUS.slice().reverse().filter(function(st){ return counts[st.key]; }).map(function(st){
-          return '<span class="sep">·</span><span class="k"><span class="cmp-dot" style="background:' + st.dot + '"></span>' + counts[st.key] + ' ' + st.label.toLowerCase() + '</span>';
-        }).join('') + '</span></div>' +
-        '<div class="c-progress-track size-compact stacked" role="img" aria-label="' + counts.posted + ' of ' + list.length + ' posted">' +
-        S.DELIV_STATUS.slice().reverse().filter(function(st){ return st.key !== 'not_started' && counts[st.key]; }).map(function(st){
-          return '<div class="c-progress-stack-segment" style="width:' + (counts[st.key] / list.length * 100) + '%; background:' + st.dot + '"></div>';
-        }).join('') + '<div class="c-progress-stack-remainder"></div></div></div>';
-    } else if (!d.list && d.total) {
+    if (!list.length && !d.list && d.total) {
       html += '<p class="cd-dl-legacy">The ring counts <b>' + d.done + ' of ' + d.total + '</b> from the old record. Add a deliverable and this list becomes the truth.</p>';
     }
     /* Roster order, so the sections sit the way the board lists them. */
@@ -1911,9 +1911,7 @@
         '<span class="cnt">' + (mine.length ? '<b>' + mine.length + '</b>' + (mine.length === 1 ? ' deliverable' : ' deliverables') + ' · <b>' + posted + '</b> posted' : 'nothing planned') + '</span>' +
         '<button class="c-btn c-btn-secondary c-btn-sm" type="button" data-dl-add="' + esc(inf) + '" data-plat="' + esc(channels[0] || 'tiktok') + '"><i class="ph ph-plus"></i> Add deliverable</button></div>' +
         (mine.length
-          ? '<div class="cd-dl-wrap"><table class="cd-dl-table"><colgroup><col style="width:170px" /><col style="width:140px" /><col style="width:15%" /><col style="width:20%" /><col style="width:136px" /><col style="width:150px" /><col style="width:14%" /><col style="width:14%" /><col style="width:44px" /></colgroup>' +
-            '<thead><tr><th>Kind</th><th>Due</th><th>Link</th><th>Caption</th><th>Status</th><th>Client</th><th>Internal note</th><th>Client note</th><th><span class="sr-only">Remove</span></th></tr></thead><tbody>' +
-            mine.map(function(x){ return dlRow(x, channels); }).join('') + '</tbody></table></div>'
+          ? '<div class="cd-dl-list">' + mine.map(dlItem).join('') + '</div>'
           : '<div class="cd-dl-empty">Nothing planned for ' + esc(rec.name.split(' ')[0]) + ' yet.<button class="c-empty-link" type="button" data-dl-add="' + esc(inf) + '" data-plat="' + esc(channels[0] || 'tiktok') + '">Add the first one</button></div>') +
       '</div>';
     }).join('');
@@ -2134,16 +2132,6 @@
         return '<button type="button" class="cmp-menu-item" data-set-pick="' + p.key + '" data-batch="' + ps.dataset.batch + '" data-inf="' + ps.dataset.inf + '" data-plat="' + ps.dataset.plat + '"><span class="cmp-dot" style="background:' + p.dot + '"></span>' + p.label + (on ? '<i class="ph ph-check chk"></i>' : '') + '</button>';
       }).join(''));
     }
-    var ds = e.target.closest('[data-dl-status], [data-dl-client]');
-    if (ds) {
-      e.stopPropagation();
-      if (menuAnchor === ds) return closeMenu();
-      var isStatus = ds.hasAttribute('data-dl-status');
-      var list = isStatus ? S.DELIV_STATUS : S.CLIENT_APPROVAL, cur = isStatus ? ds.dataset.dlStatus : ds.dataset.dlClient;
-      return openMenu(ds, list.map(function(p){
-        return '<button type="button" class="cmp-menu-item" data-set-dl="' + (isStatus ? 'status' : 'clientApproval') + '" data-val="' + p.key + '" data-did="' + ds.dataset.did + '"><span class="cmp-dot" style="background:' + p.dot + '"></span>' + p.label + (p.key === cur ? '<i class="ph ph-check chk"></i>' : '') + '</button>';
-      }).join(''));
-    }
     var fm = e.target.closest('[data-fill-menu]');
     if (fm) {
       e.stopPropagation();
@@ -2191,12 +2179,6 @@
       else if (fa === 'unsub') { S.setSubstitution(c.id, fi, fp, null); renderAll(); }
       else if (fa.indexOf('sub:') === 0) { S.setSubstitution(c.id, fi, fp, fa.slice(4)); renderAll(); toast('Now counted toward ' + pl + ' · ' + tierName(fa.slice(4)) + '.'); }
       else { S.setRosterState(c.id, fi, fp, fa); renderAll(); toast(fa === 'confirmed' ? nm + ' confirmed on ' + pl + '.' : fa === 'unavailable' ? nm + ' marked unavailable — the slot is open again.' : nm + ' reinstated on ' + pl + '.', fa === 'unavailable' ? 'info' : undefined); }
-    } else if (b.dataset.setDl) {
-      closeMenu();
-      var patchDl = {}; patchDl[b.dataset.setDl] = b.dataset.val;
-      S.updateDeliverable(c.id, b.dataset.did, patchDl);
-      renderAll();
-      if (b.dataset.setDl === 'status' && b.dataset.val === 'posted') toast('Posted — the ring moves up.');
     } else if (b.dataset.setSub) {
       closeMenu();
       S.setSubstitution(c.id, b.dataset.inf, b.dataset.plat, b.dataset.setSub);
@@ -2398,15 +2380,15 @@
       toast('Planned ' + ids.length + (ids.length === 1 ? ' deliverable' : ' deliverables') + ' — due dates spread across the run. Edit any of them.');
       return;
     }
-    var row = e.target.closest('tr.cd-dl-row');
-    if (row && !e.target.closest('input, select, button, a')) return openReview(row.dataset.did, row);
+    var row = e.target.closest('.cd-dli[data-did]');
+    if (row) return openReview(row.dataset.did, row);
     var add = e.target.closest('[data-dl-add]');
     if (add) {
       var did = S.addDeliverable(c.id, {inf: add.dataset.dlAdd, platform: add.dataset.plat, dueAt: c.end || ''});
       dlFlashId = did;
       renderAll();
-      var cap = E('pan-deliverables').querySelector('[data-did="' + did + '"] [data-dl="caption"]');
-      if (cap) cap.focus();
+      var nr = E('pan-deliverables').querySelector('.cd-dli[data-did="' + did + '"]');
+      openReview(did, nr || add);
       return;
     }
     var rm = e.target.closest('[data-dl-remove]');
@@ -2419,17 +2401,6 @@
   });
   /* Fields save on change and never re-render, so the caret stays put;
      the header is refreshed since the ring and Next up read the list. */
-  E('pan-deliverables').addEventListener('change', function(e){
-    var t = e.target; if (!t.dataset.dl) return;
-    var patch = {};
-    if (t.dataset.dl === 'kind') { var pk = t.value.split('/'); patch.platform = pk[0]; patch.kind = pk[1]; }
-    else patch[t.dataset.dl] = t.value;
-    S.updateDeliverable(c.id, t.dataset.did, patch);
-    reload();
-    if (t.dataset.dl === 'kind' || t.dataset.dl === 'link' || t.dataset.dl === 'dueAt') renderDrafts();
-    renderHeader();
-  });
-
   /* ── The campaigns rail. Every campaign as a compact card, the current
      one outlined; C toggles it, [ and ] step to the neighbours. The
      state is kept, so a rail left open is open on the next campaign. */
