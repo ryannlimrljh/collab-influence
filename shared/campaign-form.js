@@ -135,7 +135,6 @@
   var HTML = '\
   <div class="cf-sheet" id="cfSheet">\
     <div class="cf-head">\
-      <span class="c-herocard-eyebrow" id="cfEyebrow">New campaign</span>\
       <h3 id="cfTitle">Add new campaign</h3>\
       <p class="c-cbrief-source" id="cfSub">Start with the basics; the ask and the numbers can follow.</p>\
       <div class="cf-steps" id="cfSteps" role="tablist" aria-label="Form steps"></div>\
@@ -751,7 +750,6 @@
       if (!modal()) return;
       editing = o.rec ? o.rec.id : null;
       onSave = o.onSave || null;
-      F('cfEyebrow').textContent = editing ? 'Edit campaign' : 'New influencer campaign';
       F('cfTitle').textContent = editing ? o.rec.name : 'Add new campaign';
       fill(o.rec || o.draft || null);
       step = 1;
