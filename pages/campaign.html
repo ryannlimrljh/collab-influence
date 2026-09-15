@@ -802,6 +802,11 @@
   .cd-dlq .c-chip .cmp-dot{width:6px; height:6px; border-radius:var(--radius-pill); margin-right:6px;}
   .cd-dlq .c-chip.is-active .cmp-dot{background:currentColor !important;}
   .cd-dlq .sp{flex:1;}
+  .cd-files{margin-bottom:var(--spacing-24);}
+  .cd-files .cf-flist{margin-top:var(--spacing-8);}
+  .cd-files .cf-flist li{padding:8px 8px 8px 12px; font-size:var(--text-body2-size);}
+  .cd-files .cf-flist li .sz{font-size:var(--text-caption-size);}
+  .cd-sect .sub{margin-left:auto; font-size:var(--text-caption-size); color:var(--color-neutral-5);}
   .cd-dl.is-quiet{opacity:.45;}
   .cd-dl{scroll-margin-top:calc(var(--spacing-48) + var(--spacing-12));}
   .cd-dl.is-flash{animation:cd-dl-flash 1.4s var(--ease-standard) both;}
@@ -1043,8 +1048,8 @@
 <script src="../shared/tiers.js?v=1"></script>
 <script src="../shared/campaign-model.js?v=9"></script>
 <script src="../shared/dropdown.js?v=3"></script>
-<script src="../shared/campaign-store.js?v=11"></script>
-<script src="../shared/campaign-form.js?v=15"></script>
+<script src="../shared/campaign-store.js?v=12"></script>
+<script src="../shared/campaign-form.js?v=16"></script>
 <script src="../shared/send-sheet.js?v=38"></script>
 <script src="../shared/swing-modal.js?v=5"></script>
 <script>
@@ -1740,15 +1745,38 @@
 
   /* ── Documents + Drafts — the shape of the later build, honest about
      what is not wired yet. */
+  /* ── The campaign's own files: the brief, decks, the IO. Attached on the
+     form or dropped here; opened from the data the record keeps. */
+  function filesHtml(){
+    var list = c.files || [];
+    return '<div class="cd-sect"><h3>Files</h3><span class="sub">' + (list.length ? list.length + (list.length === 1 ? ' file' : ' files') : 'The brief, decks, the IO') + '</span></div>' +
+      '<div class="cd-files">' +
+        '<label class="cf-drop" id="cdDrop" for="cd-file"><i class="ph ph-paperclip"></i><span><b>Add files</b> — drop them here or <u>browse</u>. PDF, decks, images.</span><input type="file" id="cd-file" multiple hidden /></label>' +
+        (list.length ? '<ul class="cf-flist cd-flist">' + list.map(function(f, i){
+          return '<li style="--i:' + i + '"><i class="ph ' + S.fileIcon(f) + '"></i><span class="nm" title="' + esc(f.name) + '">' + esc(f.name) + '</span>' +
+            '<span class="sz">' + esc(S.fmtSize(f.size)) + ' · ' + esc(S.fmtDate(f.addedAt)) + '</span>' +
+            (f.data ? '<button type="button" class="c-btn c-btn-ghost c-btn-sm" data-file-open="' + esc(f.id) + '"><i class="ph ph-arrow-square-out"></i> Open</button>' : '<span class="big" title="Too big to keep in this prototype">name only</span>') +
+            '<button type="button" class="c-icon-btn" data-file-rm="' + esc(f.id) + '" aria-label="Remove ' + esc(f.name) + '"><i class="ph ph-x"></i></button></li>';
+        }).join('') + '</ul>' : '') +
+      '</div>';
+  }
+  function openFile(f){
+    if (!f || !f.data) return;
+    var parts = f.data.split(','), bin = atob(parts[1]), arr = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    var url = URL.createObjectURL(new Blob([arr], {type: f.type || 'application/octet-stream'}));
+    window.open(url, '_blank', 'noopener');
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+  }
   function renderDocs(){
     var roster = c.roster || [];
     var pan = E('pan-docs');
     if (!roster.length) {
-      pan.innerHTML = '<div class="cd-sect"><h3>Influencer</h3></div><div class="c-table-standalone-wrap"><div class="c-empty is-section"><i class="ph-fill ph-users"></i><h4>No influencers yet</h4>' +
+      pan.innerHTML = filesHtml() + '<div class="cd-sect"><h3>Influencer</h3></div><div class="c-table-standalone-wrap"><div class="c-empty is-section"><i class="ph-fill ph-users"></i><h4>No influencers yet</h4>' +
         '<p>Send a preview link for the client to pick from, or add someone on the KOL Selection tab — they\'ll show up here once they\'re on the campaign.</p></div></div>';
       return;
     }
-    pan.innerHTML = '<div class="c-banner c-banner-info" style="margin-bottom:var(--spacing-16)"><i class="ph-fill ph-info"></i><div>Document generation is a later build. CoE and ADSIS columns fill in once contracts are wired up.</div></div>' +
+    pan.innerHTML = filesHtml() + '<div class="c-banner c-banner-info" style="margin-bottom:var(--spacing-16)"><i class="ph-fill ph-info"></i><div>Document generation is a later build. CoE and ADSIS columns fill in once contracts are wired up.</div></div>' +
       '<div class="cd-sect"><h3>Influencer</h3></div>' +
       '<div class="c-table-standalone-wrap"><table class="c-table c-table-standalone cd-table"><colgroup><col style="width:56px" /><col /><col style="width:18%" /><col style="width:12%" /><col style="width:9%" /><col style="width:9%" /><col style="width:9%" /></colgroup>' +
       '<thead><tr><th>No.</th><th>Influencer</th><th>Agency</th><th>Fee (RM)</th><th>CoE</th><th>ADSIS</th><th>Batch</th></tr></thead><tbody>' +
@@ -2393,6 +2421,43 @@
     });
   }
 
+  /* ── Files on the Documents tab: drop or browse in, open, remove. */
+  function takeCampaignFiles(list){
+    var pending = [], n = 0;
+    Array.prototype.forEach.call(list || [], function(file){
+      var rec = {name: file.name, size: file.size, type: file.type, data: null};
+      pending.push(rec);
+      if (file.size > S.FILE_KEEP) return;
+      n += 1;
+      var rd = new FileReader();
+      rd.onload = function(){ rec.data = rd.result; if (--n === 0) commit(); };
+      rd.readAsDataURL(file);
+    });
+    function commit(){
+      if (!pending.length) return;
+      S.addFiles(c.id, pending); renderAll();
+      toast(pending.length + (pending.length === 1 ? ' file attached.' : ' files attached.'));
+      pending = [];
+    }
+    if (!n) commit();
+  }
+  E('pan-docs').addEventListener('change', function(e){
+    if (e.target.id !== 'cd-file') return;
+    takeCampaignFiles(e.target.files); e.target.value = '';
+  });
+  E('pan-docs').addEventListener('dragover', function(e){ var z = e.target.closest('#cdDrop'); if (z) { e.preventDefault(); z.classList.add('is-over'); } });
+  E('pan-docs').addEventListener('dragleave', function(e){ var z = e.target.closest('#cdDrop'); if (z) z.classList.remove('is-over'); });
+  E('pan-docs').addEventListener('drop', function(e){ var z = e.target.closest('#cdDrop'); if (!z) return; e.preventDefault(); z.classList.remove('is-over'); takeCampaignFiles(e.dataTransfer && e.dataTransfer.files); });
+  E('pan-docs').addEventListener('click', function(e){
+    var op = e.target.closest('[data-file-open]');
+    if (op) return openFile((c.files || []).filter(function(f){ return f.id === op.dataset.fileOpen; })[0]);
+    var rm = e.target.closest('[data-file-rm]');
+    if (rm) {
+      var f = (c.files || []).filter(function(x){ return x.id === rm.dataset.fileRm; })[0];
+      S.removeFile(c.id, rm.dataset.fileRm); renderAll();
+      toast((f ? f.name : 'File') + ' removed.', 'danger');
+    }
+  });
   E('pan-deliverables').addEventListener('click', function(e){
     var go = e.target.closest('[data-go-tab]'); if (go) return setTab(go.dataset.goTab);
     var fl = e.target.closest('[data-dl-filter]');

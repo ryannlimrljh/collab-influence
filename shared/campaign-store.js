@@ -120,6 +120,36 @@
     {key: 'changes',  label: 'Changes asked',   dot: 'var(--color-amber)'}
   ];
   function labelOf(list, key) { var x = list.filter(function (o) { return o.key === key; })[0]; return x ? x.label : key; }
+
+  /* ── Files on a campaign: the brief, a deck, an IO. Kept on the record
+     as data URLs up to FILE_KEEP bytes — this prototype lives in
+     localStorage — bigger ones keep their name and size only. */
+  var FILE_KEEP = 1.5 * 1024 * 1024;
+  function fmtSize(n) {
+    n = Number(n) || 0;
+    if (n >= 1048576) return (n / 1048576).toFixed(n >= 10485760 ? 0 : 1) + ' MB';
+    if (n >= 1024) return Math.round(n / 1024) + ' KB';
+    return n + ' B';
+  }
+  function fileIcon(f) {
+    var t = String((f && f.type) || '').toLowerCase(), n = String((f && f.name) || '').toLowerCase();
+    if (t.indexOf('pdf') > -1 || /\.pdf$/.test(n)) return 'ph-file-pdf';
+    if (t.indexOf('image') === 0) return 'ph-file-image';
+    if (t.indexOf('video') === 0) return 'ph-file-video';
+    if (/presentation|powerpoint/.test(t) || /\.(pptx?|key)$/.test(n)) return 'ph-presentation-chart';
+    if (/spreadsheet|excel|csv/.test(t) || /\.(xlsx?|csv)$/.test(n)) return 'ph-file-xls';
+    if (/word|document/.test(t) || /\.(docx?|pages)$/.test(n)) return 'ph-file-doc';
+    if (/zip|compressed/.test(t) || /\.(zip|rar|7z)$/.test(n)) return 'ph-file-zip';
+    return 'ph-file';
+  }
+  function fileRec(f) {
+    var keep = f.data && f.size <= FILE_KEEP;
+    return {
+      id: f.id || ('f-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e6).toString(36)),
+      name: f.name || 'file', size: Number(f.size) || 0, type: f.type || '',
+      addedAt: f.addedAt || new Date().toISOString(), data: keep ? f.data : null
+    };
+  }
   function kindLabel(d) { return (PLAT_LABEL[d.platform] || d.platform) + ' ' + d.kind; }
   /* A record that still holds {done, total} becomes a list on the first
      write; the list is the truth from then on. */
@@ -393,6 +423,23 @@
         try { localStorage.setItem(SALES_KEY, JSON.stringify(list)); } catch (e) {}
       }
       return name;
+    },
+
+    /* ── Files. */
+    FILE_KEEP: FILE_KEEP, fmtSize: fmtSize, fileIcon: fileIcon, fileRec: fileRec,
+    addFiles: function (id, files) {
+      var c = get(id); if (!c || !files || !files.length) return [];
+      var list = (c.files || []).slice(), added = files.map(fileRec);
+      list = list.concat(added);
+      var names = added.map(function (f) { return f.name; });
+      update(id, {files: list}, entry('file', 'Attached ' + (names.length === 1 ? names[0] : names.length + ' files: ' + names.join(', ')), {files: added.map(function (f) { return f.id; })}));
+      return added.map(function (f) { return f.id; });
+    },
+    removeFile: function (id, fid) {
+      var c = get(id); if (!c) return null;
+      var gone = (c.files || []).filter(function (f) { return f.id === fid; })[0];
+      return update(id, {files: (c.files || []).filter(function (f) { return f.id !== fid; })},
+        gone ? entry('file', 'Removed ' + gone.name, {file: fid}) : null);
     },
 
     /* ── Deliverables. */

@@ -339,3 +339,33 @@ test('removeBatch drops the list and the roster fills the client put there, keep
   assert.deepEqual(c.roster.map(r => r.inf), ['inf-002']);
   assert.match(c.activity[c.activity.length - 1].text, /Deleted batch 1/);
 });
+
+test('addFiles keeps small files with their data, big ones by name, and writes one activity line', () => {
+  const win = fresh();
+  win.CAMPAIGNS = [{id: 'c1', stage: 'sourcing', roster: [], batches: [], activity: []}];
+  const S = win.campaignStore;
+  const ids = S.addFiles('c1', [
+    {name: 'brief.pdf', size: 1200, type: 'application/pdf', data: 'data:application/pdf;base64,QUJD'},
+    {name: 'deck.pptx', size: S.FILE_KEEP + 1, type: 'application/vnd.ms-powerpoint', data: 'data:x;base64,QUJD'}
+  ]);
+  const c = S.get('c1');
+  assert.equal(ids.length, 2);
+  assert.equal(c.files.length, 2);
+  assert.equal(c.files[0].data, 'data:application/pdf;base64,QUJD');
+  assert.equal(c.files[1].data, null, 'past the cap only the name and size stay');
+  assert.match(c.activity.slice(-1)[0].text, /^Attached 2 files: brief\.pdf, deck\.pptx$/);
+  S.removeFile('c1', ids[0]);
+  assert.deepEqual(S.get('c1').files.map(f => f.name), ['deck.pptx']);
+  assert.equal(S.get('c1').activity.slice(-1)[0].text, 'Removed brief.pdf');
+});
+
+test('file helpers: sizes read naturally and icons follow the type', () => {
+  const {campaignStore: S} = fresh();
+  assert.equal(S.fmtSize(900), '900 B');
+  assert.equal(S.fmtSize(20480), '20 KB');
+  assert.equal(S.fmtSize(2.5 * 1048576), '2.5 MB');
+  assert.equal(S.fileIcon({type: 'application/pdf', name: 'x.pdf'}), 'ph-file-pdf');
+  assert.equal(S.fileIcon({type: '', name: 'deck.pptx'}), 'ph-presentation-chart');
+  assert.equal(S.fileIcon({type: 'image/png', name: 'a.png'}), 'ph-file-image');
+  assert.equal(S.fileIcon({type: '', name: 'notes.txt'}), 'ph-file');
+});

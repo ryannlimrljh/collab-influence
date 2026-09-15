@@ -130,6 +130,21 @@
 .cf-io-hint{display:flex; align-items:center; gap:6px; margin-top:6px; font-size:var(--text-caption-size); color:var(--color-neutral-5);}\
 .cf-io-hint button{border:0; background:transparent; padding:0; font:inherit; font-size:inherit; font-weight:700; color:var(--color-neutral-9); text-decoration:underline; text-underline-offset:2px; cursor:pointer;}\
 .cf-money{font-variant-numeric:tabular-nums;}\
+.cf-drop{display:flex; align-items:center; gap:var(--spacing-12); padding:var(--spacing-12) var(--spacing-16); border:1px dashed var(--color-neutral-4); border-radius:var(--radius-md); background:var(--color-neutral-1); cursor:pointer; font-size:var(--text-body2-size); color:var(--color-neutral-6); transition:border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);}\
+.cf-drop i{font-size:20px; color:var(--color-neutral-5); flex:none;}\
+.cf-drop b{color:var(--color-neutral-9);}\
+.cf-drop .opt{font-weight:400; color:var(--color-neutral-5); font-size:var(--text-caption-size); margin-left:4px;}\
+.cf-drop u{color:var(--color-navy); text-decoration:underline; text-underline-offset:2px;}\
+.cf-drop:hover, .cf-drop.is-over{border-color:var(--color-obsidian); background:var(--color-neutral-2);}\
+.cf-flist{list-style:none; margin:var(--spacing-8) 0 0; padding:0; display:flex; flex-direction:column; gap:4px;}\
+.cf-flist:empty{display:none;}\
+.cf-flist li{display:flex; align-items:center; gap:var(--spacing-8); padding:6px 8px 6px 10px; border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); background:var(--color-neutral-1); font-size:var(--text-caption-size); animation:cf-fade var(--duration-fast) var(--ease-standard) both;}\
+.cf-flist li i.ph{font-size:16px; color:var(--color-neutral-6); flex:none;}\
+.cf-flist li .nm{flex:1; min-width:0; font-weight:700; color:var(--color-neutral-9); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}\
+.cf-flist li .sz{color:var(--color-neutral-5); flex:none; font-variant-numeric:tabular-nums;}\
+.cf-flist li .big{color:#8A5A00; flex:none;}\
+.cf-flist li .c-icon-btn{width:26px; height:26px; flex:none; color:var(--color-neutral-5);}\
+.cf-flist li .c-icon-btn:hover{color:var(--color-red);}\
 @media (max-width:640px){ .cf-grid{grid-template-columns:1fr;} .cf-line-h, .cf-line{grid-template-columns:1fr 1fr 80px 32px;} .cf-stepbtn .lbl{display:none;} .cf-stepbtn.is-on .lbl{display:inline;} }';
 
   var HTML = '\
@@ -164,6 +179,11 @@
             <span class="c-helper" hidden id="cfEndHelp">The end date is before the start.</span></div>\
           <div class="c-field span2"><label for="cf-desc">Description<span class="opt">(optional)</span></label>\
             <textarea id="cf-desc" rows="2" placeholder="What the campaign is for, in a line or two"></textarea></div>\
+          <div class="span2 cf-files" id="cfFiles">\
+            <label class="cf-drop" id="cfDrop" for="cf-file"><i class="ph ph-paperclip"></i><span><b>Attach the brief</b><span class="opt">(optional)</span> — drop files here or <u>browse</u>. PDF, decks, images.</span>\
+              <input type="file" id="cf-file" multiple hidden /></label>\
+            <ul class="cf-flist" id="cfFlist"></ul>\
+          </div>\
           <label class="cf-lead" id="cfLead">\
             <span class="c-switch-track" id="cfLeadSwitch" role="switch" aria-checked="false" tabindex="0"><span class="c-switch-thumb"></span></span>\
             <span><span class="t">This is a lead — not won yet</span><span class="s">It sits ahead of the pipeline and stays out of active counts until you mark it won.</span></span>\
@@ -228,6 +248,7 @@
   }
   var onSave = null, editing = null, wasLead = false;
   var step = 1, isLead = false, color = 'obsidian';
+  var files = [];            /* attachments, as records the store will keep */
   var plats = [];            /* channels with an ask, derived from the lines */
   var lines = [];            /* the ask as typed: [{plat, tier, n}] */
   var ask = {};              /* platform -> tier -> count */
@@ -469,8 +490,37 @@
     if (pp != null && !ov.dataset.touched) ov.value = Math.max(0, 100 - pp);
   }
 
+  /* ── Files. Read to data URLs so they can live on the record; past the
+     store's cap only the name and size are kept, and the row says so. */
+  function renderFiles() {
+    F('cfFlist').innerHTML = files.map(function (f) {
+      return '<li data-fid="' + esc(f.id) + '"><i class="ph ' + S.fileIcon(f) + '"></i><span class="nm" title="' + esc(f.name) + '">' + esc(f.name) + '</span>' +
+        '<span class="sz">' + esc(S.fmtSize(f.size)) + '</span>' + (f.data ? '' : '<span class="big" title="Too big to keep in this prototype — name only">name only</span>') +
+        '<button type="button" class="c-icon-btn" data-file-rm="' + esc(f.id) + '" aria-label="Remove ' + esc(f.name) + '"><i class="ph ph-x"></i></button></li>';
+    }).join('');
+  }
+  function takeFiles(list) {
+    Array.prototype.forEach.call(list || [], function (file) {
+      var rec = S.fileRec({name: file.name, size: file.size, type: file.type, data: null});
+      files.push(rec); renderFiles();
+      if (file.size > S.FILE_KEEP) return;
+      var rd = new FileReader();
+      rd.onload = function () { rec.data = rd.result; renderFiles(); };
+      rd.readAsDataURL(file);
+    });
+  }
+  F('cf-file').addEventListener('change', function () { takeFiles(this.files); this.value = ''; });
+  F('cfDrop').addEventListener('dragover', function (e) { e.preventDefault(); this.classList.add('is-over'); });
+  F('cfDrop').addEventListener('dragleave', function () { this.classList.remove('is-over'); });
+  F('cfDrop').addEventListener('drop', function (e) { e.preventDefault(); this.classList.remove('is-over'); takeFiles(e.dataTransfer && e.dataTransfer.files); });
+  F('cfFlist').addEventListener('click', function (e) {
+    var rm = e.target.closest('[data-file-rm]'); if (!rm) return;
+    files = files.filter(function (f) { return f.id !== rm.dataset.fileRm; }); renderFiles();
+  });
+
   function fill(r) {
     r = r || {};
+    files = (r.files || []).slice(); renderFiles();
     F('cf-name').value = r.name || '';
     F('cf-brand').value = r.brand || '';
     updateBrandMark(F('cf-brand').value);
@@ -536,7 +586,8 @@
       cost: S.num(String(F('cf-cost').value).replace(/,/g, '')),
       picPct: pp == null ? 100 : pp,
       overseerPct: overseer ? S.num(F('cf-ovpct').value) : null,
-      remarks: F('cf-remarks').value.trim()
+      remarks: F('cf-remarks').value.trim(),
+      files: files.map(function (f) { return S.fileRec(f); })
     };
   }
   function validateStep(n) {
