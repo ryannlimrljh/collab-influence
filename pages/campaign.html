@@ -350,11 +350,23 @@
   .cd-lists-h{display:flex; align-items:center; justify-content:space-between; gap:var(--spacing-12); margin:2px 4px var(--spacing-12);}
   .cd-lists-h h3{margin:0; font-size:var(--text-body1-size); font-weight:800; color:var(--color-neutral-9);}
   .cd-lists-h .sub{margin-left:var(--spacing-8); font-size:var(--text-caption-size); font-weight:500; color:var(--color-neutral-5);}
-  .cd-lists{display:flex; flex-direction:column; gap:var(--spacing-16); padding:4px 8px 12px;}
+  .cd-lists{display:flex; flex-direction:column; gap:0; padding:4px 8px 12px;}
+  .cd-list + .cd-list{margin-top:-14px;}
+  .cd-list{z-index:var(--z, 1);}
   .cd-list{position:relative; background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg); padding:var(--spacing-16);
     box-shadow:var(--shadow-2); transform:translateX(var(--ox, 0px)) rotate(var(--rot, 0deg)); transform-origin:50% 60%;
     transition:transform var(--duration-base) var(--ease-settle), box-shadow var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);}
-  .cd-list:hover{transform:translateX(var(--ox, 0px)) translateY(-3px) rotate(0deg) scale(1.01); box-shadow:var(--shadow-3); z-index:2;}
+  .cd-list:hover{transform:translateX(var(--ox, 0px)) translateY(-3px) rotate(0deg) scale(1.01); box-shadow:var(--shadow-3); z-index:20;}
+  .cd-list .confirm{display:flex; align-items:center; gap:var(--spacing-8); margin-top:var(--spacing-12); padding-top:var(--spacing-12); border-top:1px solid var(--color-neutral-2); font-size:var(--text-caption-size); color:var(--color-neutral-9);}
+  .cd-list .confirm b{flex:1;}
+  .cd-sp .who, .cd-sp .c-card-profile-avatar{cursor:pointer;}
+  .cd-sp .who:hover .n{text-decoration:underline; text-underline-offset:2px;}
+  .sw-body .cd-batch{border:0; box-shadow:none; margin:0; border-radius:0;}
+  .sw-panel.no-x .sw-close{display:none;}
+  .sw-camp{display:flex; flex-wrap:wrap; gap:6px;}
+  .sw-camp .cd-fchip{cursor:default;}
+  .sw-camp .cd-fchip:hover{border-color:var(--color-neutral-3);}
+  .sw-camp-prov{font-size:var(--text-caption-size); color:var(--color-neutral-5); margin-top:6px;}
   .cd-list.is-open{border-color:var(--color-obsidian); transform:translateX(var(--ox, 0px)) rotate(0deg); box-shadow:var(--shadow-3);}
   .cd-list .eyebrow{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
   .cd-list .nm{display:block; font-weight:800; color:var(--color-neutral-9); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
@@ -841,6 +853,7 @@
 <script src="../shared/campaign-store.js?v=10"></script>
 <script src="../shared/campaign-form.js?v=13"></script>
 <script src="../shared/send-sheet.js?v=19"></script>
+<script src="../shared/swing-modal.js?v=1"></script>
 <script>
 (function () {
   'use strict';
@@ -1310,14 +1323,17 @@
     var answered = b.picks.length - counts.none;
     var stack = b.picks.slice(0, 5).map(function(p){ var rec = byInf[p.inf]; return rec ? avatarHtml(rec) : ''; }).join('') +
       (b.picks.length > 5 ? '<span class="more">+' + (b.picks.length - 5) + '</span>' : '');
-    var open = !!openBatches[b.n];
-    return '<div class="cd-list' + (open ? ' is-open' : '') + '" data-list="' + b.n + '" style="--rot:' + tilt('b' + b.n + (b.name || '')) + 'deg; --ox:' + ([0, 6, -4, 3][i % 4]) + 'px">' +
+    var open = modalKind === 'batch' && modalBatch === b.n;
+    return '<div class="cd-list' + (open ? ' is-open' : '') + '" data-list="' + b.n + '" style="--rot:' + tilt('b' + b.n + (b.name || '')) + 'deg; --ox:' + ([0, 6, -4, 3][i % 4]) + 'px; --z:' + (i + 1) + '">' +
       '<span class="eyebrow">Batch ' + b.n + (b.sentAt ? ' · ' + esc(S.fmtDate(b.sentAt)) : '') + '</span><span class="nm">' + esc(b.name || 'Batch ' + b.n) + '</span>' +
       '<span class="meta">' + b.picks.length + (b.picks.length === 1 ? ' creator' : ' creators') + (b.recipient ? ' · to ' + esc(b.recipient) : '') + (b.expiresAt ? ' · expires ' + esc(S.fmtDate(b.expiresAt)) : '') + '</span>' +
       '<div class="mid"><span class="cd-stack">' + stack + '</span><span class="ans">' + ringSvg([{n: counts.selected, color: 'var(--color-green)'}, {n: counts.kiv, color: 'var(--color-amber)'}, {n: counts.rejected + counts.unavailable, color: 'var(--color-red)'}, {n: counts.none}], 34, 4) + '<span><b>' + answered + '</b>/' + b.picks.length + '<br>answered</span></span></div>' +
-      '<div class="foot"><button class="c-btn ' + (open ? 'c-btn-secondary' : 'c-btn-ghost') + ' c-btn-sm" type="button" data-list-open="' + b.n + '">' + (open ? 'Close' : 'Open') + '</button><span class="sp"></span>' +
-        '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon" type="button" data-batch-copy="' + b.n + '" aria-label="Copy the client link" title="Copy client link"><i class="ph ph-link"></i></button>' +
-        '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon" type="button" data-batch-link="' + b.n + '" aria-label="Open the client view" title="Client view"><i class="ph ph-arrow-square-out"></i></button></div></div>';
+      (confirmDelete === b.n
+        ? '<div class="confirm"><b>Delete this list?</b><button class="c-btn c-btn-ghost c-btn-sm" type="button" data-list-del-no>Keep</button><button class="c-btn c-btn-primary c-btn-sm" type="button" data-list-del-ok="' + b.n + '" style="background:var(--color-red); border-color:var(--color-red)"><i class="ph ph-trash"></i> Delete</button></div>'
+        : '<div class="foot"><button class="c-btn ' + (open ? 'c-btn-secondary' : 'c-btn-ghost') + ' c-btn-sm" type="button" data-list-open="' + b.n + '">' + (open ? 'Opened' : 'Open') + '</button><span class="sp"></span>' +
+          '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon" type="button" data-batch-copy="' + b.n + '" aria-label="Copy the client link" title="Copy client link"><i class="ph ph-link"></i></button>' +
+          '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon" type="button" data-batch-link="' + b.n + '" aria-label="Open the client view" title="Client view"><i class="ph ph-arrow-square-out"></i></button>' +
+          '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-trash" type="button" data-list-del="' + b.n + '" aria-label="Delete this list" title="Delete"><i class="ph ph-trash"></i></button></div>') + '</div>';
   }
   function renderKol(){
     var batches = c.batches || [];
@@ -1361,12 +1377,44 @@
         : '<div class="cd-lists"><div class="cd-list-empty"><div class="ghosts"><i></i><i></i><i></i></div><h4>No selection list yet</h4>Pick who the client should see, and the link lands here.' +
           '<div style="margin-top:var(--spacing-12)"><button class="c-btn c-btn-secondary c-btn-sm" type="button" data-new-list><i class="ph ph-plus"></i> Create Selection List</button></div></div></div>') + '</div>';
     html += '<div class="cd-selgrid">' + people + lists + '</div>';
-    var openN = Object.keys(openBatches).filter(function(n){ return openBatches[n]; })[0];
-    var ob = openN != null ? batchOf(openN) : null;
-    if (ob) html += '<div class="cd-detail" id="cdBatchDetail">' + batchHtml(ob) + '</div>';
     var pan = E('pan-selection');
     pan.innerHTML = html;
     hydrateAvatars(pan);
+    /* Whatever the modal shows is drawn from the same record, so it is
+       redrawn here rather than in every handler. */
+    if (modalKind === 'batch' && window.swingModal.isOpen()) {
+      var mb = batchOf(modalBatch);
+      if (mb) { openBatches = {}; openBatches[mb.n] = true; hydrateAvatars(window.swingModal.setBody(batchHtml(mb))); }
+      else window.swingModal.close();
+    }
+  }
+  var modalKind = null, modalBatch = null, confirmDelete = null;
+  function openBatchModal(n, anchor){
+    var b = batchOf(n); if (!b) return;
+    modalKind = 'batch'; modalBatch = n; openBatches = {}; openBatches[n] = true;
+    window.swingModal.panel().classList.add('no-x');
+    var body = window.swingModal.open({anchor: anchor, width: 980, label: 'Batch ' + n, html: batchHtml(b), onClose: function(){ modalKind = null; modalBatch = null; openBatches = {}; renderKol(); }});
+    hydrateAvatars(body);
+    renderKol();
+  }
+  function openProfile(inf, anchor){
+    var rec = byInf[inf]; if (!rec) return;
+    var fills = (c.roster || []).filter(function(r){ return r.inf === inf; });
+    var slots = M.slotsOf(c);
+    var chips = fills.map(function(r){
+      var inAsk = slots.some(function(sl){ return sl.platform === r.platform && sl.tier === M.groupTier(r); });
+      var st = r.state === 'confirmed' ? 'ph-fill ph-check-circle' : r.state === 'approved' ? 'ph-fill ph-clock' : 'ph ph-prohibit';
+      return '<span class="cd-fchip is-' + r.state + (inAsk ? '' : ' is-extra') + '">' + (PLAT_ICON[r.platform] || '') + esc(tierName(r.tier)) + (r.substitutedFor ? '<span class="sub">↑ ' + esc(tierName(r.substitutedFor)) + '</span>' : '') + '<i class="' + st + ' st"></i></span>';
+    }).join('');
+    var src = fills[0];
+    var extra = '<div class="sw-sect"><h5>On this campaign</h5><div class="sw-camp">' + (chips || '<span class="cd-legend">Not on the roster.</span>') + '</div>' +
+      (src ? '<div class="sw-camp-prov">' + (src.batch == null ? 'Added by hand' : 'Approved by the client on batch ' + src.batch + (batchOf(src.batch) && batchOf(src.batch).sentAt ? ' · sent ' + esc(S.fmtDate(batchOf(src.batch).sentAt)) : '')) + '</div>' : '') + '</div>';
+    var foot = (fills.length ? '<button class="c-btn c-btn-ghost c-btn-md" type="button" data-roster-remove="' + esc(inf) + '" data-roster-plat="" style="color:var(--color-red)"><i class="ph ph-trash"></i> Remove from campaign</button>' : '') +
+      '<button class="c-btn c-btn-secondary c-btn-md" type="button" data-sw-close>Close</button>';
+    modalKind = 'profile'; modalBatch = null;
+    window.swingModal.panel().classList.remove('no-x');
+    var body = window.swingModal.open({anchor: anchor, width: 480, label: rec.name, html: window.influencerProfile.html(rec, {extra: extra, foot: foot}), onClose: function(){ modalKind = null; }});
+    hydrateAvatars(body);
   }
   function flashPending(){
     E('pan-selection').querySelectorAll('.cd-fchip.is-approved').forEach(function(el, i){
@@ -1799,8 +1847,25 @@
     return (c.batches || []).filter(function(b){ return String(b.n) === String(n); })[0] || null;
   }
 
-  /* ── Selection panel interactions. */
-  E('pan-selection').addEventListener('click', function(e){
+  /* ── Selection panel interactions — one handler for the panel and for
+     whatever the modal is showing, since both draw from the record. */
+  function selectionClick(e){
+    if (e.target.closest('[data-sw-close]')) return window.swingModal.close();
+    var who = e.target.closest('.cd-sp .who, .cd-sp .c-card-profile-avatar');
+    if (who) { var row = who.closest('.cd-sp'); return openProfile(row.dataset.person, row.querySelector('.c-card-profile-avatar')); }
+    var ld = e.target.closest('[data-list-del]');
+    if (ld) { confirmDelete = Number(ld.dataset.listDel); renderKol(); return; }
+    if (e.target.closest('[data-list-del-no]')) { confirmDelete = null; renderKol(); return; }
+    var ldo = e.target.closest('[data-list-del-ok]');
+    if (ldo) {
+      var dn = Number(ldo.dataset.listDelOk), db = batchOf(dn);
+      confirmDelete = null;
+      if (modalKind === 'batch' && modalBatch === dn) window.swingModal.close();
+      S.removeBatch(c.id, dn);
+      renderAll();
+      toast('Batch ' + dn + (db && db.name ? ' · ' + db.name : '') + ' deleted.', 'danger');
+      return;
+    }
     if (e.target.closest('[data-edit-ask]')) return campaignForm.open({rec: c, step: 2, onSave: saveEdit});
     if (e.target.closest('#cdNewBatch') || e.target.closest('[data-new-list]')) return startSend(null);
     var sb = e.target.closest('[data-send-band]');
@@ -1831,10 +1896,8 @@
     var lo = e.target.closest('[data-list-open]');
     if (lo) {
       var ln = Number(lo.dataset.listOpen);
-      openBatches = openBatches[ln] ? {} : (function(){ var o = {}; o[ln] = true; return o; })();
-      renderKol();
-      var det = E('cdBatchDetail'); if (det && !document.hidden) det.scrollIntoView({block: 'start', behavior: REDUCED ? 'auto' : 'smooth'});
-      return;
+      if (modalKind === 'batch' && modalBatch === ln) return window.swingModal.close();
+      return openBatchModal(ln, lo.closest('.cd-list'));
     }
     if (e.target.closest('[data-confirm-all]')) {
       var pending = (c.roster || []).filter(function(r){ return r.state === 'approved'; });
@@ -1858,6 +1921,7 @@
     if (rm) {
       var rec = byInf[rm.dataset.rosterRemove];
       var plat = rm.dataset.rosterPlat || null;
+      if (modalKind === 'profile') window.swingModal.close();
       S.removeFromRoster(c.id, rm.dataset.rosterRemove, plat);
       renderAll();
       toast((rec ? rec.name : 'Profile') +
@@ -1889,22 +1953,22 @@
       batchFilter[Number(chip.dataset.batch)] = chip.dataset.batchFilter;
       renderKol(); return;
     }
-    var tg = e.target.closest('[data-batch-toggle]');
-    if (tg && !e.target.closest('[data-batch-link]')) {
-      var n = Number(tg.dataset.batchToggle);
-      openBatches[n] = !openBatches[n];
-      renderKol();
-    }
-  });
+    var tg = e.target.closest('button[data-batch-toggle]');
+    if (tg) window.swingModal.close();
+  }
   /* Remarks and notes save on change, not per keystroke, and never
      re-render — the field you are typing in stays put. */
-  E('pan-selection').addEventListener('change', function(e){
+  function selectionChange(e){
     var t = e.target;
     if (t.matches('[data-kult-remark]')) S.updatePick(c.id, Number(t.dataset.batch), t.dataset.inf, {kultRemark: t.value});
     else if (t.matches('[data-client-remark]')) S.updatePick(c.id, Number(t.dataset.batch), t.dataset.inf, {clientRemark: t.value});
     else if (t.matches('[data-batch-notes]')) S.updateBatch(c.id, Number(t.dataset.batchNotes), {notes: t.value});
     reload();
-  });
+  }
+  E('pan-selection').addEventListener('click', selectionClick);
+  E('pan-selection').addEventListener('change', selectionChange);
+  window.swingModal.body().addEventListener('click', selectionClick);
+  window.swingModal.body().addEventListener('change', selectionChange);
 
   /* ── Sending a batch: pick the candidates, then the shared send sheet
      with this campaign locked as the destination. A band narrows the

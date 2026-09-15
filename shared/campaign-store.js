@@ -509,6 +509,17 @@
         deliverables: {done: 0, total: 0}
       });
     },
+    /* Delete a sent list. Fills the client's own answers put on the
+       roster through it go too; hand-added ones stay. */
+    removeBatch: function (id, n) {
+      var c = get(id); if (!c) return null;
+      var b = (c.batches || []).filter(function (x) { return x.n === n; })[0];
+      if (!b) return c;
+      return update(id, {
+        batches: (c.batches || []).filter(function (x) { return x.n !== n; }),
+        roster: (c.roster || []).filter(function (r) { return !(r.source === 'client' && r.batch === n); })
+      }, entry('batch', 'Deleted batch ' + n + (b.name ? ' · ' + b.name : ''), {batch: n}));
+    },
     updateBatch: function (id, n, patch) {
       var c = get(id); if (!c) return null;
       return update(id, {batches: (c.batches || []).map(function (b) {

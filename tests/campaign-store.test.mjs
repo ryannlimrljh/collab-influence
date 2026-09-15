@@ -325,3 +325,17 @@ test('salespeople lists everyone named on a campaign plus names added by hand, o
   S.reset();
   assert.deepEqual(S.salespeople(), ['Amir Rahman', 'Grace Wong'], 'survives a store reset');
 });
+
+test('removeBatch drops the list and the roster fills the client put there, keeps hand-added ones', () => {
+  const win = fresh(); const S = win.campaignStore;
+  const id = S.createLead({name: 'RB', requirement: {tiktok: {mid: 1}}});
+  const n = S.addBatch(id, {infIds: ['inf-001']});
+  S.setChannelStatus(id, n, 'inf-001', 'tiktok', 'selected');
+  S.addToRoster(id, [{inf: 'inf-002', platform: 'tiktok', tier: 'mid'}], 'team', null);
+  assert.equal(S.get(id).roster.length, 2);
+  S.removeBatch(id, n);
+  const c = S.get(id);
+  assert.equal(c.batches.length, 0);
+  assert.deepEqual(c.roster.map(r => r.inf), ['inf-002']);
+  assert.match(c.activity[c.activity.length - 1].text, /Deleted batch 1/);
+});

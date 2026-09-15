@@ -78,6 +78,8 @@ shared/           generated data + small runtime helpers
                          groups, nextUp, deliverable counts. No DOM, no storage — this is what the tests hit
   campaign-form.js       the stepped Add / Edit campaign sheet, shared by both campaign pages
   send-sheet.js          the "send this list to the client" sheet, shared by the roster and campaign pages
+  swing-modal.js         the fold-out card modal (flies out of what you clicked) and the influencer
+                         profile view inside it; the campaign page uses it for profiles and batches
   tiers.js               follower brackets (Seeder … Mega) — the one place they are defined
 tests/            node:test suites over the shared files (see below)
 docs/superpowers/specs/   the approved design specs, newest is the campaign overhaul
