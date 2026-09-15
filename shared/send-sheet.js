@@ -962,8 +962,11 @@
               (opts.lockCampaign && c ? ' · for ' + esc(c.name) : '') +
               (split.mismatch.length
                 ? '<br><span class="ss-mis"><i class="ph-fill ph-warning-circle"></i> ' +
-                  split.mismatch.length + ' fit no band you asked for ' +
-                  '<button type="button" data-ss="dropmis">Remove</button></span>'
+                  split.mismatch.length +
+                  (split.mismatch.length === 1 ? ' profile fits' : ' profiles fit') +
+                  ' no band you asked for ' +
+                  '<button type="button" data-ss="dropmis">Remove ' +
+                  (split.mismatch.length === 1 ? 'it' : 'them') + '</button></span>'
                 : '') + '</p>' +
             '</div></div>' +
           '<button class="c-icon-btn" type="button" data-ss="close" aria-label="Close">' +
@@ -1367,7 +1370,9 @@
         var dropped = state.infIds.length - keep.length;
         state.infIds = keep;
         state.fillAi = false;
-        state.fillNote = 'Removed ' + dropped + ' that fit no band you asked for.';
+        state.fillNote = 'Removed ' + dropped +
+          (dropped === 1 ? ' profile that fit' : ' profiles that fit') +
+          ' no band you asked for.';
         sync();
         return render();
       }
