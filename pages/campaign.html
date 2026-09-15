@@ -75,18 +75,15 @@
   .cd-rail-head kbd{font-family:inherit; font-size:10px; line-height:1; padding:3px 5px; border:1px solid var(--color-neutral-3); border-bottom-width:2px;
     border-radius:4px; background:var(--color-neutral-1); color:var(--color-neutral-6);}
   /* One row, whole cards only. The width is split into as many cards
-     as fit at 220px or more (--rail-n, set from the track's width), the
-     row snaps to card starts, and a spacer pads the end so the last
-     page begins on a card too — nothing is ever cut at an edge. It
-     scrolls sideways with no scrollbar; the arrows page it. */
+     as fit at 220px or more (--rail-n, set from the track's width), so
+     the row is always an exact number of cards wide; snapping to card
+     starts then keeps both edges whole wherever it comes to rest, and
+     the end of the row is the last card's edge. Sideways scroll, no
+     scrollbar. */
   .cd-rail-track{display:flex; gap:12px; overflow-x:auto; overscroll-behavior-x:contain;
-    margin:0 -4px; padding:6px 4px var(--spacing-12); scroll-snap-type:x mandatory; scroll-padding-left:4px;
+    margin:0 -4px; padding:6px 4px var(--spacing-12); scroll-snap-type:x mandatory; scroll-padding:0 4px;
     scrollbar-width:none; -ms-overflow-style:none;}
   .cd-rail-track::-webkit-scrollbar{display:none;}
-  .cd-rail-track::after{content:''; flex:none; width:var(--rail-pad, 0px);}
-  .cd-rail-pager{display:flex; gap:4px;}
-  .cd-rail-pager .c-btn[hidden]{display:none;}
-  .cd-rail-pager .c-btn:disabled{opacity:.3; cursor:default; transform:none;}
   .cd-rcard{flex:none; width:calc((100% - 12px * (var(--rail-n, 4) - 1)) / var(--rail-n, 4)); display:flex; flex-direction:column; gap:var(--spacing-12); padding:var(--spacing-12) 14px;
     background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); box-shadow:var(--shadow-1);
     text-decoration:none; color:inherit; scroll-snap-align:start;
@@ -884,12 +881,7 @@
 
         <section class="cd-rail" id="cdRail" inert aria-label="All campaigns">
           <div class="cd-rail-in">
-            <div class="cd-rail-head">
-              <span class="cd-rail-pager">
-                <button class="c-btn c-btn-ghost c-btn-sm c-btn-icon" type="button" id="cdRailPrev" aria-label="Earlier campaigns" hidden><i class="ph ph-caret-left"></i></button>
-                <button class="c-btn c-btn-ghost c-btn-sm c-btn-icon" type="button" id="cdRailNext" aria-label="More campaigns" hidden><i class="ph ph-caret-right"></i></button>
-              </span>
-              <span class="hint"><kbd>C</kbd> toggle · <kbd>[</kbd> <kbd>]</kbd> previous / next</span></div>
+            <div class="cd-rail-head"><span class="hint"><kbd>C</kbd> toggle · <kbd>[</kbd> <kbd>]</kbd> previous / next</span></div>
             <div class="cd-rail-track" id="cdRailTrack"></div>
           </div>
         </section>
@@ -2274,42 +2266,22 @@
         '<span class="cd-rtxt"><span class="n">' + esc(x.name) + '</span><span class="s"><span class="cmp-dot" style="background:' + (st.dot || 'var(--color-neutral-4)') + '"></span>' + esc(st.label || x.stage) + (x.brand ? ' · ' + esc(x.brand) : '') + '</span></span></span>' +
       '<span class="cd-rfoot"><span>' + (want ? '<b>' + filled + '</b> / ' + want + ' slots' : '<span class="dash">No ask yet</span>') + '</span><span>' + esc(S.fmtRange(x.start, x.end) || '') + '</span></span></a>';
   }
-  /* How many whole cards fit, and the spacer that lets the last page
-     start on a card. Re-run on any resize. */
+  /* How many whole cards fit. Re-run on any resize. */
   var RAIL_GAP = 12, RAIL_MIN = 220;
   function railLayout(){
     var track = E('cdRailTrack'), W = track.clientWidth - 8; if (W <= 0) return;
     var n = Math.max(1, Math.floor((W + RAIL_GAP) / (RAIL_MIN + RAIL_GAP)));
-    var count = track.querySelectorAll('.cd-rcard').length;
-    var w = (W - RAIL_GAP * (n - 1)) / n;
-    var pad = ((n - (count % n)) % n) * (w + RAIL_GAP);
     track.style.setProperty('--rail-n', n);
-    track.style.setProperty('--rail-pad', pad.toFixed(2) + 'px');
-    /* A new page size leaves the old offset mid-card; re-align at once. */
+    /* A new card size leaves the old offset mid-card; re-align at once. */
     railFocus(true);
-    railArrows();
   }
-  /* The page of the row holding the current campaign, into view. */
+  /* The current campaign into view: the row scrolls so its card starts
+     the view, or as far as the row goes, which right-aligns the last
+     cards to the edge. */
   function railFocus(silent){
-    var track = E('cdRailTrack'), cards = Array.prototype.slice.call(track.querySelectorAll('.cd-rcard'));
-    var idx = cards.findIndex(function(x){ return x.classList.contains('is-current'); });
-    var n = Number(track.style.getPropertyValue('--rail-n')) || 1;
-    if (idx < 0) return;
-    track.scrollTo({left: Math.floor(idx / n) * (track.clientWidth - 8 + RAIL_GAP), behavior: silent || REDUCED ? 'auto' : 'smooth'});
+    var track = E('cdRailTrack'), cur = track.querySelector('.is-current'); if (!cur) return;
+    track.scrollTo({left: Math.max(0, cur.offsetLeft - track.offsetLeft - 4), behavior: silent || REDUCED ? 'auto' : 'smooth'});
   }
-  function railArrows(){
-    var track = E('cdRailTrack'), over = track.scrollWidth > track.clientWidth + 1;
-    E('cdRailPrev').hidden = !over; E('cdRailNext').hidden = !over;
-    E('cdRailPrev').disabled = track.scrollLeft <= 1;
-    E('cdRailNext').disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 1;
-  }
-  function railPage(dir){
-    var track = E('cdRailTrack');
-    track.scrollBy({left: dir * (track.clientWidth - 8 + RAIL_GAP), behavior: REDUCED ? 'auto' : 'smooth'});
-  }
-  E('cdRailPrev').addEventListener('click', function(){ railPage(-1); });
-  E('cdRailNext').addEventListener('click', function(){ railPage(1); });
-  E('cdRailTrack').addEventListener('scroll', railArrows, {passive: true});
   if (window.ResizeObserver) new ResizeObserver(function(){ if (E('cdRailTrack').children.length) railLayout(); }).observe(E('cdRailTrack'));
   function renderRail(){
     var track = E('cdRailTrack');
