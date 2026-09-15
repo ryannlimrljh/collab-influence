@@ -194,6 +194,16 @@
     @keyframes cmp-sk-pulse{0%,100%{opacity:1;} 50%{opacity:.45;}}
   }
 
+  /* ── Into a campaign: the card you clicked grows into the campaign's
+     hero and its name block flies up into the page title — a cross-page
+     view transition, named on click on the way out and on the hero and
+     header on the way in. Browsers without it just navigate. */
+  @view-transition { navigation: auto; }
+  ::view-transition-old(root), ::view-transition-new(root){animation-duration:.26s;}
+  ::view-transition-group(campaign-card), ::view-transition-group(campaign-head){animation-duration:.46s; animation-timing-function:var(--ease-settle);}
+  ::view-transition-old(campaign-card), ::view-transition-old(campaign-head){animation-duration:.22s;}
+  @media (prefers-reduced-motion:reduce){ @view-transition { navigation: none; } }
+
   /* ── Controls: search on the left, stage chips beside it. The row
      pins to the top of the scrolling column once the page runs past it,
      the way the tabs do on a campaign — bled out to the page edges so
@@ -918,8 +928,16 @@
     var kb = e.target.closest('[data-kebab-for]');
     if (kb) { e.stopPropagation(); if (menuAnchor === kb) return closeMenu(); return openMenu(kb, rowMenuHtml(byId(kb.dataset.kebabFor)), 'right'); }
     var tr = e.target.closest('tr[data-id]');
-    if (tr) location.href = 'campaign.html?id=' + encodeURIComponent(tr.dataset.id);
+    if (tr) openCampaign(tr.dataset.id, tr);
   });
+  /* Name what was clicked so the transition can grow it into the page. */
+  function openCampaign(id, from){
+    if (from) {
+      from.style.viewTransitionName = 'campaign-card';
+      var head = from.querySelector('.cmp-card-top'); if (head) head.style.viewTransitionName = 'campaign-head';
+    }
+    location.href = 'campaign.html?id=' + encodeURIComponent(id);
+  }
   menu.addEventListener('click', function(e){
     var b = e.target.closest('button'); if (!b) return;
     e.stopPropagation();
@@ -931,7 +949,7 @@
       render();
       toast(c.name + ' moved to ' + S.stageOf(b.dataset.setStage).label + '.');
     } else if (b.dataset.open) {
-      location.href = 'campaign.html?id=' + encodeURIComponent(b.dataset.open);
+      openCampaign(b.dataset.open, menuAnchor && menuAnchor.closest('.cmp-card, tr'));
     } else if (b.dataset.edit) {
       var rec = byId(b.dataset.edit), from = menuAnchor && menuAnchor.closest('.cmp-card, tr'); closeMenu();
       campaignForm.open({rec: rec, anchor: from || null, onSave: function(fields, id){
@@ -983,11 +1001,11 @@
   var board = E('cmpBoard'), dragId = null;
   board.addEventListener('click', function(e){
     var card = e.target.closest('.cmp-card[data-id]');
-    if (card) location.href = 'campaign.html?id=' + encodeURIComponent(card.dataset.id);
+    if (card) openCampaign(card.dataset.id, card);
   });
   board.addEventListener('keydown', function(e){
     var card = e.target.closest('.cmp-card[data-id]');
-    if (card && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); location.href = 'campaign.html?id=' + encodeURIComponent(card.dataset.id); }
+    if (card && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openCampaign(card.dataset.id, card); }
   });
   board.addEventListener('dragstart', function(e){
     var card = e.target.closest('.cmp-card[data-id]'); if (!card) return;

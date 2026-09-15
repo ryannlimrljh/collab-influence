@@ -26,6 +26,54 @@
      mark the media planner puts beside its title, resolved from the name. */
   .c-shell .c-pageheader{padding-top:var(--spacing-40); margin-bottom:0;}
   .cd-divider{border:none; border-top:1px solid var(--color-neutral-3); margin:var(--spacing-16) 0 var(--spacing-20);}
+  /* ── Into a campaign: the card you clicked grows into the campaign's
+     hero and its name block flies up into the page title — a cross-page
+     view transition, named on click on the way out and on the hero and
+     header on the way in. Browsers without it just navigate. */
+  @view-transition { navigation: auto; }
+  ::view-transition-old(root), ::view-transition-new(root){animation-duration:.26s;}
+  ::view-transition-group(campaign-card), ::view-transition-group(campaign-head){animation-duration:.46s; animation-timing-function:var(--ease-settle);}
+  ::view-transition-old(campaign-card), ::view-transition-old(campaign-head){animation-duration:.22s;}
+  @media (prefers-reduced-motion:reduce){ @view-transition { navigation: none; } }
+  .cd-hero{view-transition-name:campaign-card;}
+  .cd-headrow{view-transition-name:campaign-head;}
+  .cd-railbtn{margin-left:0;}
+  .cd-railbtn[aria-pressed="true"]{background:var(--color-neutral-2); color:var(--color-neutral-9);}
+  /* ── The campaigns rail: every campaign as a card between the header
+     and the hero, one keypress away, the current one outlined. Grid rows
+     from 0fr to 1fr so it slides open without animating height itself. */
+  .cd-rail{display:grid; grid-template-rows:0fr; opacity:0; margin-bottom:0;
+    transition:grid-template-rows .36s var(--ease-settle), opacity .24s var(--ease-standard), margin .36s var(--ease-settle);}
+  .cd-rail.is-on{grid-template-rows:1fr; opacity:1; margin-bottom:var(--spacing-20);}
+  .cd-rail-in{min-height:0; overflow:hidden;}
+  .cd-rail-head{display:flex; align-items:center; gap:var(--spacing-8); margin-bottom:var(--spacing-8);
+    font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
+  .cd-rail-head .hint{margin-left:auto; text-transform:none; letter-spacing:0; font-weight:600; display:inline-flex; align-items:center; gap:4px;}
+  .cd-rail-head kbd{font-family:inherit; font-size:10px; line-height:1; padding:3px 5px; border:1px solid var(--color-neutral-3); border-bottom-width:2px;
+    border-radius:4px; background:var(--color-neutral-1); color:var(--color-neutral-6);}
+  .cd-rail-track{display:flex; gap:var(--spacing-12); overflow-x:auto; padding:4px 2px var(--spacing-12); scrollbar-width:thin; scroll-snap-type:x proximity;}
+  .cd-rcard{flex:none; width:232px; display:flex; flex-direction:column; gap:var(--spacing-12); padding:var(--spacing-12) 14px;
+    background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); box-shadow:var(--shadow-1);
+    text-decoration:none; color:inherit; scroll-snap-align:start;
+    transition:transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);}
+  .cd-rcard:hover{transform:translateY(-2px); box-shadow:var(--shadow-2);}
+  .cd-rcard:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+  .cd-rcard.is-current{border-color:var(--color-obsidian); box-shadow:inset 0 0 0 1px var(--color-obsidian);}
+  .cd-rtop{display:flex; align-items:center; gap:10px; min-width:0;}
+  .cd-rlogo{width:30px; height:30px; flex:none; border-radius:var(--radius-sm); background:var(--color-neutral-2); border:1px solid var(--color-neutral-3);
+    display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:var(--color-neutral-6); overflow:hidden; position:relative;}
+  .cd-rlogo img{position:absolute; inset:0; width:100%; height:100%; object-fit:contain; padding:4px; box-sizing:border-box; background:var(--color-neutral-1);}
+  .cd-rlogo img[hidden]{display:none;}
+  .cd-rtxt{min-width:0; flex:1;}
+  .cd-rtxt .n{display:block; font-size:var(--text-body2-size); font-weight:700; color:var(--color-neutral-9); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cd-rtxt .s{display:flex; align-items:center; gap:6px; margin-top:1px; font-size:11px; color:var(--color-neutral-5); white-space:nowrap; overflow:hidden;}
+  .cd-rtxt .s .cmp-dot{width:6px; height:6px; border-radius:var(--radius-pill); flex:none;}
+  .cd-rfoot{display:flex; align-items:center; justify-content:space-between; gap:var(--spacing-8); font-size:11px; color:var(--color-neutral-5); white-space:nowrap;}
+  .cd-rfoot b{font-size:var(--text-body2-size); color:var(--color-neutral-9); font-variant-numeric:tabular-nums;}
+  .cd-rfoot .dash{color:var(--color-neutral-4);}
+  @media (prefers-reduced-motion:no-preference){
+    .cd-rail.is-on .cd-rcard{animation:cd-rise .32s var(--ease-settle) both; animation-delay:calc(var(--i, 0) * 28ms);}
+  }
   .cd-brandmark{flex:none; width:40px; height:40px; margin-top:2px; display:flex; align-items:center; justify-content:center;
     background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); overflow:hidden;}
   .cd-brandmark[hidden]{display:none;}
@@ -775,6 +823,7 @@
           <div class="c-pageheader-row">
             <div class="cd-headrow">
               <a class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-crumb" href="campaigns.html" aria-label="Back to campaigns" title="Back to campaigns"><i class="ph ph-arrow-left"></i></a>
+              <button class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-crumb cd-railbtn" type="button" id="cdRailBtn" aria-pressed="false" aria-controls="cdRail" aria-label="All campaigns" title="All campaigns · press C"><i class="ph ph-cards"></i></button>
               <span class="cd-brandmark" id="cdBrandMark" hidden><img id="cdBrandImg" alt="" /></span>
               <div class="c-pageheader-text">
                 <div class="cd-title">
@@ -792,6 +841,14 @@
           </div>
         </header>
         <hr class="cd-divider" />
+
+        <section class="cd-rail" id="cdRail" inert aria-label="All campaigns">
+          <div class="cd-rail-in">
+            <div class="cd-rail-head"><i class="ph ph-cards"></i> All campaigns
+              <span class="hint"><kbd>C</kbd> toggle · <kbd>[</kbd> <kbd>]</kbd> previous / next</span></div>
+            <div class="cd-rail-track" id="cdRailTrack"></div>
+          </div>
+        </section>
 
         <div class="cd-hero">
           <div class="cd-hero-main">
@@ -1709,6 +1766,7 @@
     reload();
     if (!c) return missing();
     renderHeader(); renderOverview(); renderKol(); renderDocs(); renderDrafts(); renderActivity();
+    if (railOpen()) renderRail();
     if (!renderAll.ran) { renderAll.ran = true; freshen(E('pan-' + tab)); }
   }
   /* ── Activity. */
@@ -2152,6 +2210,76 @@
     renderHeader();
   });
 
+  /* ── The campaigns rail. Every campaign as a compact card, the current
+     one outlined; C toggles it, [ and ] step to the neighbours. The
+     state is kept, so a rail left open is open on the next campaign. */
+  var RAIL_KEY = 'collab-campaign-rail';
+  function railOpen(){ return E('cdRail').classList.contains('is-on'); }
+  function railCard(x, i){
+    var st = S.stageOf(x.stage) || {};
+    var want = 0, filled = 0;
+    M.groupsOf(x, byInf).forEach(function(g){ want += g.want; g.fills.forEach(function(r){ if (r.state === 'confirmed') filled += 1; }); });
+    var cur = x.id === c.id;
+    return '<a class="cd-rcard' + (cur ? ' is-current' : '') + '" href="campaign.html?id=' + encodeURIComponent(x.id) + '" data-rail="' + esc(x.id) + '" style="--i:' + i + '"' + (cur ? ' aria-current="page"' : '') + '>' +
+      '<span class="cd-rtop"><span class="cd-rlogo" data-rail-logo="' + esc(x.brand || '') + '">' + esc(S.initials(x.brand || x.name)) + '<img alt="" hidden /></span>' +
+        '<span class="cd-rtxt"><span class="n">' + esc(x.name) + '</span><span class="s"><span class="cmp-dot" style="background:' + (st.dot || 'var(--color-neutral-4)') + '"></span>' + esc(st.label || x.stage) + (x.brand ? ' · ' + esc(x.brand) : '') + '</span></span></span>' +
+      '<span class="cd-rfoot"><span>' + (want ? '<b>' + filled + '</b> / ' + want + ' slots' : '<span class="dash">No ask yet</span>') + '</span><span>' + esc(S.fmtRange(x.start, x.end) || '') + '</span></span></a>';
+  }
+  function renderRail(){
+    var track = E('cdRailTrack');
+    track.innerHTML = S.merged().map(railCard).join('');
+    if (window.collabBrand) track.querySelectorAll('[data-rail-logo]').forEach(function(el){
+      var img = el.querySelector('img'), brand = el.dataset.railLogo; if (!brand) return;
+      window.collabBrand.attach(img, brand, function(ok){ img.hidden = !ok; });
+    });
+  }
+  function setRail(on, silent){
+    var rail = E('cdRail');
+    if (on) renderRail();
+    rail.classList.toggle('is-on', on);
+    if (on) rail.removeAttribute('inert'); else rail.setAttribute('inert', '');
+    E('cdRailBtn').setAttribute('aria-pressed', String(on));
+    try { localStorage.setItem(RAIL_KEY, on ? '1' : '0'); } catch (e) {}
+    if (on) {
+      var cur = E('cdRailTrack').querySelector('.is-current');
+      if (cur) setTimeout(function(){ cur.scrollIntoView({inline: 'center', block: 'nearest', behavior: silent || REDUCED ? 'auto' : 'smooth'}); }, silent ? 0 : 120);
+    }
+  }
+  /* Leaving for another campaign: hand the hero's and header's names to
+     the card being opened, so it is the card that grows into the next
+     page, and not two things claiming the same name. */
+  function goCampaign(id, fromEl){
+    document.querySelector('.cd-hero').style.viewTransitionName = 'none';
+    document.querySelector('.cd-headrow').style.viewTransitionName = 'none';
+    if (fromEl) {
+      fromEl.style.viewTransitionName = 'campaign-card';
+      var top = fromEl.querySelector('.cd-rtop'); if (top) top.style.viewTransitionName = 'campaign-head';
+    }
+    location.href = 'campaign.html?id=' + encodeURIComponent(id);
+  }
+  E('cdRailBtn').addEventListener('click', function(){ setRail(!railOpen()); });
+  E('cdRailTrack').addEventListener('click', function(e){
+    var a = e.target.closest('[data-rail]'); if (!a) return;
+    e.preventDefault();
+    if (a.dataset.rail === c.id) return;
+    goCampaign(a.dataset.rail, a);
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey || !c) return;
+    var t = e.target;
+    if (t && t.matches && t.matches('input, textarea, select, [contenteditable="true"]')) return;
+    if (window.swingModal && window.swingModal.isOpen()) return;
+    if (e.key === 'c' || e.key === 'C') { e.preventDefault(); setRail(!railOpen()); return; }
+    if (e.key === '[' || e.key === ']') {
+      var list = S.merged(), i = -1;
+      list.forEach(function(x, k){ if (x.id === c.id) i = k; });
+      var j = e.key === '[' ? i - 1 : i + 1;
+      if (i < 0 || j < 0 || j >= list.length) return;
+      e.preventDefault();
+      goCampaign(list[j].id, E('cdRailTrack').querySelector('[data-rail="' + list[j].id + '"]'));
+    }
+  });
+
   /* ── Add by hand happens on the influencers page, with its full
      search and filters; it comes back here with what was ticked. The
      band, if any, rides along so the fill lands in that slot. */
@@ -2201,6 +2329,8 @@
          would hold everything at its first, invisible frame. Skip it. */
       if (!document.hidden) E('cdContent').classList.add('cd-arriving');
       renderAll();
+      var railWas = false; try { railWas = localStorage.getItem(RAIL_KEY) === '1'; } catch (e) {}
+      if (railWas) setRail(true, true);
       setTimeout(function(){ E('cdContent').classList.remove('cd-arriving'); }, 900);
       if (addedByHand) {
         toast(addedByHand + (addedByHand === 1 ? ' creator' : ' creators') + ' added by hand.');
