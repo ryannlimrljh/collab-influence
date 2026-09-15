@@ -2,7 +2,9 @@
    module: a panel that flies out of the element you clicked and folds back
    into it on close. One instance per page; content is handed in as HTML.
 
-   swingModal.open({anchor, html, width, label, onClose})
+   swingModal.open({anchor, html, width, label, onClose, guard})
+   `guard` is a function; while it returns false, Escape and the backdrop
+   leave the modal open — for a form whose own popovers take Escape first.
    swingModal.setBody(html)   re-render the content while open
    swingModal.close() · isOpen() · panel()
 
@@ -79,7 +81,7 @@
     return String(name || '').split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w[0].toUpperCase(); }).join('') || '?';
   }
 
-  var host = null, panel = null, body = null, srcEl = null, srcRect = null, hideTimer = null, onCloseCb = null;
+  var host = null, panel = null, body = null, srcEl = null, srcRect = null, hideTimer = null, onCloseCb = null, guard = null;
   var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function ensure() {
@@ -92,8 +94,8 @@
     document.body.appendChild(host);
     panel = host.querySelector('.sw-panel'); body = host.querySelector('.sw-body');
     host.querySelector('.sw-close').addEventListener('click', close);
-    host.addEventListener('click', function (e) { if (e.target.closest('.sw-backdrop')) close(); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && isOpen()) { e.stopPropagation(); close(); } }, true);
+    host.addEventListener('click', function (e) { if (e.target.closest('.sw-backdrop')) request(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && isOpen()) { e.stopPropagation(); request(); } }, true);
   }
   function swingVars() {
     panel.classList.remove('is-swinging-open', 'is-swinging-closed');
@@ -109,12 +111,13 @@
     return true;
   }
   function isOpen() { return !!host && host.classList.contains('is-open'); }
+  function request() { if (guard && guard() === false) return; close(); }
   function open(o) {
     ensure();
     o = o || {};
     clearTimeout(hideTimer);
     srcEl = o.anchor || null; srcRect = srcEl ? srcEl.getBoundingClientRect() : null;
-    onCloseCb = o.onClose || null;
+    onCloseCb = o.onClose || null; guard = o.guard || null;
     panel.style.setProperty('--sw-w', (o.width || 480) + 'px');
     panel.setAttribute('aria-label', o.label || 'Details');
     body.innerHTML = o.html || '';
@@ -132,7 +135,7 @@
     hideTimer = setTimeout(function () {
       host.classList.remove('is-open'); host.setAttribute('aria-hidden', 'true');
       panel.classList.remove('is-swinging-closed');
-      body.innerHTML = '';
+      body.innerHTML = ''; guard = null;
       if (onCloseCb) { var cb = onCloseCb; onCloseCb = null; cb(); }
     }, REDUCED ? 0 : 560);
   }

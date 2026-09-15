@@ -76,7 +76,7 @@ shared/           generated data + small runtime helpers
                          deliverable states), every write, and the activity log those writes leave
   campaign-model.js      pure maths over a campaign: migration, slots and shortfall, the board's
                          groups, nextUp, deliverable counts. No DOM, no storage — this is what the tests hit
-  campaign-form.js       the stepped Add / Edit campaign sheet, shared by both campaign pages
+  campaign-form.js       the stepped Add / Edit campaign form, shared by both campaign pages; opens inside swing-modal
   send-sheet.js          the "send this list to the client" sheet, shared by the roster and campaign pages
   swing-modal.js         the fold-out card modal (flies out of what you clicked) and the influencer
                          profile view inside it; the campaign page uses it for profiles and batches

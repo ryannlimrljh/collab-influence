@@ -186,6 +186,7 @@ document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && DD
        it again on an already-enhanced select just re-syncs the label. */
     enhance: function (sel, o) { injectCSS(); return enhanceSelect(sel, o); },
     close: closeDD,
-    sync: ddSync
+    sync: ddSync,
+    isOpen: function () { return !!DD_OPEN; }
   };
 })();

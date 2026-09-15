@@ -928,11 +928,11 @@
 <script src="../shared/campaigns-data.js?v=6"></script>
 <script src="../shared/tiers.js?v=1"></script>
 <script src="../shared/campaign-model.js?v=8"></script>
-<script src="../shared/dropdown.js?v=2"></script>
+<script src="../shared/dropdown.js?v=3"></script>
 <script src="../shared/campaign-store.js?v=10"></script>
-<script src="../shared/campaign-form.js?v=13"></script>
+<script src="../shared/campaign-form.js?v=14"></script>
 <script src="../shared/send-sheet.js?v=34"></script>
-<script src="../shared/swing-modal.js?v=1"></script>
+<script src="../shared/swing-modal.js?v=2"></script>
 <script>
 (function () {
   'use strict';
@@ -1203,7 +1203,7 @@
   E('cdNext').addEventListener('click', function(e){
     var b = e.target.closest('[data-next]'); if (!b) return;
     var a = b.dataset.next;
-    if (a === 'ask') return campaignForm.open({rec: c, step: 2, onSave: saveEdit});
+    if (a === 'ask') return campaignForm.open({rec: c, step: 2, anchor: b, onSave: saveEdit});
     if (a === 'won') return moveStage('sourcing');
     if (a === 'send') return startSend(null);
     if (a === 'confirm') { setTab('selection'); return flashPending(); }
@@ -1350,7 +1350,7 @@
   }
 
   E('pan-overview').addEventListener('click', function(e){
-    if (e.target.closest('[data-edit-ask]')) return campaignForm.open({rec: c, step: 2, onSave: saveEdit});
+    if (e.target.closest('[data-edit-ask]')) return campaignForm.open({rec: c, step: 2, anchor: e.target.closest('[data-edit-ask]'), onSave: saveEdit});
     var go = e.target.closest('[data-go-tab]'); if (go) setTab(go.dataset.goTab);
   });
 
@@ -2031,7 +2031,7 @@
       toast('Batch ' + dn + (db && db.name ? ' · ' + db.name : '') + ' deleted.', 'danger');
       return;
     }
-    if (e.target.closest('[data-edit-ask]')) return campaignForm.open({rec: c, step: 2, onSave: saveEdit});
+    if (e.target.closest('[data-edit-ask]')) return campaignForm.open({rec: c, step: 2, anchor: e.target.closest('[data-edit-ask]'), onSave: saveEdit});
     if (e.target.closest('#cdNewBatch') || e.target.closest('[data-new-list]')) return startSend(null);
     var sb = e.target.closest('[data-send-band]');
     if (sb) { var ps = sb.dataset.sendBand.split('/'); return startSend({platform: ps[0], tier: ps[1]}); }
@@ -2315,7 +2315,7 @@
 
   /* ── Header actions. */
   E('cdEdit').addEventListener('click', function(){
-    campaignForm.open({rec: c, onSave: saveEdit});
+    campaignForm.open({rec: c, anchor: E('cdEdit'), onSave: saveEdit});
   });
   E('cdShare').addEventListener('click', function(){ startSend(null); });
   var delScrim = E('cdDelScrim');

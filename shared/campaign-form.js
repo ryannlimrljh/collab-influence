@@ -1,6 +1,9 @@
-/* Campaign form — the stepped Add / Edit sheet, shared by the list and
+/* Campaign form — the stepped Add / Edit form, shared by the list and
    the campaign page. One module so both open the identical form; it
    injects its own markup and styles and hands the caller a clean record.
+   It lives inside the shared fold-out modal (swing-modal.js): the form
+   flies out of the button that opened it and folds back on close, the
+   way a profile does on the influencers page.
 
    Three steps, in order of importance: Basics (what it is, who runs it,
    when), The ask (what we need from the client, per channel and tier —
@@ -8,8 +11,8 @@
    (IO, money, the split). A lead is a switch on step 1, not a stage to
    find in a dropdown; leads skip Commercials.
 
-   Contract, unchanged from the flat form: open({rec, draft, onSave, step});
-   onSave(fields, editingId). `fields` carries `requirement`, and `pax` and
+   Contract: open({rec, draft, onSave, step, anchor}); onSave(fields,
+   editingId). `anchor` is the element the form should fold out of. `fields` carries `requirement`, and `pax` and
    `platforms` derived from it, so callers save with a plain add/update. */
 (function () {
   'use strict';
@@ -27,8 +30,8 @@
   };
 
   var CSS = '\
-.cf-sheet{width:min(760px, calc(100vw - var(--spacing-32))); padding:0; gap:0; overflow:hidden;}\
-.cf-head{padding:var(--spacing-24) var(--spacing-24) var(--spacing-16); border-bottom:1px solid var(--color-neutral-3);}\
+.cf-sheet{display:flex; flex-direction:column; flex:1; min-height:0;}\
+.cf-head{flex:none; padding:var(--spacing-24) var(--spacing-48) var(--spacing-16) var(--spacing-24); border-bottom:1px solid var(--color-neutral-3);}\
 .cf-head h3{margin:0; font-size:var(--text-h4-size); line-height:var(--text-h4-lh); font-weight:var(--text-h4-weight);}\
 .cf-head .c-cbrief-source{margin:4px 0 0;}\
 .cf-steps{display:flex; align-items:center; margin-top:var(--spacing-16);}\
@@ -43,7 +46,7 @@
 .cf-stepline{flex:1; height:2px; min-width:16px; background:var(--color-neutral-3); margin:0 4px; border-radius:1px;}\
 .cf-stepline.is-done{background:var(--color-neutral-9);}\
 .cf-stepline[hidden]{display:none;}\
-.cf-body{padding:var(--spacing-24); overflow-y:auto; max-height:calc(100dvh - var(--spacing-60) - 200px);}\
+.cf-body{flex:1; min-height:0; padding:var(--spacing-24); overflow-y:auto;}\
 .cf-step{display:none; animation:cf-fade var(--duration-fast) var(--ease-standard) both;}\
 .cf-step.is-on{display:block;}\
 @keyframes cf-fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}\
@@ -65,7 +68,7 @@
 .cf-lead .t{font-size:var(--text-body2-size); font-weight:700; color:var(--color-neutral-9);}\
 .cf-lead .s{display:block; font-size:var(--text-caption-size); color:var(--color-neutral-5); margin-top:2px;}\
 .cf-intro{margin:0 0 var(--spacing-16); font-size:var(--text-body2-size); color:var(--color-neutral-5);}\
-.cf-foot{display:flex; align-items:center; gap:var(--spacing-8); padding:var(--spacing-16) var(--spacing-24); border-top:1px solid var(--color-neutral-3); background:var(--color-neutral-1);}\
+.cf-foot{flex:none; display:flex; align-items:center; gap:var(--spacing-8); padding:var(--spacing-16) var(--spacing-24); border-top:1px solid var(--color-neutral-3); background:var(--color-neutral-1);}\
 .cf-foot .grow{flex:1;}\
 .cf-foot .cf-skip{font-size:var(--text-caption-size); color:var(--color-neutral-5); background:transparent; border:0; font-family:inherit; cursor:pointer; text-decoration:underline; text-underline-offset:3px;}\
 .cf-foot .cf-skip:hover{color:var(--color-neutral-9);}\
@@ -130,10 +133,8 @@
 @media (max-width:640px){ .cf-grid{grid-template-columns:1fr;} .cf-line-h, .cf-line{grid-template-columns:1fr 1fr 80px 32px;} .cf-stepbtn .lbl{display:none;} .cf-stepbtn.is-on .lbl{display:inline;} }';
 
   var HTML = '\
-<div class="c-cbrief-scrim" id="cfScrim">\
-  <div class="c-cbrief cf-sheet" role="dialog" aria-modal="true" aria-labelledby="cfTitle">\
+  <div class="cf-sheet" id="cfSheet">\
     <div class="cf-head">\
-      <button class="c-cbrief-close" type="button" id="cfClose" aria-label="Close form"><i class="ph ph-x"></i></button>\
       <span class="c-herocard-eyebrow" id="cfEyebrow">New campaign</span>\
       <h3 id="cfTitle">Add new campaign</h3>\
       <p class="c-cbrief-source" id="cfSub">Start with the basics; the ask and the numbers can follow.</p>\
@@ -207,18 +208,25 @@
       <button class="c-btn c-btn-ghost c-btn-md" type="button" id="cfCancel">Cancel</button>\
       <button class="c-btn c-btn-primary c-btn-md" type="button" id="cfNext">Next: the ask <i class="ph ph-arrow-right"></i></button>\
     </div>\
-  </div>\
-</div>';
+  </div>';
 
   var style = document.createElement('style');
   style.textContent = CSS;
   document.head.appendChild(style);
+  /* The form is built once and kept off the page; open() drops it into
+     the modal's body, close() leaves it there until the modal empties
+     itself. Lookups go through the sheet so they work detached too. */
   var host = document.createElement('div');
   host.innerHTML = HTML;
-  document.body.appendChild(host.firstElementChild);
+  var sheet = host.firstElementChild;
 
-  var F = function (id) { return document.getElementById(id); };
-  var scrim = F('cfScrim');
+  var F = function (id) { return sheet.querySelector('#' + id); };
+  function modal() { return window.swingModal; }
+  /* An open dropdown or date picker takes Escape and the backdrop first. */
+  function popoverOpen() {
+    return !!((window.collabDropdown && window.collabDropdown.isOpen && window.collabDropdown.isOpen()) ||
+      sheet.querySelector('.cf-dp-panel:not([hidden])'));
+  }
   var onSave = null, editing = null, wasLead = false;
   var step = 1, isLead = false, color = 'obsidian';
   var plats = [];            /* channels with an ask, derived from the lines */
@@ -337,7 +345,7 @@
       return (i ? '<span class="cf-stepline' + (m.n <= step ? ' is-done' : '') + '"></span>' : '') +
         '<button type="button" class="cf-stepbtn ' + cls + '" data-go="' + m.n + '" role="tab" aria-selected="' + (m.n === step) + '">' + ind + '<span class="lbl">' + m.label + '</span></button>';
     }).join('');
-    document.querySelectorAll('.cf-step').forEach(function (p) { p.classList.toggle('is-on', Number(p.dataset.step) === step); });
+    sheet.querySelectorAll('.cf-step').forEach(function (p) { p.classList.toggle('is-on', Number(p.dataset.step) === step); });
     F('cfBack').style.visibility = step > 1 ? '' : 'hidden';
     var last = step === count;
     F('cfNext').innerHTML = last
@@ -348,7 +356,7 @@
       ? (editing ? 'Update the basics, the ask or the numbers.' : 'Start with the basics; the ask and the numbers can follow.')
       : step === 2 ? 'This is what the client picks against. It drives pax and platforms.'
       : 'Leave anything you do not have yet.';
-    var body = scrim.querySelector('.cf-body'); if (body) body.scrollTop = 0;
+    var body = sheet.querySelector('.cf-body'); if (body) body.scrollTop = 0;
   }
   function goto(n) {
     if (n > step && !validateStep(step)) return;
@@ -544,9 +552,10 @@
     if (badEnd) { F('cf-end').focus(); return false; }
     return true;
   }
+  function isOpen() { return !!(modal() && modal().isOpen() && sheet.isConnected); }
   function close() {
-    scrim.classList.remove('is-open');
     onSave = null; editing = null;
+    if (isOpen()) modal().close();
   }
   function submit() {
     if (!validateStep(1)) { goto(1); return; }
@@ -570,13 +579,8 @@
   enhanceSelect(F('cf-overseer'), {placeholder: 'Nobody'});
   enhanceSelect(F('cf-sales'), {placeholder: 'Nobody yet', addNew: 'Add a new salesperson', onAdd: function (n) { S.addSalesperson(n); }});
 
-  F('cfClose').addEventListener('click', close);
   F('cfCancel').addEventListener('click', close);
-  scrim.addEventListener('click', function (e) { if (e.target === scrim) close(); });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && scrim.classList.contains('is-open')) close();
-  });
-  scrim.addEventListener('click', function (e) {
+  sheet.addEventListener('click', function (e) {
     var chk = e.target.closest('.cf-check');
     if (chk) {
       var box = chk.querySelector('.c-checkbox-box');
@@ -744,6 +748,7 @@
        step opens on a given step (2 = the ask). onSave(fields, editingId). */
     open: function (o) {
       o = o || {};
+      if (!modal()) return;
       editing = o.rec ? o.rec.id : null;
       onSave = o.onSave || null;
       F('cfEyebrow').textContent = editing ? 'Edit campaign' : 'New influencer campaign';
@@ -752,10 +757,16 @@
       step = 1;
       if (o.step) step = Math.max(1, Math.min(stepCount(), o.step));
       renderSteps();
-      scrim.classList.add('is-open');
+      var body = modal().open({
+        anchor: o.anchor || null, width: 760,
+        label: editing ? 'Edit campaign' : 'Add new campaign',
+        guard: function () { return !popoverOpen(); },
+        onClose: function () { onSave = null; editing = null; }
+      });
+      body.appendChild(sheet);
       if (step === 1) setTimeout(function () { F('cf-name').focus(); }, 260);
     },
     close: close,
-    isOpen: function () { return scrim.classList.contains('is-open'); }
+    isOpen: isOpen
   };
 })();

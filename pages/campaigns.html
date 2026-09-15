@@ -524,10 +524,11 @@
 <script src="../shared/shell.js?v=0.9.47"></script>
 <script src="../shared/campaigns-data.js?v=6"></script>
 <script src="../shared/tiers.js?v=1"></script>
-<script src="../shared/dropdown.js?v=2"></script>
+<script src="../shared/dropdown.js?v=3"></script>
 <script src="../shared/campaign-store.js?v=10"></script>
 <script src="../shared/campaign-model.js?v=8"></script>
-<script src="../shared/campaign-form.js?v=13"></script>
+<script src="../shared/swing-modal.js?v=2"></script>
+<script src="../shared/campaign-form.js?v=14"></script>
 <script>
 (function () {
   'use strict';
@@ -946,8 +947,8 @@
     } else if (b.dataset.open) {
       location.href = 'campaign.html?id=' + encodeURIComponent(b.dataset.open);
     } else if (b.dataset.edit) {
-      var rec = byId(b.dataset.edit); closeMenu();
-      campaignForm.open({rec: rec, onSave: function(fields, id){
+      var rec = byId(b.dataset.edit), from = menuAnchor && menuAnchor.closest('.cmp-card, tr'); closeMenu();
+      campaignForm.open({rec: rec, anchor: from || null, onSave: function(fields, id){
         S.update(id, fields); render(id); toast('Changes saved.');
       }});
     } else if (b.dataset.del) {
@@ -1065,7 +1066,7 @@
      first preview batch, which is what the selection was for. */
   var handoffPicks = (params.get('picks') || '').split(',').filter(Boolean);
   function openAdd(){
-    campaignForm.open({onSave: function(fields){
+    campaignForm.open({anchor: E('cmpAddBtn'), onSave: function(fields){
       var id = S.add(fields);
       if (handoffPicks.length) {
         var n = S.addBatch(id, {name: 'Batch 1', infIds: handoffPicks});
