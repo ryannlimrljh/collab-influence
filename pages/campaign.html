@@ -84,6 +84,10 @@
     scroll-snap-type:x mandatory; scroll-padding-left:var(--page-gutter);
     scrollbar-width:none; -ms-overflow-style:none;}
   .cd-rail-track::-webkit-scrollbar{display:none;}
+  /* The row ends the way it starts: the last card on the content margin.
+     A real spacer, not padding — trailing padding on a scroller is
+     unreliable across browsers. */
+  .cd-rail-track::after{content:''; flex:none; width:calc(var(--page-gutter) - 12px);}
   .cd-rcard{flex:none; width:232px; display:flex; flex-direction:column; gap:var(--spacing-12); padding:var(--spacing-12) 14px;
     background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); box-shadow:var(--shadow-1);
     text-decoration:none; color:inherit; scroll-snap-align:start;
