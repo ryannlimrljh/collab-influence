@@ -90,3 +90,22 @@ a.c-sidebar-item{text-decoration:none;}
    particular load order. */
 .c-dept-option[aria-disabled="true"]{opacity:.45; cursor:default;}
 .c-dept-option[aria-disabled="true"]:hover{background:transparent;}
+
+/* ── `hidden` has to actually hide.
+
+   The attribute is only a UA-level presentational hint, so any author
+   rule carrying a display beats it — and .c-btn sets display:inline-flex.
+   A button with the attribute therefore stays on screen, which is how the
+   influencer selection bar came to show two "Create Selection List"
+   buttons: #infSelSheet is meant to appear only in campaign mode, beside
+   a primary relabelled "Add to campaign", and it had never once been
+   hidden.
+
+   The project had been answering this one component at a time — fifteen
+   separate `[hidden]{display:none}` patches across the pages, the shared
+   modules and the DLS, each written the day someone hit it on a new
+   element. This says it once, for anything that has a display. Nothing
+   anywhere tries to reveal a [hidden] element, and the two marks that do
+   toggle display in JS carry an inline style rather than the attribute,
+   so there is nothing for !important to fight. */
+[hidden]{display:none !important;}
