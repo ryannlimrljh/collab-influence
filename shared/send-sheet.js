@@ -385,6 +385,7 @@
     '  color:var(--color-neutral-6); cursor:pointer; display:flex; align-items:center; gap:6px;}',
     '.ss-modal .c-table tr.ss-more button:hover{color:var(--color-neutral-9);}',
     '.ss-warn{margin-top:var(--spacing-12);}',
+    '.ss-warn .ss-sub{margin-top:6px; font-weight:400; opacity:.75;}',
     '.ss-err{margin:var(--spacing-12) 0 0; color:var(--color-red); font-size:var(--text-caption-size);}',
     '@media (max-width:600px){ .ss-dest, .ss-grid{grid-template-columns:1fr;}',
     '  .ss-modal .c-table th.n, .ss-modal .c-table td.n{width:64px;}',
@@ -751,10 +752,14 @@
                     '<i class="ph-fill ph-warning icon"></i><div class="body"><p class="message">' +
                     sum.shortBands + (sum.shortBands === 1 ? ' band has' : ' bands have') +
                     ' fewer profiles than you are asking the client to pick. You can still send — ' +
-                    'they will see the number and not be able to reach it.' +
-                    (state.fillNote ? ' <b>' + esc(state.fillNote) + '</b>' : '') + '</p>' +
+                    'they will see the number and not be able to reach it.</p>' +
+                    '<p class="message ss-sub">Closing the gaps adds the biggest accounts in ' +
+                    'each short band from your influencer list — never anyone already on this ' +
+                    'list, already booked on this campaign, or already turned down by this ' +
+                    'client. You can drop any of them below afterwards.</p>' +
+                    (state.fillNote ? '<p class="message"><b>' + esc(state.fillNote) + '</b></p>' : '') +
                     '<div class="actions"><button type="button" class="action" data-ss="fill">' +
-                    'Fill the gaps from the roster</button></div></div></div>'
+                    'Add profiles to close the gaps</button></div></div></div>'
                   : (state.fillNote
                     ? '<div class="c-banner c-banner-success ss-warn">' +
                       '<i class="ph-fill ph-check-circle icon"></i><div class="body">' +
