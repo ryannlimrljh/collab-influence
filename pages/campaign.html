@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
 <link rel="stylesheet" href="../collabrium-dls/tokens.css?v=0.9.41c" />
 <link rel="stylesheet" href="../collabrium-dls/components.css?v=0.9.41c" />
-<link rel="stylesheet" href="../shared/shell.css?v=0.9.44" />
+<link rel="stylesheet" href="../shared/shell.css?v=0.9.45" />
 <style>
   /* Page-local. Composes tokens only — no new colors, radii, or spacing. */
   .c-shell .c-shell-content{padding-top:0;}
@@ -54,6 +54,14 @@
   @media (prefers-reduced-motion:reduce){ @view-transition { navigation: none; } }
   .cd-hero{view-transition-name:campaign-card;}
   .cd-headrow{view-transition-name:campaign-head;}
+  /* The second fold — tabs, then panels — waits for the card to land,
+     then rises in: nothing below the hero competes with the expansion. */
+  .cd-tabs{view-transition-name:campaign-tabs;}
+  .cd-panels{view-transition-name:campaign-body;}
+  @keyframes cd-vt-rise{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
+  ::view-transition-old(campaign-tabs), ::view-transition-old(campaign-body){animation:none; opacity:0;}
+  ::view-transition-new(campaign-tabs){animation:cd-vt-rise .38s var(--ease-settle) .30s both;}
+  ::view-transition-new(campaign-body){animation:cd-vt-rise .42s var(--ease-settle) .38s both;}
   /* ── The campaigns rail: every campaign as a card between the header
      and the hero, one keypress away, the current one outlined. Grid rows
      from 0fr to 1fr so it slides open without animating height itself. */
@@ -66,10 +74,10 @@
   .cd-rail-head .hint{margin-left:auto; text-transform:none; letter-spacing:0; font-weight:600; display:inline-flex; align-items:center; gap:4px;}
   .cd-rail-head kbd{font-family:inherit; font-size:10px; line-height:1; padding:3px 5px; border:1px solid var(--color-neutral-3); border-bottom-width:2px;
     border-radius:4px; background:var(--color-neutral-1); color:var(--color-neutral-6);}
-  .cd-rail-track{display:flex; gap:var(--spacing-12); overflow-x:auto; padding:4px 2px var(--spacing-12); scrollbar-width:thin; scroll-snap-type:x proximity;}
-  .cd-rcard{flex:none; width:232px; display:flex; flex-direction:column; gap:var(--spacing-12); padding:var(--spacing-12) 14px;
+  .cd-rail-track{display:grid; grid-template-columns:repeat(auto-fit, minmax(176px, 1fr)); gap:var(--spacing-12); padding:4px 2px var(--spacing-12);}
+  .cd-rcard{min-width:0; display:flex; flex-direction:column; gap:var(--spacing-12); padding:var(--spacing-12) 14px;
     background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); box-shadow:var(--shadow-1);
-    text-decoration:none; color:inherit; scroll-snap-align:start;
+    text-decoration:none; color:inherit;
     transition:transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);}
   .cd-rcard:hover{transform:translateY(-2px); box-shadow:var(--shadow-2);}
   .cd-rcard:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
@@ -83,7 +91,7 @@
   .cd-rtxt .n{display:block; font-size:var(--text-body2-size); font-weight:700; color:var(--color-neutral-9); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .cd-rtxt .s{display:flex; align-items:center; gap:6px; margin-top:1px; font-size:11px; color:var(--color-neutral-5); white-space:nowrap; overflow:hidden;}
   .cd-rtxt .s .cmp-dot{width:6px; height:6px; border-radius:var(--radius-pill); flex:none;}
-  .cd-rfoot{display:flex; align-items:center; justify-content:space-between; gap:var(--spacing-8); font-size:11px; color:var(--color-neutral-5); white-space:nowrap;}
+  .cd-rfoot{display:flex; align-items:center; justify-content:space-between; gap:4px var(--spacing-8); flex-wrap:wrap; font-size:11px; color:var(--color-neutral-5); white-space:nowrap;}
   .cd-rfoot b{font-size:var(--text-body2-size); color:var(--color-neutral-9); font-variant-numeric:tabular-nums;}
   .cd-rfoot .dash{color:var(--color-neutral-4);}
   @media (prefers-reduced-motion:no-preference){
@@ -2255,10 +2263,6 @@
     if (on) rail.removeAttribute('inert'); else rail.setAttribute('inert', '');
     E('cdRailBtn').setAttribute('aria-pressed', String(on));
     try { localStorage.setItem(RAIL_KEY, on ? '1' : '0'); } catch (e) {}
-    if (on) {
-      var cur = E('cdRailTrack').querySelector('.is-current');
-      if (cur) setTimeout(function(){ cur.scrollIntoView({inline: 'center', block: 'nearest', behavior: silent || REDUCED ? 'auto' : 'smooth'}); }, silent ? 0 : 120);
-    }
   }
   /* Leaving for another campaign: hand the hero's and header's names to
      the card being opened, so it is the card that grows into the next
