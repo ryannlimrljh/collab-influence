@@ -312,10 +312,10 @@
   /* The two columns share one row: the people card stretches to the
      height of the lists column, never below its own floor. */
   .cd-selgrid{display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:var(--spacing-16); align-items:stretch;}
-  .cd-people{grid-column:span 4; min-height:340px; display:flex; flex-direction:column;}
-  .cd-people .cd-people-empty{flex:1; display:flex; flex-direction:column; justify-content:center;}
+  .cd-selpeople{grid-column:span 4; min-height:340px; display:flex; flex-direction:column;}
+  .cd-selpeople .cd-people-empty{flex:1; display:flex; flex-direction:column; justify-content:center;}
   .cd-lists-col{grid-column:span 2; min-width:0;}
-  @media (max-width:1000px){ .cd-people, .cd-lists-col{grid-column:span 6;} }
+  @media (max-width:1000px){ .cd-selpeople, .cd-lists-col{grid-column:span 6;} }
   .cd-bulk{display:flex; align-items:center; gap:var(--spacing-8); flex-wrap:wrap; padding:8px 12px; margin:0 0 var(--spacing-4);
     background:var(--color-neutral-2); border-radius:var(--radius-md); font-size:var(--text-caption-size); color:var(--color-neutral-9);}
   .cd-bulk b{font-weight:800;}
@@ -1360,7 +1360,7 @@
     Object.keys(picked).forEach(function(k){ if (!byPerson[k]) delete picked[k]; });
     var nPicked = Object.keys(picked).length;
     var pendingPicked = order.filter(function(inf){ return picked[inf] && byPerson[inf].some(function(r){ return r.state === 'approved'; }); }).length;
-    var people = '<div class="cd-card cd-people"><div class="cd-card-h"><span class="cd-chip water"><i class="ph ph-users"></i></span>Selected influencers' +
+    var people = '<div class="cd-card cd-selpeople"><div class="cd-card-h"><span class="cd-chip water"><i class="ph ph-users"></i></span>Selected influencers' +
       (order.length ? '<span class="cd-lists-h" style="margin:0"><span class="sub">' + order.length + ' on the campaign</span></span>' : '') +
       '<span class="r"><button class="c-btn c-btn-ghost c-btn-sm" type="button" data-add-band=""><i class="ph ph-plus"></i> Add by hand</button>' +
       '<button class="c-btn c-btn-primary c-btn-sm" type="button" id="cdNewBatch"><i class="ph ph-plus"></i> Create Selection List</button></span></div>';
