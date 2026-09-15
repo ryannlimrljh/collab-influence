@@ -25,7 +25,24 @@
   /* The DLS page header every Collabrium page opens with, plus the brand
      mark the media planner puts beside its title, resolved from the name. */
   .c-shell .c-pageheader{padding-top:var(--spacing-40); margin-bottom:0;}
-  .cd-divider{border:none; border-top:1px solid var(--color-neutral-3); margin:var(--spacing-16) 0 var(--spacing-20);}
+  /* The divider carries the rail's handle in its middle — a small pill
+     sitting on the line, right where the rail opens — so the title row
+     stays back, brand, name, stage and the actions. */
+  .cd-divider{display:flex; align-items:center; gap:var(--spacing-12); margin:var(--spacing-16) 0 var(--spacing-20);}
+  .cd-divider::before, .cd-divider::after{content:''; flex:1; border-top:1px solid var(--color-neutral-3);}
+  .cd-railbtn{display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 10px 0 9px; border-radius:var(--radius-pill);
+    border:1px solid var(--color-neutral-3); background:var(--color-neutral-1); font:inherit; font-size:11px; font-weight:700;
+    letter-spacing:.01em; color:var(--color-neutral-6); cursor:pointer; white-space:nowrap;
+    transition:color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard),
+      background var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);}
+  .cd-railbtn .ph{font-size:13px;}
+  .cd-railbtn .chev{transition:transform .22s var(--ease-settle);}
+  .cd-railbtn kbd{font-family:inherit; font-size:10px; line-height:1; padding:2px 4px; border:1px solid var(--color-neutral-3); border-radius:3px; color:var(--color-neutral-5); background:var(--color-neutral-1);}
+  .cd-railbtn:hover{color:var(--color-neutral-9); border-color:var(--color-neutral-4); box-shadow:var(--shadow-1); transform:translateY(-1px);}
+  .cd-railbtn:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+  .cd-railbtn[aria-pressed="true"]{background:var(--color-obsidian); border-color:var(--color-obsidian); color:var(--color-neutral-1);}
+  .cd-railbtn[aria-pressed="true"] kbd{border-color:rgba(255,255,255,.3); color:rgba(255,255,255,.75); background:transparent;}
+  .cd-railbtn[aria-pressed="true"] .chev{transform:rotate(180deg);}
   /* ── Into a campaign: the card you clicked grows into the campaign's
      hero and its name block flies up into the page title — a cross-page
      view transition, named on click on the way out and on the hero and
@@ -37,8 +54,6 @@
   @media (prefers-reduced-motion:reduce){ @view-transition { navigation: none; } }
   .cd-hero{view-transition-name:campaign-card;}
   .cd-headrow{view-transition-name:campaign-head;}
-  .cd-railbtn{margin-left:0;}
-  .cd-railbtn[aria-pressed="true"]{background:var(--color-neutral-2); color:var(--color-neutral-9);}
   /* ── The campaigns rail: every campaign as a card between the header
      and the hero, one keypress away, the current one outlined. Grid rows
      from 0fr to 1fr so it slides open without animating height itself. */
@@ -823,7 +838,6 @@
           <div class="c-pageheader-row">
             <div class="cd-headrow">
               <a class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-crumb" href="campaigns.html" aria-label="Back to campaigns" title="Back to campaigns"><i class="ph ph-arrow-left"></i></a>
-              <button class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-crumb cd-railbtn" type="button" id="cdRailBtn" aria-pressed="false" aria-controls="cdRail" aria-label="All campaigns" title="All campaigns · press C"><i class="ph ph-cards"></i></button>
               <span class="cd-brandmark" id="cdBrandMark" hidden><img id="cdBrandImg" alt="" /></span>
               <div class="c-pageheader-text">
                 <div class="cd-title">
@@ -840,12 +854,13 @@
             </div>
           </div>
         </header>
-        <hr class="cd-divider" />
+        <div class="cd-divider" role="separator">
+          <button class="cd-railbtn" type="button" id="cdRailBtn" aria-pressed="false" aria-controls="cdRail" title="Every campaign as a card · press C"><i class="ph ph-cards"></i> All campaigns <kbd>C</kbd><i class="ph ph-caret-down chev"></i></button>
+        </div>
 
         <section class="cd-rail" id="cdRail" inert aria-label="All campaigns">
           <div class="cd-rail-in">
-            <div class="cd-rail-head"><i class="ph ph-cards"></i> All campaigns
-              <span class="hint"><kbd>C</kbd> toggle · <kbd>[</kbd> <kbd>]</kbd> previous / next</span></div>
+            <div class="cd-rail-head"><span class="hint"><kbd>C</kbd> toggle · <kbd>[</kbd> <kbd>]</kbd> previous / next</span></div>
             <div class="cd-rail-track" id="cdRailTrack"></div>
           </div>
         </section>
