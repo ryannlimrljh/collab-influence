@@ -45,7 +45,7 @@ test('every batch carries an integer number', () => {
 });
 
 test('seeded activity is well-formed and in time order', () => {
-  const TYPES = ['create', 'stage', 'batch', 'answer', 'roster', 'edit', 'note'];
+  const TYPES = ['create', 'stage', 'batch', 'answer', 'roster', 'edit', 'note', 'deliverable', 'file'];
   for (const c of win.CAMPAIGNS) {
     const a = c.activity || [];
     let last = '';
