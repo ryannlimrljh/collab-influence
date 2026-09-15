@@ -106,7 +106,7 @@
      the trailing edge of a scroller is unreliable across browsers, a
      real track is not. Columns therefore slide under the page edge
      instead of being cropped at the content column. */
-  .cmp-board{display:grid; grid-template-columns:repeat(6, minmax(288px, 1fr)) var(--page-gutter);
+  .cmp-board{display:grid; grid-template-columns:repeat(var(--cols, 7), minmax(288px, 1fr)) var(--page-gutter);
     gap:var(--spacing-16); align-items:stretch; overflow-x:auto; padding-bottom:var(--spacing-12);
     margin:0 calc(var(--page-gutter) * -1); padding-left:var(--page-gutter);
     scrollbar-width:thin; scroll-padding-left:var(--page-gutter);}
@@ -793,6 +793,7 @@
   function renderBoard(){
     var counts = stageCounts();
     var visible = all.filter(function(c){ return !query || matches(Object.assign({}, c, {stage: stageFilter || c.stage})); });
+    E('cmpBoard').style.setProperty('--cols', S.STAGES.length);
     E('cmpBoard').innerHTML = S.STAGES.map(function(s){
       var cards = visible.filter(function(c){ return c.stage === s.key; });
       return '<div class="cmp-col' + (s.key === 'lead' ? ' is-ghost' : '') + (stageFilter && stageFilter !== s.key ? ' is-dim' : '') + '" data-col="' + s.key + '">' +
