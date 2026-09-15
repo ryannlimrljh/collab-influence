@@ -524,6 +524,10 @@
   .cd-list .ans b{color:var(--color-neutral-9); font-weight:800;}
   .cd-list .foot{display:flex; align-items:center; gap:var(--spacing-4); margin-top:var(--spacing-12); padding-top:var(--spacing-12); border-top:1px solid var(--color-neutral-2);}
   .cd-list .foot .sp{flex:1;}
+  .cd-list{cursor:pointer;}
+  .cd-list:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
+  .cd-list .foot .hint{font-size:11px; font-weight:600; color:var(--color-neutral-4); transition:color var(--duration-fast) var(--ease-standard);}
+  .cd-list:hover .foot .hint, .cd-list.is-open .foot .hint{color:var(--color-neutral-6);}
   .cd-list-empty{border:1px dashed var(--color-neutral-3); border-radius:var(--radius-lg); padding:var(--spacing-24) var(--spacing-16); text-align:center;
     color:var(--color-neutral-5); font-size:var(--text-body2-size); transform:rotate(-1.2deg); position:relative; z-index:0; background:transparent;
     transition:transform var(--duration-base) var(--ease-settle), border-color var(--duration-fast) var(--ease-standard);}
@@ -1485,13 +1489,13 @@
     var stack = b.picks.slice(0, 5).map(function(p){ var rec = byInf[p.inf]; return rec ? avatarHtml(rec) : ''; }).join('') +
       (b.picks.length > 5 ? '<span class="more">+' + (b.picks.length - 5) + '</span>' : '');
     var open = modalKind === 'batch' && modalBatch === b.n;
-    return '<div class="cd-list' + (open ? ' is-open' : '') + '" data-list="' + b.n + '" style="--rot:' + tilt('b' + b.n + (b.name || '')) + 'deg; --ox:' + ([0, 6, -4, 3][i % 4]) + 'px; --z:' + (i + 1) + '; --i:' + i + '">' +
+    return '<div class="cd-list' + (open ? ' is-open' : '') + '" data-list="' + b.n + '" role="button" tabindex="0" aria-expanded="' + open + '" aria-label="' + esc(b.name || 'Batch ' + b.n) + (open ? ', open' : '') + '" style="--rot:' + tilt('b' + b.n + (b.name || '')) + 'deg; --ox:' + ([0, 6, -4, 3][i % 4]) + 'px; --z:' + (i + 1) + '; --i:' + i + '">' +
       '<span class="eyebrow">Batch ' + b.n + (b.sentAt ? ' · ' + esc(S.fmtDate(b.sentAt)) : '') + '</span><span class="nm">' + esc(b.name || 'Batch ' + b.n) + '</span>' +
       '<span class="meta">' + b.picks.length + (b.picks.length === 1 ? ' creator' : ' creators') + (b.recipient ? ' · to ' + esc(b.recipient) : '') + (b.expiresAt ? ' · expires ' + esc(S.fmtDate(b.expiresAt)) : '') + '</span>' +
       '<div class="mid"><span class="cd-stack">' + stack + '</span><span class="ans">' + ringSvg([{n: counts.selected, color: 'var(--color-green)'}, {n: counts.kiv, color: 'var(--color-amber)'}, {n: counts.rejected + counts.unavailable, color: 'var(--color-red)'}, {n: counts.none}], 34, 4) + '<span><b>' + answered + '</b>/' + b.picks.length + '<br>answered</span></span></div>' +
       (confirmDelete === b.n
         ? '<div class="confirm"><b>Delete this list?</b><button class="c-btn c-btn-ghost c-btn-sm" type="button" data-list-del-no>Keep</button><button class="c-btn c-btn-primary c-btn-sm" type="button" data-list-del-ok="' + b.n + '" style="background:var(--color-red); border-color:var(--color-red)"><i class="ph ph-trash"></i> Delete</button></div>'
-        : '<div class="foot"><button class="c-btn ' + (open ? 'c-btn-secondary' : 'c-btn-ghost') + ' c-btn-sm" type="button" data-list-open="' + b.n + '">' + (open ? 'Opened' : 'Open') + '</button><span class="sp"></span>' +
+        : '<div class="foot"><span class="hint">' + (open ? 'Open' : 'Click to open') + '</span><span class="sp"></span>' +
           '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon" type="button" data-batch-copy="' + b.n + '" aria-label="Copy the client link" title="Copy client link"><i class="ph ph-link"></i></button>' +
           '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon" type="button" data-batch-link="' + b.n + '" aria-label="Open the client view" title="Client view"><i class="ph ph-arrow-square-out"></i></button>' +
           '<button class="c-btn c-btn-ghost c-btn-sm c-btn-icon cd-trash" type="button" data-list-del="' + b.n + '" aria-label="Delete this list" title="Delete"><i class="ph ph-trash"></i></button></div>') + '</div>';
@@ -2091,11 +2095,13 @@
       toast(act === 'confirmed' ? n + (n === 1 ? ' fill confirmed.' : ' fills confirmed.') : act === 'unavailable' ? n + (n === 1 ? ' fill marked unavailable.' : ' fills marked unavailable.') : n + (n === 1 ? ' creator removed.' : ' creators removed.'), act === 'remove' ? 'danger' : undefined);
       return;
     }
-    var lo = e.target.closest('[data-list-open]');
-    if (lo) {
-      var ln = Number(lo.dataset.listOpen);
+    /* The whole card opens its batch; the icon buttons on it do their
+       own thing and never fall through to this. */
+    var lc = e.target.closest('.cd-list[data-list]');
+    if (lc && !e.target.closest('button, a, input, .confirm')) {
+      var ln = Number(lc.dataset.list);
       if (modalKind === 'batch' && modalBatch === ln) return window.swingModal.close();
-      return openBatchModal(ln, lo.closest('.cd-list'));
+      return openBatchModal(ln, lc);
     }
     if (e.target.closest('[data-confirm-all]')) {
       var pending = (c.roster || []).filter(function(r){ return r.state === 'approved'; });
@@ -2165,6 +2171,9 @@
     reload();
   }
   E('pan-selection').addEventListener('click', selectionClick);
+  E('pan-selection').addEventListener('keydown', function(e){
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.cd-list[data-list]')) { e.preventDefault(); e.target.click(); }
+  });
   E('pan-selection').addEventListener('change', selectionChange);
   window.swingModal.body().addEventListener('click', selectionClick);
   window.swingModal.body().addEventListener('change', selectionChange);
