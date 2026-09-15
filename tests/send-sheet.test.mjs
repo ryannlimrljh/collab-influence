@@ -96,3 +96,74 @@ test('bandRows keeps an asked band with nobody to fill it', () => {
 test('bandRows with nothing at all is empty', () => {
   assert.deepEqual(SS.bandRows({}, [], PEOPLE), []);
 });
+
+/* ── Filling the gaps from the roster.
+
+   The case this exists for: the ask wants 5 TikTok Seeder, you have ticked
+   none, and closing that by hand means leaving the sheet, filtering the
+   roster, ticking five and coming back. */
+
+const ROSTER = {
+  'big':   {id: 'big',   platforms: [{platform: 'tiktok', handle: 'big', followers: 400000}]},   // macro
+  'mid1':  {id: 'mid1',  platforms: [{platform: 'tiktok', handle: 'm1', followers: 90000}]},     // mid
+  'mid2':  {id: 'mid2',  platforms: [{platform: 'tiktok', handle: 'm2', followers: 80000}]},     // mid
+  'mid3':  {id: 'mid3',  platforms: [{platform: 'tiktok', handle: 'm3', followers: 70000}]},     // mid
+  'both':  {id: 'both',  platforms: [                                                            // mid on both
+    {platform: 'tiktok', handle: 'b', followers: 60000},
+    {platform: 'instagram', handle: 'b', followers: 60000}
+  ]},
+  'igmid': {id: 'igmid', platforms: [{platform: 'instagram', handle: 'i', followers: 50000}]}    // mid
+};
+
+test('fillGaps picks the biggest accounts in the short band first', () => {
+  const rows = [{platform: 'tiktok', tier: 'mid', want: 2, have: 0, gap: 2}];
+  assert.deepEqual(SS.fillGaps(rows, ROSTER, {}), ['mid1', 'mid2']);
+});
+
+test('fillGaps takes only the shortfall, not the whole band', () => {
+  const rows = [{platform: 'tiktok', tier: 'mid', want: 3, have: 2, gap: 1}];
+  assert.deepEqual(SS.fillGaps(rows, ROSTER, {}), ['mid1']);
+});
+
+test('fillGaps skips anyone already excluded', () => {
+  const rows = [{platform: 'tiktok', tier: 'mid', want: 2, have: 0, gap: 2}];
+  assert.deepEqual(SS.fillGaps(rows, ROSTER, {mid1: true}), ['mid2', 'mid3']);
+});
+
+/* A creator on two channels fills two bands at once, so the second band
+   must not be given a profile it no longer needs. */
+test('fillGaps credits a profile to every band it lands in', () => {
+  const rows = [
+    {platform: 'instagram', tier: 'mid', want: 1, have: 0, gap: 1},
+    {platform: 'tiktok',    tier: 'mid', want: 1, have: 0, gap: 1}
+  ];
+  const add = SS.fillGaps(rows, ROSTER, {});
+  assert.equal(add.length, 1, 'one profile covers both bands');
+  assert.equal(add[0], 'both',
+    'the biggest Instagram Mid happens to be on TikTok Mid too, so it settles both');
+});
+
+test('fillGaps never returns the same profile twice', () => {
+  const rows = [
+    {platform: 'tiktok', tier: 'mid', want: 3, have: 0, gap: 3},
+    {platform: 'tiktok', tier: 'mid', want: 3, have: 0, gap: 3}
+  ];
+  const add = SS.fillGaps(rows, ROSTER, {});
+  assert.equal(new Set(add).size, add.length);
+});
+
+test('fillGaps returns what it can when the roster runs out', () => {
+  const rows = [{platform: 'xhs', tier: 'nano', want: 5, have: 0, gap: 5}];
+  assert.deepEqual(SS.fillGaps(rows, ROSTER, {}), [], 'nothing on that channel');
+});
+
+test('fillGaps ignores bands that are already covered', () => {
+  const rows = [{platform: 'tiktok', tier: 'mid', want: 1, have: 4, gap: 0}];
+  assert.deepEqual(SS.fillGaps(rows, ROSTER, {}), []);
+});
+
+test('candidatesFor lists one band, biggest first, excluding the excluded', () => {
+  assert.deepEqual(SS.candidatesFor('tiktok', 'mid', ROSTER, {}).map(c => c.id),
+    ['mid1', 'mid2', 'mid3', 'both']);
+  assert.deepEqual(SS.candidatesFor('tiktok', 'macro', ROSTER, {big: true}), []);
+});

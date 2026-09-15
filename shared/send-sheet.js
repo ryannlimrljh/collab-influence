@@ -47,6 +47,54 @@
     });
   }
 
+  /* Everyone in the roster who has an account on this channel in this tier,
+     biggest account first. Biggest is a defensible default rather than a
+     claim about quality: it is the one ordering the agency can explain to a
+     client, and the list is editable afterwards either way. */
+  function candidatesFor(platform, tier, people, exclude) {
+    var out = [];
+    Object.keys(people || {}).forEach(function (id) {
+      if (exclude && exclude[id]) return;
+      model().channelsOf(people[id]).forEach(function (ch) {
+        if (ch.platform !== platform) return;
+        var t = window.tiers.tierOf(ch.followers);
+        if (t && t.key === tier) out.push({id: id, followers: ch.followers || 0});
+      });
+    });
+    out.sort(function (a, b) { return b.followers - a.followers; });
+    return out;
+  }
+
+  /* Which profiles to add so every short band is covered. Returns what it
+     can: a band the roster cannot fill comes back short rather than throwing,
+     and the caller says so.
+
+     The subtlety is that one creator can land in two bands — approve them on
+     TikTok Macro and you have also filled an Instagram Mid — so each pick is
+     credited to every band it occupies before the next band is considered.
+     Without that, filling four bands could add four profiles where two would
+     have done. */
+  function fillGaps(rows, people, exclude) {
+    var taken = Object.assign({}, exclude || {});
+    var gained = {}, add = [];
+    function key(p, t) { return p + '/' + t; }
+    (rows || []).filter(function (r) { return r.gap > 0; }).forEach(function (r) {
+      var need = r.gap - (gained[key(r.platform, r.tier)] || 0);
+      if (need <= 0) return;
+      candidatesFor(r.platform, r.tier, people, taken).slice(0, need).forEach(function (cand) {
+        taken[cand.id] = true;
+        add.push(cand.id);
+        model().channelsOf(people[cand.id]).forEach(function (ch) {
+          var t = window.tiers.tierOf(ch.followers);
+          if (!t) return;
+          var k = key(ch.platform, t.key);
+          gained[k] = (gained[k] || 0) + 1;
+        });
+      });
+    });
+    return add;
+  }
+
   function summary(ask, infIds, people) {
     var rows = coverage(ask, infIds, people);
     var channels = 0;
@@ -208,7 +256,7 @@
       campaignId: opts.defaultCampaignId || (opts.campaigns[0] && opts.campaigns[0].id) || '',
       leadName: '', leadBrand: '',
       ask: {}, name: '', recipient: '', expiryDays: 30, requireName: false,
-      showExtra: false,
+      showExtra: false, fillNote: '',
       infIds: opts.infIds || []
     };
 
@@ -221,6 +269,24 @@
        cannot depend on one page's stylesheet. */
     host.className = 'ss-scrim';
     document.body.appendChild(host);
+
+    /* Never auto-add someone already ticked, already booked on this campaign,
+       or already turned down by this client — re-pitching a rejection is worse
+       than sending a short list. Lives at open() scope because the click
+       handler needs it, not just render(). */
+    function excluded() {
+      var out = {}, c = destinationCampaign();
+      state.infIds.forEach(function (id) { out[id] = true; });
+      if (!c) return out;
+      (c.roster || []).forEach(function (r) { out[r.inf] = true; });
+      (c.batches || []).forEach(function (b) {
+        (b.picks || []).forEach(function (p) {
+          var ch = p.channels || {};
+          if (Object.keys(ch).some(function (k) { return ch[k] === 'rejected'; })) out[p.inf] = true;
+        });
+      });
+      return out;
+    }
 
     function destinationCampaign() {
       return state.mode === 'existing' && state.campaignId ? S.get(state.campaignId) : null;
@@ -392,8 +458,15 @@
                     '<i class="ph-fill ph-warning icon"></i><div class="body"><p class="message">' +
                     sum.shortBands + (sum.shortBands === 1 ? ' band has' : ' bands have') +
                     ' fewer profiles than you are asking the client to pick. You can still send — ' +
-                    'they will see the number and not be able to reach it.</p></div></div>'
-                  : '')
+                    'they will see the number and not be able to reach it.' +
+                    (state.fillNote ? ' <b>' + esc(state.fillNote) + '</b>' : '') + '</p>' +
+                    '<div class="actions"><button type="button" class="action" data-ss="fill">' +
+                    'Fill the gaps from the roster</button></div></div></div>'
+                  : (state.fillNote
+                    ? '<div class="c-banner c-banner-success ss-warn">' +
+                      '<i class="ph-fill ph-check-circle icon"></i><div class="body">' +
+                      '<p class="message">' + esc(state.fillNote) + '</p></div></div>'
+                    : ''))
               : '<p class="c-helper">Tick some profiles first and their channels and tiers appear here.</p>') +
           '</section>' +
 
@@ -444,6 +517,30 @@
 
     host.addEventListener('click', function (e) {
       if (e.target === host || e.target.closest('[data-ss="close"], [data-ss="cancel"]')) return close();
+      if (e.target.closest('[data-ss="fill"]')) {
+        var rows = bandRows(state.ask, state.infIds, opts.people);
+        var short = rows.filter(function (r) { return r.gap > 0; });
+        var wanted = short.reduce(function (a, r) { return a + r.gap; }, 0);
+        var add = fillGaps(rows, opts.people, excluded());
+        state.infIds = state.infIds.concat(add);
+
+        /* Say what happened, including what could not happen: a band the
+           roster cannot fill is the thing worth knowing, and it is invisible
+           if the only feedback is rows appearing. */
+        var left = bandRows(state.ask, state.infIds, opts.people)
+          .filter(function (r) { return r.gap > 0; });
+        state.fillNote = !add.length
+          ? 'Nothing in the roster fits the bands that are short.'
+          : 'Added ' + add.length + (add.length === 1 ? ' profile' : ' profiles') +
+            (left.length
+              ? ', but ' + left.map(function (r) {
+                  return esc(PLAT_LABEL[r.platform] || r.platform) + ' ' +
+                    window.tiers.tierByKey(r.tier).name + ' is still ' + r.gap + ' short.';
+                }).join(' ')
+              : ' — every band is covered now.');
+        if (opts.onFill) opts.onFill(add);
+        return render();
+      }
       if (e.target.closest('[data-ss="more"]')) {
         state.showExtra = !state.showExtra;
         return render();
@@ -502,6 +599,7 @@
 
   window.sendSheet = {
     coverage: coverage, bandRows: bandRows, summary: summary,
+    candidatesFor: candidatesFor, fillGaps: fillGaps,
     validate: validate, expiryFrom: expiryFrom,
     open: open
   };
