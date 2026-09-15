@@ -51,18 +51,45 @@
      biggest account first. Biggest is a defensible default rather than a
      claim about quality: it is the one ordering the agency can explain to a
      client, and the list is editable afterwards either way. */
-  function candidatesFor(platform, tier, people, exclude) {
+  function candidatesFor(platform, tier, people, exclude, prefer) {
     var out = [];
     Object.keys(people || {}).forEach(function (id) {
       if (exclude && exclude[id]) return;
       model().channelsOf(people[id]).forEach(function (ch) {
         if (ch.platform !== platform) return;
         var t = window.tiers.tierOf(ch.followers);
-        if (t && t.key === tier) out.push({id: id, followers: ch.followers || 0});
+        if (t && t.key === tier) out.push({id: id, followers: ch.followers || 0, score: prefer ? (prefer(people[id]) || 0) : 0});
       });
     });
-    out.sort(function (a, b) { return b.followers - a.followers; });
+    /* `prefer` is the brief's pull: a creator whose niches read like the
+       campaign ranks ahead of a bigger one who does not. Size still breaks
+       the tie, for the same reason it was the default. */
+    out.sort(function (a, b) { return (b.score - a.score) || (b.followers - a.followers); });
     return out;
+  }
+
+  /* What a campaign is about, as words its creators' niches might share:
+     brand, name, description and type, minus the filler. */
+  var BRIEF_STOP = {'with': 1, 'from': 1, 'this': 1, 'that': 1, 'phase': 1, 'series': 1, 'creators': 1, 'creator': 1,
+    'campaign': 1, 'influencer': 1, 'influencers': 1, 'seeders': 1, 'seeder': 1, 'routine': 1, 'push': 1, 'paid': 1,
+    'posting': 1, 'seeding': 1, 'across': 1, 'testing': 1, 'holiday': 1, '2025': 1, '2026': 1, '2027': 1};
+  function briefOf(c) {
+    if (!c) return null;
+    var text = [c.brand, c.name, c.description, (c.types || []).join(' ')].join(' ').toLowerCase();
+    var toks = {};
+    text.split(/[^a-z0-9]+/).forEach(function (t) { if (t.length >= 4 && !BRIEF_STOP[t]) toks[t] = true; });
+    return {name: c.name || '', brand: c.brand || '', toks: Object.keys(toks)};
+  }
+  /* Which of a creator's niches read like the brief — 'parenting' meets
+     'parenting creators', 'beauty' meets 'beauty & skincare'. */
+  function nicheHits(rec, brief) {
+    if (!brief || !brief.toks.length) return [];
+    return ((rec && rec.niches) || []).filter(function (n) {
+      var words = String(n).toLowerCase().split(/[^a-z0-9]+/).filter(function (w) { return w.length >= 4; });
+      return words.some(function (w) {
+        return brief.toks.some(function (t) { return w.indexOf(t) === 0 || t.indexOf(w) === 0; });
+      });
+    });
   }
 
   /* Which profiles to add so every short band is covered. Returns what it
@@ -74,14 +101,14 @@
      credited to every band it occupies before the next band is considered.
      Without that, filling four bands could add four profiles where two would
      have done. */
-  function fillGaps(rows, people, exclude) {
+  function fillGaps(rows, people, exclude, prefer) {
     var taken = Object.assign({}, exclude || {});
     var gained = {}, add = [];
     function key(p, t) { return p + '/' + t; }
     (rows || []).filter(function (r) { return r.gap > 0; }).forEach(function (r) {
       var need = r.gap - (gained[key(r.platform, r.tier)] || 0);
       if (need <= 0) return;
-      candidatesFor(r.platform, r.tier, people, taken).slice(0, need).forEach(function (cand) {
+      candidatesFor(r.platform, r.tier, people, taken, prefer).slice(0, need).forEach(function (cand) {
         taken[cand.id] = true;
         add.push(cand.id);
         model().channelsOf(people[cand.id]).forEach(function (ch) {
@@ -393,6 +420,25 @@
     '  font:inherit; font-size:var(--text-body2-size); color:var(--color-neutral-9);}',
     '.ss-results{margin-top:4px;}',
     '.ss-results .c-helper{padding:6px 8px;}',
+    /* Adding people: one button, and behind it the influencer list itself —
+       search, a chip per band being asked for, tick rows, add. */
+    '.ss-addrow2{display:flex; align-items:center; gap:var(--spacing-12); margin-top:var(--spacing-12); flex-wrap:wrap;}',
+    '.ss-addrow2 .c-helper{margin:0;}',
+    '.ss-browse{margin-top:var(--spacing-12); border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); padding:var(--spacing-12); background:var(--color-neutral-1);}',
+    '.ss-browse-head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:var(--spacing-8);}',
+    '.ss-browse-head h6{margin:0; font-size:var(--text-caption-size); font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}',
+    '.ss-browse .ss-search{margin-top:0;}',
+    '.ss-chips{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0;}',
+    '.ss-blist{max-height:280px; overflow-y:auto; border-top:1px solid var(--color-neutral-2);}',
+    '.ss-brow{cursor:pointer;}',
+    '.ss-brow.is-dim .nm .n, .ss-brow.is-dim .c-card-profile-avatar{opacity:.65;}',
+    '.ss-brow .c-checkbox-box{flex:none;}',
+    '.ss-brow .nm{display:block; white-space:normal;}',
+    '.ss-brow .nm .n, .ss-brow .nm .sub{display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}',
+    '.ss-brow .nm .sub{font-size:11px; font-weight:400; color:var(--color-neutral-5);}',
+    '.ss-brow .nm .fit{display:inline-flex; align-items:center; gap:3px; margin-left:6px; font-size:10px; font-weight:700; color:var(--color-green);}',
+    '.ss-bmore{padding:8px; font-size:var(--text-caption-size); color:var(--color-neutral-5); text-align:center;}',
+    '.ss-browse-foot{display:flex; align-items:center; justify-content:space-between; gap:var(--spacing-12); margin-top:10px; font-size:var(--text-caption-size); color:var(--color-neutral-6);}',
     '.ss-lock{display:inline-flex; align-items:center; gap:4px; color:var(--color-neutral-5);}',
     '.ss-modal .c-table td.n input:disabled{background:var(--color-neutral-2); color:var(--color-neutral-7); border-color:var(--color-neutral-2); cursor:default;}',
     '.ss-extra{color:var(--color-neutral-4);}',
@@ -535,6 +581,7 @@
       leadName: '', leadBrand: '',
       ask: {}, name: '', recipient: '', expiryDays: 30, requireName: false,
       showExtra: false, fillNote: '', fillAi: false, q: '', showAll: false, focusQ: false,
+      browse: false, bq: '', bband: null, bsel: {},
       aiAdded: {}, aiBusy: false, newIds: {},
       newPlat: 'tiktok', newTier: 'mid', newN: '',
       infIds: opts.infIds || []
@@ -618,6 +665,97 @@
       '</div>';
     }
 
+    function brief() { return briefOf(destinationCampaign()); }
+    function affinity(rec) { return nicheHits(rec, brief()).length; }
+    /* The niches the brief pulls toward, as found on the roster — what the
+       AI box can say it is leaning to. */
+    function leanings(limit) {
+      var b = brief(), seen = {}, out = [];
+      if (!b) return out;
+      Object.keys(opts.people).forEach(function (id) {
+        nicheHits(opts.people[id], b).forEach(function (n) { if (!seen[n]) { seen[n] = true; out.push(n); } });
+      });
+      return out.slice(0, limit || 2);
+    }
+    function bandName(p, t) {
+      var tier = window.tiers.tierByKey(t);
+      return (PLAT_LABEL[p] || p) + ' ' + (tier ? tier.name : t);
+    }
+    function listAnd(xs) {
+      return xs.length < 2 ? xs.join('') : xs.slice(0, -1).join(', ') + ' and ' + xs[xs.length - 1];
+    }
+
+    /* ── Browsing the influencer list from inside the sheet. */
+    function browseRows() {
+      var ex = excluded(), b = brief(), band = state.bband ? state.bband.split('/') : null;
+      var needle = String(state.bq || '').trim().toLowerCase(), out = [];
+      Object.keys(opts.people).forEach(function (id) {
+        if (ex[id]) return;
+        var rec = opts.people[id], chans = model().channelsOf(rec), reach = 0, hit = !band;
+        chans.forEach(function (ch) {
+          reach += ch.followers || 0;
+          if (band && ch.platform === band[0]) { var t = window.tiers.tierOf(ch.followers); if (t && t.key === band[1]) hit = true; }
+        });
+        if (!hit) return;
+        if (needle) {
+          var hay = [rec.name].concat(rec.niches || [], chans.map(function (ch) { return ch.handle; })).join(' ').toLowerCase();
+          if (hay.indexOf(needle) === -1) return;
+        }
+        out.push({id: id, reach: reach, score: nicheHits(rec, b).length});
+      });
+      out.sort(function (x, y) { return (y.score - x.score) || (y.reach - x.reach); });
+      return out;
+    }
+    function browseListHtml() {
+      var rows = browseRows(), LIMIT = 40, b = brief();
+      var html = peopleRows(state.ask, rows.slice(0, LIMIT).map(function (r) { return r.id; }), opts.people).map(function (r) {
+        var rec = opts.people[r.id], on = !!state.bsel[r.id];
+        var hits = nicheHits(rec, b);
+        var sub = model().channelsOf(rec).map(function (ch) { return '@' + ch.handle; }).join(' · ') +
+          ((rec.niches || []).length ? ' · ' + rec.niches.join(', ') : '');
+        return '<div class="ss-prow ss-brow' + (r.fits ? '' : ' is-dim') + '" data-ss="btick" data-id="' + esc(r.id) + '" role="checkbox" aria-checked="' + on + '" tabindex="0">' +
+          '<span class="c-checkbox-box' + (on ? ' on' : '') + '">' + (on ? '<i class="ph ph-check"></i>' : '') + '</span>' +
+          avatarHtml(r.id, '', r.name) +
+          '<span class="nm"><span class="n">' + esc(r.name) +
+            (hits.length ? '<span class="fit" title="Niche reads like the brief"><i class="ph-fill ph-sparkle"></i>' + esc(hits[0]) + '</span>' : '') +
+          '</span><span class="sub">' + esc(sub) + '</span></span>' + bandChips(r.bands) + '</div>';
+      }).join('');
+      if (!rows.length) html = '<p class="c-helper" style="padding:10px 8px">' + (state.bq ? 'No one matches “' + esc(state.bq) + '”' : 'Nobody fits this band') +
+        (state.bband || state.bq ? ' — widen the search.' : '.') + '</p>';
+      else if (rows.length > LIMIT) html += '<div class="ss-bmore">Showing ' + LIMIT + ' of ' + rows.length + ' — keep typing to narrow it down.</div>';
+      return html;
+    }
+    function browseHtml() {
+      var rows = bandRows(state.ask, state.infIds, opts.people);
+      var chips = '<button type="button" class="c-chip c-chip-filter' + (!state.bband ? ' is-active' : '') + '" data-ss="bband" data-band="">All</button>' +
+        rows.map(function (r) {
+          var k = r.platform + '/' + r.tier;
+          return '<button type="button" class="c-chip c-chip-filter' + (state.bband === k ? ' is-active' : '') + '" data-ss="bband" data-band="' + esc(k) + '">' +
+            esc(bandName(r.platform, r.tier)) + (r.gap ? ' · ' + r.gap + ' open' : '') + '</button>';
+        }).join('');
+      var n = Object.keys(state.bsel).length;
+      return '<div class="ss-browse" data-ss="browse-box">' +
+        '<div class="ss-browse-head"><h6>Select from the influencer list</h6>' +
+          '<button type="button" class="c-icon-btn" data-ss="browse-off" aria-label="Close the list"><i class="ph ph-x"></i></button></div>' +
+        '<div class="ss-search"><i class="ph ph-magnifying-glass"></i>' +
+          '<input data-ss="bq" value="' + esc(state.bq) + '" placeholder="Name, handle or niche" aria-label="Search the influencer list" /></div>' +
+        '<div class="ss-chips" role="group" aria-label="Filter by band">' + chips + '</div>' +
+        '<div class="ss-blist" data-ss="blist">' + browseListHtml() + '</div>' +
+        '<div class="ss-browse-foot"><span data-ss="bcount">' + (n ? n + ' ticked' : 'Tick the people to add') + '</span>' +
+          '<button type="button" class="c-btn c-btn-primary c-btn-sm" data-ss="badd"' + (n ? '' : ' disabled') + '>' +
+            '<i class="ph ph-plus"></i> Add' + (n ? ' ' + n : '') + '</button></div></div>';
+    }
+    function renderBrowseList() {
+      var el = host.querySelector('[data-ss="blist"]'); if (el) el.innerHTML = browseListHtml();
+      host.querySelectorAll('[data-ss="bband"]').forEach(function (ch) { ch.classList.toggle('is-active', (ch.dataset.band || null) === state.bband); });
+      paintBrowseCount();
+    }
+    function paintBrowseCount() {
+      var n = Object.keys(state.bsel).length, cnt = host.querySelector('[data-ss="bcount"]'), btn = host.querySelector('[data-ss="badd"]');
+      if (cnt) cnt.textContent = n ? n + ' ticked' : 'Tick the people to add';
+      if (btn) { btn.disabled = !n; btn.innerHTML = '<i class="ph ph-plus"></i> Add' + (n ? ' ' + n : ''); }
+    }
+
     /* Rebuilt on its own so typing in the search box never re-renders the
        sheet around the caret. */
     function resultsHtml() {
@@ -652,7 +790,7 @@
 
     /* The ask defaults to what the destination still owes. Choosing a
        different destination re-seeds it, unless the user has edited it. */
-    var askTouched = false;
+    var askTouched = false, lastSum = null;
     function seedAsk() {
       if (askTouched) return;
       var c = destinationCampaign();
@@ -690,6 +828,34 @@
         '<span class="desc">' + desc + '</span></span></label>';
     }
 
+    /* The AI box talks about this campaign, not about bands in the
+       abstract: what it still needs, whose brief is being read, and which
+       niches that pulls toward. Without a destination it keeps to the
+       generic line. */
+    function aiBoxHtml() {
+      var c = destinationCampaign(), b = brief();
+      var short = bandRows(state.ask, state.infIds, opts.people).filter(function (r) { return r.gap > 0; });
+      var need = short.reduce(function (a, r) { return a + r.gap; }, 0);
+      var lean = leanings(2);
+      var msg, sub;
+      if (c) {
+        msg = '<b>' + esc(c.name) + '</b> still needs ' + need + (need === 1 ? ' creator' : ' creators') + ': ' +
+          listAnd(short.map(function (r) { return esc(bandName(r.platform, r.tier)) + ' ×' + r.gap; })) + '.';
+        sub = 'Collab AI reads the ' + (b.brand ? esc(b.brand) + ' brief' : 'brief') +
+          (lean.length ? ' and leans to ' + esc(listAnd(lean)) + ' creators' : '') +
+          ', taking the biggest accounts that fit those bands and skipping anyone already on the campaign or turned down by ' +
+          (b.brand ? esc(b.brand) : 'the client') + '.';
+      } else {
+        var sb = lastSum ? lastSum.shortBands : short.length;
+        msg = sb + (sb === 1 ? ' band is' : ' bands are') + ' short — the client will see a number they cannot reach.';
+        sub = 'Collab AI picks the biggest accounts that fit, skipping anyone already listed, booked, or turned down.';
+      }
+      return '<div class="c-banner c-banner-ai ss-warn" role="status">' +
+        '<i class="ph-fill ph-sparkle icon"></i><div class="body"><p class="message">' + msg + '</p>' +
+        '<p class="message ss-sub">' + sub + '</p>' +
+        '<div class="actions"><button type="button" class="c-btn c-btn-ghost c-btn-sm ss-ai-btn" data-ss="fill">' +
+          '<i class="ph-fill ph-sparkle"></i> Let Collab AI ' + (state.infIds.length ? 'fill the gaps' : 'build the list') + '</button></div></div></div>';
+    }
     function render() {
       /* An open dropdown portals its panel onto document.body, so it must be
          closed before innerHTML is rebuilt or the panel is left orphaned
@@ -713,6 +879,7 @@
          opens with no lines at all and you state the ask rather than editing
          a list of things you did not ask for. */
       var sum = summary(state.ask, state.infIds, opts.people);
+      lastSum = sum;
       var c = destinationCampaign();
       var split = matchSplit(state.ask, state.infIds, opts.people);
       /* Misfits lead: they are the rows there is something to do about. Past
@@ -884,18 +1051,7 @@
                         (state.showExtra ? extra.map(rowHtml).join('') : '')
                       : '') +
                   '</tbody></table></div>' +
-                (sum.shortBands
-                  ? '<div class="c-banner c-banner-ai ss-warn" role="status">' +
-                    '<i class="ph-fill ph-sparkle icon"></i><div class="body"><p class="message">' +
-                    sum.shortBands + (sum.shortBands === 1 ? ' band is' : ' bands are') +
-                    ' short — the client will see a number they cannot reach.</p>' +
-                    '<p class="message ss-sub">Collab AI picks the biggest accounts that fit, ' +
-                    'skipping anyone already listed, booked, or turned down.</p>' +
-                    '<div class="actions">' +
-                      '<button type="button" class="c-btn c-btn-ghost c-btn-sm ss-ai-btn" ' +
-                      'data-ss="fill"><i class="ph-fill ph-sparkle"></i> ' +
-                      'Let Collab AI fill the gaps</button></div></div></div>'
-                  : '')
+                (sum.shortBands ? aiBoxHtml() : '')
               : '<p class="c-helper">Tick some profiles and their bands appear here.</p>') +
           '</section>' +
 
@@ -918,11 +1074,10 @@
                   (state.showAll ? 'Show fewer' : 'Show all ' + ordered.length) + '</button>'
                 : '') +
             '</div>' +
-            '<div class="ss-search"><i class="ph ph-magnifying-glass"></i>' +
-              '<input data-ss="q" value="' + esc(state.q) + '" ' +
-              'placeholder="Add someone — name or handle" ' +
-              'aria-label="Search the roster for someone to add" /></div>' +
-            '<div class="ss-plist ss-results" data-ss="results">' + resultsHtml() + '</div>' +
+            (state.browse ? browseHtml()
+              : '<div class="ss-addrow2"><button type="button" class="c-btn c-btn-secondary c-btn-sm" data-ss="browse">' +
+                '<i class="ph ph-user-plus"></i> Add someone</button>' +
+                '<span class="c-helper">Search by name or handle, or tick people from the influencer list.</span></div>') +
           '</section>' +
 
           '<section class="ss-sec">' +
@@ -1026,7 +1181,10 @@
     function runAssist(btn) {
       var rows = bandRows(state.ask, state.infIds, opts.people);
       var short = rows.filter(function (r) { return r.gap > 0; });
-      var add = fillGaps(rows, opts.people, excluded());
+      var b = brief();
+      var add = fillGaps(rows, opts.people, excluded(), b ? affinity : null);
+      var leaned = [];
+      add.forEach(function (id) { nicheHits(opts.people[id], b).forEach(function (n) { if (leaned.indexOf(n) < 0) leaned.push(n); }); });
 
       /* The first short band this profile answers — so a thinking row can name
          the gap it is being pulled in to close. */
@@ -1053,15 +1211,14 @@
         var left = bandRows(state.ask, state.infIds, opts.people)
           .filter(function (r) { return r.gap > 0; });
         state.fillAi = true;
+        var forWhom = b ? ' for ' + (b.brand || b.name) : '';
         state.fillNote = !add.length
-          ? 'Nothing in your list fits the short bands.'
-          : 'Added ' + add.length + (add.length === 1 ? ' profile' : ' profiles') +
+          ? 'Nothing in your list fits the ' + (b ? 'slots ' + b.name + ' still has open.' : 'short bands.')
+          : 'Added ' + add.length + (add.length === 1 ? ' creator' : ' creators') + forWhom +
+            (leaned.length ? ', leaning to ' + listAnd(leaned.slice(0, 2)) : '') +
             (left.length
-              ? ', but ' + left.map(function (r) {
-                  return (PLAT_LABEL[r.platform] || r.platform) + ' ' +
-                    window.tiers.tierByKey(r.tier).name + ' still ' + r.gap + ' short.';
-                }).join(' ')
-              : ' — all bands covered.');
+              ? ' — but ' + listAnd(left.map(function (r) { return bandName(r.platform, r.tier) + ' still ' + r.gap + ' short'; })) + '.'
+              : ' — ' + (short.length === 1 ? 'the band is' : 'all ' + short.length + ' bands are') + ' covered.');
       }
 
       var still = window.matchMedia &&
@@ -1101,8 +1258,8 @@
             '<span class="nm"><span class="ss-gline ss-sk"></span></span>' +
             '<span class="ss-ai-tag is-think"><i class="ph-fill ph-sparkle"></i> ' +
             esc(add.length
-              ? 'Matching ' + (bandFor(add[i]) || 'the short bands') + '…'
-              : 'Reading your influencer list…') + '</span></div>';
+              ? 'Matching ' + (bandFor(add[i]) || 'the short bands') + (b && b.brand ? ' for ' + b.brand : '') + '…'
+              : (b ? 'Reading the ' + (b.brand || b.name) + ' brief…' : 'Reading your influencer list…')) + '</span></div>';
         }
         list.insertAdjacentHTML('beforeend', ghosts);
 
@@ -1174,6 +1331,33 @@
         state.focusQ = true;
         sync();
         return render();
+      }
+      if (e.target.closest('[data-ss="browse"]')) {
+        state.browse = true; state.bq = ''; state.bband = null; state.bsel = {};
+        render();
+        var bq = host.querySelector('[data-ss="bq"]'); if (bq) bq.focus();
+        return anchor(host.querySelector('[data-ss="browse-box"]'), true);
+      }
+      if (e.target.closest('[data-ss="browse-off"]')) { state.browse = false; return render(); }
+      var bband = e.target.closest('[data-ss="bband"]');
+      if (bband) { state.bband = bband.dataset.band || null; return renderBrowseList(); }
+      var tick = e.target.closest('[data-ss="btick"]');
+      if (tick) {
+        var tid = tick.dataset.id, on = !state.bsel[tid];
+        if (on) state.bsel[tid] = true; else delete state.bsel[tid];
+        tick.setAttribute('aria-checked', String(on));
+        var box = tick.querySelector('.c-checkbox-box');
+        box.classList.toggle('on', on); box.innerHTML = on ? '<i class="ph ph-check"></i>' : '';
+        return paintBrowseCount();
+      }
+      if (e.target.closest('[data-ss="badd"]')) {
+        var ids = Object.keys(state.bsel); if (!ids.length) return;
+        state.newIds = {};
+        ids.forEach(function (id) { if (state.infIds.indexOf(id) === -1) { state.infIds.push(id); state.newIds[id] = true; } });
+        state.browse = false; state.bsel = {}; state.fillNote = ''; state.showAll = true;
+        sync();
+        render();
+        return anchor(host.querySelector('[data-ss="whosec"]'), true);
       }
       if (e.target.closest('[data-ss="all"]')) {
         state.showAll = !state.showAll;
@@ -1251,6 +1435,11 @@
         if (al) al.textContent = '';
       }
       if (k === 'q') { state.q = e.target.value; renderResults(); }
+      if (k === 'bq') { state.bq = e.target.value; renderBrowseList(); }
+    });
+    /* Space or Enter ticks a row from the keyboard. */
+    host.addEventListener('keydown', function (e) {
+      if ((e.key === ' ' || e.key === 'Enter') && e.target.matches('[data-ss="btick"]')) { e.preventDefault(); e.target.click(); }
     });
 
     document.addEventListener('keydown', function esc2(e) {
