@@ -65,11 +65,11 @@
   /* ── The campaigns rail: every campaign as a card between the header
      and the hero, one keypress away, the current one outlined. Grid rows
      from 0fr to 1fr so it slides open without animating height itself. */
-  .cd-rail{display:grid; grid-template-rows:0fr; opacity:0; margin-bottom:0;
+  .cd-rail{display:grid; grid-template-rows:0fr; opacity:0; margin:0 calc(var(--page-gutter) * -1) 0;
     transition:grid-template-rows .36s var(--ease-settle), opacity .24s var(--ease-standard), margin .36s var(--ease-settle);}
   .cd-rail.is-on{grid-template-rows:1fr; opacity:1; margin-bottom:var(--spacing-20);}
   .cd-rail-in{min-height:0; overflow:hidden;}
-  .cd-rail-head{display:flex; align-items:center; gap:var(--spacing-8); margin-bottom:var(--spacing-8);
+  .cd-rail-head{display:flex; align-items:center; gap:var(--spacing-8); margin:0 var(--page-gutter) var(--spacing-8);
     font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:var(--tracking-eyebrow); color:var(--color-neutral-5);}
   .cd-rail-head .hint{margin-left:auto; text-transform:none; letter-spacing:0; font-weight:600; display:inline-flex; align-items:center; gap:4px;}
   .cd-rail-head kbd{font-family:inherit; font-size:10px; line-height:1; padding:3px 5px; border:1px solid var(--color-neutral-3); border-bottom-width:2px;
@@ -80,11 +80,10 @@
      of the page instead of stopping at the column. It snaps to card
      starts, scrolls sideways, and shows no scrollbar. */
   .cd-rail-track{display:flex; gap:12px; overflow-x:auto; overscroll-behavior-x:contain;
-    margin:0 calc(var(--page-gutter) * -1); padding:6px 0 var(--spacing-12) var(--page-gutter);
+    padding:6px 0 var(--spacing-12) var(--page-gutter);
     scroll-snap-type:x mandatory; scroll-padding-left:var(--page-gutter);
     scrollbar-width:none; -ms-overflow-style:none;}
   .cd-rail-track::-webkit-scrollbar{display:none;}
-  .cd-rail-track::after{content:''; flex:none; width:calc(var(--page-gutter) - 12px);}
   .cd-rcard{flex:none; width:232px; display:flex; flex-direction:column; gap:var(--spacing-12); padding:var(--spacing-12) 14px;
     background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-md); box-shadow:var(--shadow-1);
     text-decoration:none; color:inherit; scroll-snap-align:start;
