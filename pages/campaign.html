@@ -90,10 +90,29 @@
   .cd-ring2 .c{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.05; text-align:center;}
   .cd-ring2 .c b{font-weight:800; color:var(--color-neutral-9); font-variant-numeric:tabular-nums;}
   .cd-ring2 .c small{font-size:10px; color:var(--color-neutral-5); font-weight:600;}
-  .cd-dots{display:flex; flex-wrap:wrap; gap:3px; margin-top:2px;}
-  .cd-dots i{width:8px; height:8px; border-radius:2px; background:var(--color-neutral-3); display:block;}
-  .cd-dots i.f{background:var(--color-green);} .cd-dots i.p{background:var(--color-amber);} .cd-dots i.a{background:var(--color-navy);} .cd-dots i.x{background:var(--color-red);}
-  .cd-dots.lg i{width:10px; height:10px; border-radius:3px;}
+  /* Seats, not dots. Every slot in the ask is a chair: a filled one
+     shows who sits in it inside a green ring, a pending one the same
+     face in amber, a refused one greyed in red, an open one an empty
+     dashed chair. A hairline of canvas between ring and photo, the way
+     a story ring sits. Past the cap the rest fold into a "+N" chair. */
+  .cd-seats{display:flex; flex-wrap:wrap; gap:4px; margin-top:2px;}
+  .cd-seats .seat{--s:18px; position:relative; box-sizing:border-box; flex:none; width:var(--s); height:var(--s);
+    border-radius:var(--radius-pill); display:inline-flex; align-items:center; justify-content:center; overflow:hidden;
+    border:1.5px dashed var(--color-neutral-4); color:var(--color-neutral-4); background:transparent;
+    font-family:var(--font-primary); font-weight:800; font-size:calc(var(--s) * .36); line-height:1; letter-spacing:0;
+    transition:transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);}
+  .cd-seats .seat .ph{font-size:calc(var(--s) * .55); line-height:1;}
+  .cd-seats .seat.has{border:2px solid var(--color-neutral-3); background:var(--color-neutral-1); color:var(--color-neutral-8);}
+  .cd-seats .seat.has img{position:absolute; top:1px; left:1px; width:calc(100% - 2px); height:calc(100% - 2px); border-radius:var(--radius-pill);
+    object-fit:cover; opacity:0; transition:opacity var(--duration-base) var(--ease-standard);}
+  .cd-seats .seat.has img.is-loaded{opacity:1;}
+  .cd-seats .seat.f{border-color:var(--color-green);} .cd-seats .seat.p{border-color:var(--color-amber);}
+  .cd-seats .seat.x{border-color:var(--color-red);} .cd-seats .seat.x img.is-loaded{opacity:.55; filter:grayscale(1);}
+  .cd-seats .seat.n{border-color:var(--color-neutral-3);}
+  .cd-seats .seat.more{border:none; background:var(--color-neutral-2); color:var(--color-neutral-6); font-size:calc(var(--s) * .4);}
+  .cd-seats .seat[data-seat]{cursor:pointer;}
+  .cd-seats .seat[data-seat]:hover{transform:translateY(-1px) scale(1.12); box-shadow:var(--shadow-1); z-index:1;}
+  .cd-seats.lg .seat{--s:26px;} .cd-seats.sm .seat{--s:16px;}
   /* Financials and Revenue split share one layout: figures on the left,
      an 84px ring on the right, so the two cards read as a pair. */
   .cd-fin{display:flex; align-items:center; gap:var(--spacing-16); min-width:0;}
@@ -208,7 +227,7 @@
     @keyframes cd-tick{0%{transform:scale(.6);} 60%{transform:scale(1.18);} 100%{transform:scale(1);}}
     .cd-brandmark:not([hidden]){animation:cd-pop .32s var(--ease-settle) both;}
     .cd-ring2 .seg{animation:cd-ring-draw .8s var(--ease-settle) both;}
-    .cd-dots i{animation:cd-pop .28s var(--ease-settle) both; animation-delay:calc(var(--i, 0) * 12ms);}
+    .cd-seats .seat{animation:cd-pop .28s var(--ease-settle) both; animation-delay:calc(var(--i, 0) * 28ms);}
     .cd-tl-fill{animation:cd-tl-grow .9s var(--ease-settle) both;}
     .cd-next .say.is-swap{animation:cd-swap .38s var(--ease-settle) both;}
     .cd-bulk{animation:cd-rise .26s var(--ease-settle) both;}
@@ -270,7 +289,7 @@
   .cd-about p{margin:0; font-size:var(--text-body2-size); line-height:1.55; color:var(--color-neutral-7);}
   .cd-about .lbl{font-size:var(--text-caption-size); font-weight:700; color:var(--color-neutral-5); margin:var(--spacing-8) 0 2px;}
   .cd-card .cd-askfoot{margin-top:auto; display:flex; align-items:center; gap:var(--spacing-16); flex-wrap:wrap;}
-  .cd-card .cd-askfoot .cd-dots{flex:1; min-width:160px;}
+  .cd-card .cd-askfoot .cd-seats{flex:1; min-width:160px;}
   @media (max-width:900px){ .cd-card.span-2, .cd-card.span-4{grid-column:span 3;} }
   @media (max-width:640px){ .cd-card.span-2, .cd-card.span-3, .cd-card.span-4{grid-column:span 6;} }
 
@@ -309,7 +328,7 @@
   .cd-sum-line .say .sep{margin:0 6px; color:var(--color-neutral-4);}
   .cd-sum-line .say .k{display:inline-flex; align-items:center; gap:5px;}
   .cd-sum .c-progress-track{height:8px;}
-  .cd-group-cnt .cd-dots{margin:0 0 0 6px;}
+  .cd-group-cnt .cd-seats{margin:0 0 0 6px;}
   .cd-groups{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--spacing-16);}
   @media (max-width:900px){ .cd-groups{grid-template-columns:1fr;} }
   .cd-group{background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-lg);
@@ -912,7 +931,7 @@
 <script src="../shared/dropdown.js?v=2"></script>
 <script src="../shared/campaign-store.js?v=10"></script>
 <script src="../shared/campaign-form.js?v=13"></script>
-<script src="../shared/send-sheet.js?v=27"></script>
+<script src="../shared/send-sheet.js?v=29"></script>
 <script src="../shared/swing-modal.js?v=1"></script>
 <script>
 (function () {
@@ -1085,18 +1104,33 @@
   }
   /* One dot per unit, coloured by state; past `max` the counts scale so
      the grid stays a grid rather than a wall. */
-  function dotGrid(parts, max, cls){
-    var total = parts.reduce(function(a, p){ return a + p.n; }, 0);
-    if (!total) return '';
-    var scale = total > max ? max / total : 1, used = 0;
-    var html = parts.map(function(p, i){
-      var n = i === parts.length - 1 ? Math.round(total * scale) - used : Math.round(p.n * scale);
-      used += n;
-      var out = '';
-      for (var k = 0; k < Math.max(0, n); k++) out += '<i class="' + (p.cls || '') + '" style="--i:' + (used - n + k) + '"></i>';
-      return out;
-    }).join('');
-    return '<span class="cd-dots' + (cls ? ' ' + cls : '') + '" role="img" aria-label="' + parts.map(function(p){ return p.n + ' ' + (p.label || ''); }).join(', ') + '">' + html + '</span>';
+  /* Parts are {n, cls, label, infs}: a part with people draws their
+     faces, one without draws empty chairs. Faces carry data-seat so a
+     click opens the profile — except inside a KPI tile, which is itself
+     a button, so `quiet` leaves them inert there. */
+  function seatGrid(parts, max, cls, quiet){
+    var seats = [];
+    parts.forEach(function(p){
+      var infs = p.infs || [];
+      for (var k = 0; k < (p.n || 0); k++) seats.push({cls: p.cls || 'o', inf: infs[k] || null, label: p.label || ''});
+    });
+    if (!seats.length) return '';
+    var shown = seats.length > max ? seats.slice(0, max - 1) : seats, rest = seats.length - shown.length;
+    var html = shown.map(function(st, i){
+      var rec = st.inf && byInf[st.inf];
+      if (!rec) return '<span class="seat ' + st.cls + '" style="--i:' + i + '" title="' + esc(st.label) + '"><i class="ph ph-user"></i></span>';
+      return '<span class="seat has ' + st.cls + '" style="--i:' + i + '" title="' + esc(rec.name + ' · ' + st.label) + '"' +
+        (quiet ? '' : ' data-seat="' + esc(rec.id) + '"') + ' data-avatar-for="' + esc(rec.id) + '">' + esc(S.initials(rec.name)) + '<img alt="" /></span>';
+    }).join('') + (rest ? '<span class="seat more" style="--i:' + shown.length + '" title="' + rest + ' more">+' + rest + '</span>' : '');
+    return '<span class="cd-seats' + (cls ? ' ' + cls : '') + '" role="img" aria-label="' + esc(parts.map(function(p){ return p.n + ' ' + (p.label || ''); }).join(', ')) + '">' + html + '</span>';
+  }
+  function picksIn(b, keys){
+    return b.picks.filter(function(x){ return keys.indexOf(M.pickStatus(x)) >= 0; }).map(function(x){ return x.inf; });
+  }
+  function fillsOf(groups, state){
+    var out = [];
+    groups.forEach(function(g){ g.fills.forEach(function(r){ if (r.state === state) out.push(r.inf); }); });
+    return out;
   }
   function renderKpis(){
     var groups = M.groupsOf(c, byInf).filter(function(g){ return g.want > 0; });
@@ -1105,7 +1139,7 @@
     var slots = want
       ? kpi('selection', 'Slots', 'ph-squares-four', '<span><b class="cnt" data-to="' + confirmed + '">' + confirmed + '</b><small> / ' + want + '</small></span>',
           approved ? approved + ' pending · ' + Math.max(0, want - confirmed - approved) + ' open' : Math.max(0, want - confirmed) + ' open',
-          {bar: dotGrid([{n: confirmed, cls: 'f', label: 'filled'}, {n: approved, cls: 'p', label: 'pending'}, {n: Math.max(0, want - confirmed - approved), label: 'open'}], 40)})
+          {bar: seatGrid([{n: confirmed, cls: 'f', label: 'filled', infs: fillsOf(groups, 'confirmed')}, {n: approved, cls: 'p', label: 'pending', infs: fillsOf(groups, 'approved')}, {n: Math.max(0, want - confirmed - approved), label: 'open'}], 10, '', true)})
       : kpi('overview', 'Slots', 'ph-squares-four', null, 'no ask yet');
     var batches = c.batches || [], last = batches[batches.length - 1];
     var client;
@@ -1126,6 +1160,7 @@
           {ring: m.marginPct != null ? '<span class="pill ' + ((m.margin || 0) >= 0 ? 'up' : 'down') + '">' + m.marginPct + '%</span>' : ''})
       : kpi('overview', 'Margin', 'ph-currency-dollar', null, 'no quote yet');
     E('cdKpis').innerHTML = slots + client + deliv + margin;
+    hydrateAvatars(E('cdKpis'));
     countUp(E('cdKpis'));
   }
   /* Count a figure up to where it is, once per value: a tile whose number
@@ -1255,7 +1290,7 @@
     var want = 0, confirmed = 0, approved = 0;
     groups.forEach(function(g){ want += g.want; g.fills.forEach(function(r){ if (r.state === 'confirmed') confirmed += 1; else if (r.state === 'approved') approved += 1; }); });
     var open = Math.max(0, want - confirmed - approved), total = Math.max(want, confirmed + approved);
-    return '<div class="cd-askfoot">' + dotGrid([{n: confirmed, cls: 'f', label: 'filled'}, {n: approved, cls: 'p', label: 'pending'}, {n: open, label: 'open'}], 60, 'lg') +
+    return '<div class="cd-askfoot">' + seatGrid([{n: confirmed, cls: 'f', label: 'filled', infs: fillsOf(groups, 'confirmed')}, {n: approved, cls: 'p', label: 'pending', infs: fillsOf(groups, 'approved')}, {n: open, label: 'open'}], 18, 'lg') +
       '<div class="cd-legend"><span><b>' + want + (want === 1 ? ' slot' : ' slots') + '</b></span>' +
       '<span><span class="cmp-dot" style="background:var(--color-green)"></span>' + confirmed + ' filled</span>' +
       '<span><span class="cmp-dot" style="background:var(--color-amber)"></span>' + approved + ' pending</span>' +
@@ -1377,7 +1412,7 @@
       '<button class="c-btn c-btn-secondary c-btn-sm" type="button" data-send-band="' + g.platform + '/' + g.tier + '"><i class="ph ph-plus"></i> Create Selection List</button>' +
       '<button class="c-btn c-btn-ghost c-btn-sm" type="button" data-add-band="' + g.platform + '/' + g.tier + '"><i class="ph ph-plus"></i> Add by hand</button></div>' : '';
     var conf = g.fills.filter(function(r){ return r.state === 'confirmed'; }).length, pend = g.fills.filter(function(r){ return r.state === 'approved'; }).length;
-    var dots = g.want ? dotGrid([{n: Math.min(conf, g.want), cls: 'f', label: 'filled'}, {n: Math.min(pend, Math.max(0, g.want - conf)), cls: 'p', label: 'pending'}, {n: g.open, label: 'open'}], 12) : '';
+    var dots = g.want ? seatGrid([{n: Math.min(conf, g.want), cls: 'f', label: 'filled', infs: fillsOf([g], 'confirmed')}, {n: Math.min(pend, Math.max(0, g.want - conf)), cls: 'p', label: 'pending', infs: fillsOf([g], 'approved')}, {n: g.open, label: 'open'}], 8, 'sm') : '';
     return '<div class="cd-group' + cls + '" data-group="' + g.platform + '/' + g.tier + '"><div class="cd-group-head">' + bandLabel(g.platform, g.tier) +
       '<span class="cd-group-cnt">' + cnt + dots + '</span></div><div class="cd-fills">' + rows + '</div>' + foot + '</div>';
   }
@@ -1389,7 +1424,7 @@
     });
     var open = Math.max(0, want - confirmed - approved);
     return '<div class="cd-sum"><div class="big"><b>' + want + '</b><span>' + (want === 1 ? 'slot' : 'slots') + ' asked</span></div>' +
-      '<div class="mid">' + dotGrid([{n: confirmed, cls: 'f', label: 'filled'}, {n: approved, cls: 'p', label: 'pending'}, {n: open, label: 'open'}], 60, 'lg') +
+      '<div class="mid">' + seatGrid([{n: confirmed, cls: 'f', label: 'filled', infs: fillsOf(groups, 'confirmed')}, {n: approved, cls: 'p', label: 'pending', infs: fillsOf(groups, 'approved')}, {n: open, label: 'open'}], 18, 'lg') +
         '<div class="cd-legend"><span><span class="cmp-dot" style="background:var(--color-green)"></span>' + confirmed + ' filled</span>' +
         '<span><span class="cmp-dot" style="background:var(--color-amber)"></span>' + approved + ' pending</span>' +
         '<span><span class="cmp-dot" style="background:var(--color-neutral-4)"></span>' + open + ' open</span></div>' +
@@ -1543,7 +1578,7 @@
     var chips = [{key:'all', label:'All'}].concat(S.PICK_STATUS.map(function(p){ return {key:p.key, label:p.label}; }));
     var answered = b.picks.length - counts.none;
     var bar = b.picks.length ? '<div class="cd-answers">' +
-      dotGrid([{n: counts.selected, cls: 'f', label: 'selected'}, {n: counts.kiv, cls: 'p', label: 'KIV'}, {n: counts.rejected + counts.unavailable, cls: 'x', label: 'rejected or unavailable'}, {n: counts.none, label: 'no answer'}], 40, 'lg') +
+      seatGrid([{n: counts.selected, cls: 'f', label: 'selected', infs: picksIn(b, ['selected'])}, {n: counts.kiv, cls: 'p', label: 'KIV', infs: picksIn(b, ['kiv'])}, {n: counts.rejected + counts.unavailable, cls: 'x', label: 'rejected or unavailable', infs: picksIn(b, ['rejected', 'unavailable'])}, {n: counts.none, cls: 'n', label: 'no answer', infs: picksIn(b, ['none'])}], 16, 'lg') +
       '<div class="lg"><span><b>' + answered + '</b>/' + b.picks.length + ' answered</span>' +
       (counts.selected ? '<span><span class="cmp-dot" style="background:var(--color-green)"></span><b>' + counts.selected + '</b> selected</span>' : '') +
       (counts.kiv ? '<span><span class="cmp-dot" style="background:var(--color-amber)"></span><b>' + counts.kiv + '</b> KIV</span>' : '') +
@@ -1873,6 +1908,8 @@
   }
   function closeMenu(){ menu.classList.remove('is-open'); if (menuAnchor) menuAnchor.classList.remove('is-open'); menuAnchor = null; }
   document.addEventListener('click', function(e){
+    var seat = e.target.closest('[data-seat]');
+    if (seat) { e.stopPropagation(); return openProfile(seat.dataset.seat, seat); }
     var sb = e.target.closest('#cdStageBtn');
     if (sb) {
       e.stopPropagation();
