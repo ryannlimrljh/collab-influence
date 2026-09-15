@@ -49,8 +49,12 @@
      it shifts by margin — padding here would reshape the panel instead
      of moving its edge. */
   .inf-selbar{margin-right:var(--spacing-16);}
-  .inf-forlink{display:inline-flex; align-items:center; gap:4px; font-weight:700; color:var(--color-navy); text-decoration:none;}
-  .inf-forlink:hover{text-decoration:underline;}
+  /* Back sits in the header row itself, the way the campaign page does
+     it, and only when there is a campaign to go back to. */
+  .inf-headrow{display:flex; align-items:flex-start; gap:var(--spacing-8); min-width:0; flex:1;}
+  .inf-headrow .c-pageheader-text{flex:1; min-width:0;}
+  .inf-crumb{flex:none; text-decoration:none; margin-left:calc(var(--spacing-12) * -1); margin-top:4px;}
+  .inf-crumb[hidden]{display:none;}
 
   /* ── Letter sections. The head is sticky against the scroll container
      and repaints on the warm canvas so cards slide under it cleanly. */
@@ -834,9 +838,12 @@
 
       <header class="c-pageheader">
         <div class="c-pageheader-row">
-          <div class="c-pageheader-text">
-            <h1>Influencers</h1>
-            <p class="sub" id="infSub">The full talent roster, A to Z.</p>
+          <div class="inf-headrow">
+            <a class="c-btn c-btn-ghost c-btn-sm c-btn-icon inf-crumb" id="infBack" href="campaigns.html" hidden aria-label="Back to the campaign" title="Back to the campaign"><i class="ph ph-arrow-left"></i></a>
+            <div class="c-pageheader-text">
+              <h1>Influencers</h1>
+              <p class="sub" id="infSub">The full talent roster, A to Z.</p>
+            </div>
           </div>
           <div class="c-pageheader-actions">
             <button class="c-btn c-btn-secondary c-btn-md" type="button" id="infBulkBtn">
@@ -1280,7 +1287,6 @@
     if (!fc) { el.textContent = text; return; }
     el.innerHTML = 'Adding by hand to <b>' + esc(fc.name) + '</b>' +
       (forBand && forBand.platform ? ' · ' + esc(bandLabel(forBand)) + ' slot' : '') +
-      ' · <a class="inf-forlink" href="campaign.html?id=' + encodeURIComponent(fc.id) + '&tab=selection"><i class="ph ph-arrow-left"></i> Back to the campaign</a>' +
       ' · ' + esc(text);
   }
   function backToCampaign(extra){
@@ -2705,6 +2711,9 @@
      on the campaign's roster by hand. */
   function paintCampaignMode(){
     var fc = campaignFor(); if (!fc) return;
+    var back = document.getElementById('infBack');
+    back.href = 'campaign.html?id=' + encodeURIComponent(fc.id) + '&tab=selection';
+    back.hidden = false;
     setSub('The full talent roster, A to Z.');
     document.getElementById('infSelHint').textContent = 'They join ' + fc.name + ' as confirmed, added by hand' +
       (forBand && forBand.platform ? ', in the ' + bandLabel(forBand) + ' slot' : '') + '.';
@@ -2714,6 +2723,27 @@
       var t = window.tiers.tierByKey(forBand.tier);
       if (t && applied.tier.indexOf(t.name) < 0) applied.tier.push(t.name);
     }
+  }
+  /* Arrive with one profile already ticked, so the Add box is up and the
+     first candidate is on the table: the biggest account that fits the
+     band and is not on the roster yet, or failing a band, the first one
+     showing. One tick to undo, one press to take. */
+  function preselectOne(){
+    var fc = campaignFor(); if (!fc || selected.size) return;
+    var onRoster = {};
+    (fc.roster || []).forEach(function(r){ onRoster[r.inf] = true; });
+    var id = null;
+    if (forBand && forBand.platform && forBand.tier && window.sendSheet) {
+      var cand = window.sendSheet.candidatesFor(forBand.platform, forBand.tier, byId, onRoster)[0];
+      id = cand ? cand.id : null;
+    }
+    if (!id) id = shownIds.filter(function(x){ return !onRoster[x]; })[0] || null;
+    if (!id) return;
+    selected.add(id);
+    paintHosts();
+    paintHeadBox();
+    paintSelAll();
+    paintSelBar();
   }
   function addByHand(){
     var fc = campaignFor(); if (!fc || !selected.size) return;
@@ -2993,6 +3023,7 @@
   renderSkeleton();
   setTimeout(function(){
     render();
+    preselectOne();
     /* The arrival ran once with the first real paint; drop the class so
        later renders (filter, search, saves) paint without replaying it. */
     setTimeout(function(){
