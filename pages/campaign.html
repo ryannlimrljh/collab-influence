@@ -30,8 +30,25 @@
     background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); overflow:hidden;}
   .cd-brandmark[hidden]{display:none;}
   .cd-brandmark img{width:26px; height:26px; object-fit:contain;}
-  .cd-title{display:flex; align-items:center; gap:var(--spacing-12); min-width:0; flex-wrap:wrap;}
-  .cd-title h1{min-width:0; overflow-wrap:anywhere;}
+  /* One line, always. Ellipsis when the name does not fit; when it is
+     clipped the name runs — a slow ping-pong with a dwell at each end,
+     fading out where it is cut, paused while the pointer is on it. The
+     16px of padding folded back with a negative margin is where the fade
+     lives, so the first and last letters are never faded. */
+  .cd-title{display:flex; align-items:center; gap:var(--spacing-12); min-width:0; flex-wrap:nowrap;}
+  .cd-title h1{flex:0 1 auto; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    padding:0 16px; margin:0 -16px;}
+  .cd-title #cdStageWrap{flex:none;}
+  .cd-title h1.is-run{text-overflow:clip;
+    -webkit-mask-image:linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+    mask-image:linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent);}
+  .cd-title h1.is-run .cd-marq{display:inline-block; vertical-align:top; animation:cd-marq var(--marq-t, 10s) ease-in-out infinite;}
+  .cd-title h1.is-run:hover .cd-marq{animation-play-state:paused;}
+  @keyframes cd-marq{0%,20%{transform:translateX(0);} 50%,70%{transform:translateX(calc(var(--marq, 0px) * -1));} 100%{transform:translateX(0);}}
+  @media (prefers-reduced-motion:reduce){
+    .cd-title h1.is-run{text-overflow:ellipsis; -webkit-mask-image:none; mask-image:none;}
+    .cd-title h1.is-run .cd-marq{animation:none;}
+  }
   .c-pageheader .sub{display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px;}
   .c-pageheader .sub .dot{color:var(--color-neutral-4);}
   .c-pageheader .sub b{font-weight:700; color:var(--color-neutral-7);}
@@ -766,7 +783,7 @@
               <span class="cd-brandmark" id="cdBrandMark" hidden><img id="cdBrandImg" alt="" /></span>
               <div class="c-pageheader-text">
                 <div class="cd-title">
-                  <h1 id="cdName"></h1>
+                  <h1 id="cdName"><span class="cd-marq" id="cdNameText"></span></h1>
                   <span id="cdStageWrap"></span>
                 </div>
                 <p class="sub" id="cdSub"></p>
@@ -1001,8 +1018,10 @@
   }
   function renderHeader(){
     document.title = 'Collab:Influence · ' + c.name;
-    E('cdName').textContent = c.name;
+    E('cdName').innerHTML = '<span class="cd-marq" id="cdNameText"></span>';
+    E('cdNameText').textContent = c.name;
     E('cdStageWrap').innerHTML = stageBadge();
+    fitTitle();
     var plats = (c.platforms || []).map(function(p){ return PLAT_ICON[p] || ''; }).join('');
     var bits = [];
     if (c.brand) bits.push('<b>' + esc(c.brand) + '</b>' + (c.agency ? ' via ' + esc(c.agency) : ''));
@@ -1018,6 +1037,23 @@
     var n = (c.roster || []).filter(function(r){ return r.state !== 'unavailable'; }).length;
     E('cdKolCount').hidden = !n; E('cdKolCount').textContent = n > 99 ? '99+' : n;
   }
+  /* Does the name fit on its line? If not, how far it has to travel to
+     show its end — that distance sets both the run and its pace (about
+     40px a second, never under 8s, never over 24s). Re-measured on any
+     resize so a wider window stops the run and a narrower one starts it. */
+  function fitTitle(){
+    var h1 = E('cdName'), span = E('cdNameText'); if (!h1 || !span) return;
+    var cs = getComputedStyle(h1);
+    var room = h1.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    var over = Math.ceil(span.getBoundingClientRect().width - room);
+    var run = over > 1;
+    h1.classList.toggle('is-run', run);
+    h1.style.setProperty('--marq', run ? over + 'px' : '0px');
+    h1.style.setProperty('--marq-t', run ? Math.min(24, Math.max(8, over / 40 + 6)).toFixed(1) + 's' : '');
+    h1.title = run ? (c ? c.name : '') : '';
+  }
+  if (window.ResizeObserver) new ResizeObserver(function(){ fitTitle(); }).observe(E('cdName'));
+  else window.addEventListener('resize', fitTitle);
   /* Brand mark beside the title, resolved from the name through the
      shell's collabBrand chain; the img's own load/error decides. */
   function updateBrandMark(brand){
