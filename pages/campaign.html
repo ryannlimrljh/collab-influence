@@ -649,8 +649,10 @@
   .cmp-menu-item:hover{background:var(--color-neutral-2);}
   .cmp-menu-item .chk{margin-left:auto; color:var(--color-neutral-9);}
 
-  /* ── Roster picker sheet — search the whole roster, tick people. */
-  .cd-picker{width:min(640px, calc(100vw - var(--spacing-32)));}
+  /* ── Roster picker — search the whole roster, tick people. Content of
+     the fold-out modal, so it lays itself out as a column inside it. */
+  .cd-picker{display:flex; flex-direction:column; gap:var(--spacing-16); padding:var(--spacing-24); flex:1; min-height:0;}
+  .cd-picker h3{padding-right:var(--spacing-32);}
   .cd-picker .c-field{width:100%;}
   .cd-picker-list{border:1px solid var(--color-neutral-3); border-radius:var(--radius-md);
     max-height:min(46vh, 420px); overflow-y:auto;}
@@ -715,10 +717,6 @@
   .cd-dl-row.is-new td{animation:cd-act-in 420ms var(--ease-settle) both;}
   .c-switch-track{cursor:pointer;}
 
-  .cmp-scrim{position:fixed; inset:0; z-index:400; background:var(--shadow-overlay);
-    display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none;
-    transition:opacity var(--duration-base) var(--ease-standard);}
-  .cmp-scrim.is-open{opacity:1; pointer-events:auto;}
   .c-toast-host{z-index:500;}
   .c-card-profile-avatar{position:relative; overflow:hidden;}
   .c-card-profile-avatar img{position:absolute; inset:0; width:100%; height:100%;
@@ -884,10 +882,10 @@
 
 <div class="cmp-menu" id="cdMenu" role="menu"></div>
 
-<!-- Roster picker: Add manually, or New preview link (with a batch name). -->
-<div class="c-cbrief-scrim" id="cdPickScrim">
-  <div class="c-cbrief cd-picker" role="dialog" aria-modal="true" aria-labelledby="cdPickTitle">
-    <button class="c-cbrief-close" type="button" id="cdPickClose" aria-label="Close"><i class="ph ph-x"></i></button>
+<!-- Roster picker: Add by hand, or the start of a selection list. Built
+     here, lifted into the fold-out modal when it opens. -->
+<div hidden>
+  <div class="cd-picker" id="cdPicker">
     <span class="c-herocard-eyebrow" id="cdPickEyebrow">Roster</span>
     <h3 style="margin:0; font-size:var(--text-h4-size); line-height:var(--text-h4-lh); font-weight:var(--text-h4-weight);" id="cdPickTitle">Add influencers</h3>
     <p class="c-cbrief-source" style="margin:-8px 0 0;" id="cdPickHint"></p>
@@ -900,19 +898,6 @@
       <span class="cnt" id="cdPickCount">Nobody selected yet</span>
       <button class="c-btn c-btn-ghost c-btn-md" type="button" id="cdPickCancel">Cancel</button>
       <button class="c-btn c-btn-primary c-btn-md" type="button" id="cdPickConfirm" disabled>Add</button>
-    </div>
-  </div>
-</div>
-
-<!-- Delete confirmation -->
-<div class="cmp-scrim" id="cdDelScrim">
-  <div class="c-modal" role="alertdialog" aria-modal="true" aria-labelledby="cdDelTitle" style="margin:var(--spacing-16);">
-    <div class="c-modal-head"><h4 id="cdDelTitle">Delete campaign?</h4>
-      <button class="c-icon-btn" type="button" id="cdDelClose" aria-label="Close"><i class="ph ph-x"></i></button></div>
-    <div class="c-modal-body" id="cdDelBody"></div>
-    <div class="c-modal-foot">
-      <button class="c-btn c-btn-ghost c-btn-md" type="button" id="cdDelCancel">Cancel</button>
-      <button class="c-btn c-btn-primary c-btn-md" type="button" id="cdDelConfirm" style="background:var(--color-red); border-color:var(--color-red);"><i class="ph ph-trash"></i> Delete</button>
     </div>
   </div>
 </div>
@@ -931,8 +916,8 @@
 <script src="../shared/dropdown.js?v=3"></script>
 <script src="../shared/campaign-store.js?v=10"></script>
 <script src="../shared/campaign-form.js?v=14"></script>
-<script src="../shared/send-sheet.js?v=34"></script>
-<script src="../shared/swing-modal.js?v=2"></script>
+<script src="../shared/send-sheet.js?v=35"></script>
+<script src="../shared/swing-modal.js?v=4"></script>
 <script>
 (function () {
   'use strict';
@@ -1205,7 +1190,7 @@
     var a = b.dataset.next;
     if (a === 'ask') return campaignForm.open({rec: c, step: 2, anchor: b, onSave: saveEdit});
     if (a === 'won') return moveStage('sourcing');
-    if (a === 'send') return startSend(null);
+    if (a === 'send') return startSend(null, b);
     if (a === 'confirm') { setTab('selection'); return flashPending(); }
     if (a === 'client') {
       var last = (c.batches || [])[(c.batches || []).length - 1];
@@ -2015,6 +2000,8 @@
   /* ── Selection panel interactions — one handler for the panel and for
      whatever the modal is showing, since both draw from the record. */
   function selectionClick(e){
+    /* The picker and the send sheet share the modal's body; they handle themselves. */
+    if (e.target.closest('#cdPicker, .ss-host, .sw-confirm')) return;
     if (e.target.closest('[data-sw-close]')) return window.swingModal.close();
     var who = e.target.closest('.cd-sp .who, .cd-sp .c-card-profile-avatar');
     if (who) { var row = who.closest('.cd-sp'); return openProfile(row.dataset.person, row.querySelector('.c-card-profile-avatar')); }
@@ -2032,11 +2019,12 @@
       return;
     }
     if (e.target.closest('[data-edit-ask]')) return campaignForm.open({rec: c, step: 2, anchor: e.target.closest('[data-edit-ask]'), onSave: saveEdit});
-    if (e.target.closest('#cdNewBatch') || e.target.closest('[data-new-list]')) return startSend(null);
+    var nl = e.target.closest('#cdNewBatch') || e.target.closest('[data-new-list]');
+    if (nl) return startSend(null, nl);
     var sb = e.target.closest('[data-send-band]');
-    if (sb) { var ps = sb.dataset.sendBand.split('/'); return startSend({platform: ps[0], tier: ps[1]}); }
+    if (sb) { var ps = sb.dataset.sendBand.split('/'); return startSend({platform: ps[0], tier: ps[1]}, sb); }
     var ab = e.target.closest('[data-add-band]');
-    if (ab) { var pa = ab.dataset.addBand ? ab.dataset.addBand.split('/') : null; return openPicker('roster', pa ? {platform: pa[0], tier: pa[1]} : null); }
+    if (ab) { var pa = ab.dataset.addBand ? ab.dataset.addBand.split('/') : null; return openPicker('roster', pa ? {platform: pa[0], tier: pa[1]} : null, ab); }
     /* Bulk selection on the people list. */
     var pp = e.target.closest('[data-pick-person]');
     if (pp) {
@@ -2130,6 +2118,7 @@
      re-render — the field you are typing in stays put. */
   function selectionChange(e){
     var t = e.target;
+    if (t.closest('#cdPicker, .ss-host, .sw-confirm')) return;
     if (t.matches('[data-kult-remark]')) S.updatePick(c.id, Number(t.dataset.batch), t.dataset.inf, {kultRemark: t.value});
     else if (t.matches('[data-client-remark]')) S.updatePick(c.id, Number(t.dataset.batch), t.dataset.inf, {clientRemark: t.value});
     else if (t.matches('[data-batch-notes]')) S.updateBatch(c.id, Number(t.dataset.batchNotes), {notes: t.value});
@@ -2144,12 +2133,13 @@
      with this campaign locked as the destination. A band narrows the
      picker to creators who fit it; the sheet's ask is whatever is still
      open, so the client only sees what is left to fill. */
-  function startSend(band){
+  function startSend(band, anchor){
     setTab('selection');
-    openPicker('send', band);
+    openPicker('send', band, anchor);
   }
-  function openSendSheet(ids){
+  function openSendSheet(ids, anchor){
     window.sendSheet.open({
+      anchor: anchor || null,
       infIds: ids, people: byInf, campaigns: S.merged(), defaultCampaignId: c.id, lockCampaign: true,
       onSend: function(r){
         /* Sending against an edited ask updates the campaign's own ask, so
@@ -2203,9 +2193,12 @@
   /* ── Roster picker. `roster` adds fills by hand; `send` gathers the
      candidates for a batch. A band filter narrows the list to creators
      on that platform (and at that tier), and can be loosened chip by chip. */
-  var pickScrim = E('cdPickScrim'), pickMode = 'roster', chosen = new Set(), pickFilter = {}, pickBand = null;
-  function openPicker(mode, band){
+  /* The picker is built in the page, then lifted into the fold-out modal
+     each time it opens, so its bindings are made once. */
+  var picker = E('cdPicker'), pickMode = 'roster', chosen = new Set(), pickFilter = {}, pickBand = null;
+  function openPicker(mode, band, anchor){
     pickMode = mode; chosen.clear();
+    window.swingModal.open({anchor: anchor || null, width: 640, key: 'picker', label: mode === 'send' ? 'Create selection list' : 'Add influencers'}).appendChild(picker);
     /* The band is the slot being filled; the filter is only what the list
        shows. Widening the search must not change where the fill lands. */
     pickBand = band ? {platform: band.platform || null, tier: band.tier || null} : null;
@@ -2218,10 +2211,9 @@
       : 'Added by hand — they skip the client\'s pick and land in the slot as confirmed.';
     E('cdPickSearch').value = '';
     renderPickList();
-    pickScrim.classList.add('is-open');
     setTimeout(function(){ E('cdPickSearch').focus(); }, 260);
   }
-  function closePicker(){ pickScrim.classList.remove('is-open'); }
+  function closePicker(){ if (window.swingModal.isOpen('picker')) window.swingModal.close(); }
   function channelOf(r, platform){
     return (r.platforms || []).filter(function(p){ return p.platform === platform && p.handle; })[0] || null;
   }
@@ -2288,14 +2280,13 @@
     box.classList.toggle('on', on); box.innerHTML = on ? '<i class="ph ph-check"></i>' : '';
     paintPickCount();
   });
-  E('cdPickClose').addEventListener('click', closePicker);
   E('cdPickCancel').addEventListener('click', closePicker);
-  pickScrim.addEventListener('click', function(e){ if (e.target === pickScrim) closePicker(); });
-  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && pickScrim.classList.contains('is-open')) closePicker(); });
   E('cdPickConfirm').addEventListener('click', function(){
     var ids = Array.from(chosen); if (!ids.length) return;
+    /* The sheet takes the panel over from the picker, folding out of the
+       button that was just pressed. */
+    if (pickMode === 'send') return openSendSheet(ids, E('cdPickConfirm'));
     closePicker();
-    if (pickMode === 'send') return openSendSheet(ids);
     /* By hand: the fill takes the band's platform when the creator has it,
        else their biggest channel; its tier is always the real one, and a
        mismatch with the band is recorded as a stand-in for that slot. */
@@ -2317,19 +2308,13 @@
   E('cdEdit').addEventListener('click', function(){
     campaignForm.open({rec: c, anchor: E('cdEdit'), onSave: saveEdit});
   });
-  E('cdShare').addEventListener('click', function(){ startSend(null); });
-  var delScrim = E('cdDelScrim');
+  E('cdShare').addEventListener('click', function(){ startSend(null, E('cdShare')); });
   E('cdDelete').addEventListener('click', function(){
-    E('cdDelBody').innerHTML = 'This removes <strong>' + esc(c.name) + '</strong> and its roster and preview batches from the workspace. The seeded sample data on disk is untouched.';
-    delScrim.classList.add('is-open');
-  });
-  function closeDelete(){ delScrim.classList.remove('is-open'); }
-  E('cdDelClose').addEventListener('click', closeDelete);
-  E('cdDelCancel').addEventListener('click', closeDelete);
-  delScrim.addEventListener('click', function(e){ if (e.target === delScrim) closeDelete(); });
-  E('cdDelConfirm').addEventListener('click', function(){
-    S.remove(c.id);
-    location.href = 'campaigns.html';
+    window.swingModal.confirm({
+      anchor: E('cdDelete'), title: 'Delete campaign?', danger: true, ok: '<i class="ph ph-trash"></i> Delete',
+      body: 'This removes <strong>' + esc(c.name) + '</strong> and its roster and preview batches from the workspace. The seeded sample data on disk is untouched.',
+      onOk: function(){ S.remove(c.id); location.href = 'campaigns.html'; }
+    });
   });
 
   /* ── Boot: bones first, the campaign a beat later with the arrival

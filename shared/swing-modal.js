@@ -2,9 +2,13 @@
    module: a panel that flies out of the element you clicked and folds back
    into it on close. One instance per page; content is handed in as HTML.
 
-   swingModal.open({anchor, html, width, label, onClose, guard})
+   swingModal.open({anchor, html, width, label, onClose, guard, key})
    `guard` is a function; while it returns false, Escape and the backdrop
    leave the modal open — for a form whose own popovers take Escape first.
+   `key` names what is showing, so isOpen(key) lets a popup close only
+   itself and not whatever replaced it in the one shared panel.
+   swingModal.confirm({anchor, title, body, ok, danger, onOk}) — a small
+   yes/no card in the same panel, for deletes.
    swingModal.setBody(html)   re-render the content while open
    swingModal.close() · isOpen() · panel()
 
@@ -27,15 +31,21 @@
     '.sw-panel.is-swinging-open{animation:sw-open .8s cubic-bezier(.25,.9,.35,1) both;}',
     '.sw-panel.is-swinging-closed{animation:sw-close .55s cubic-bezier(.3,.6,.35,1) both;}',
     '@keyframes sw-open{0%{transform:translate(var(--sw-dx, 0px), var(--sw-dy, 0px)) scale(var(--sw-sx, 1), var(--sw-sy, 1)); opacity:.4;}',
-    '  45%{transform:translate(calc(var(--sw-dx, 0px) * .5), calc(var(--sw-dy, 0px) * .5)) scale(.7) rotateY(calc(48deg * var(--sw-dir, 1))) rotateZ(calc(-7deg * var(--sw-dir, 1))); opacity:1;}',
-    '  78%{transform:translate(0px, 0px) scale(1) rotateY(calc(-7deg * var(--sw-dir, 1))) rotateZ(calc(1deg * var(--sw-dir, 1)));} 100%{transform:none; opacity:1;}}',
+    '  45%{transform:translate(calc(var(--sw-dx, 0px) * .5), calc(var(--sw-dy, 0px) * .5)) scale(.7) rotateY(calc(48deg * var(--sw-dir, 1) * var(--sw-rot, 1))) rotateZ(calc(-7deg * var(--sw-dir, 1) * var(--sw-rot, 1))); opacity:1;}',
+    '  78%{transform:translate(0px, 0px) scale(1) rotateY(calc(-7deg * var(--sw-dir, 1) * var(--sw-rot, 1))) rotateZ(calc(1deg * var(--sw-dir, 1) * var(--sw-rot, 1)));} 100%{transform:none; opacity:1;}}',
     '@keyframes sw-close{0%{transform:none; opacity:1;}',
-    '  50%{transform:translate(calc(var(--sw-dx, 0px) * .5), calc(var(--sw-dy, 0px) * .5)) scale(.7) rotateY(calc(45deg * var(--sw-dir, 1))) rotateZ(calc(-6deg * var(--sw-dir, 1))); opacity:1;}',
+    '  50%{transform:translate(calc(var(--sw-dx, 0px) * .5), calc(var(--sw-dy, 0px) * .5)) scale(.7) rotateY(calc(45deg * var(--sw-dir, 1) * var(--sw-rot, 1))) rotateZ(calc(-6deg * var(--sw-dir, 1) * var(--sw-rot, 1))); opacity:1;}',
     '  100%{transform:translate(var(--sw-dx, 0px), var(--sw-dy, 0px)) scale(var(--sw-sx, 1), var(--sw-sy, 1)); opacity:.35;}}',
     '@media (prefers-reduced-motion:reduce){ .sw-panel.is-swinging-open, .sw-panel.is-swinging-closed{animation:none;} }',
     '.sw-close{position:absolute; top:var(--spacing-16); right:var(--spacing-16); z-index:2; background:none; border:none; cursor:pointer; padding:0; line-height:1; color:var(--color-neutral-5); font-size:20px;}',
     '.sw-close:hover{color:var(--color-neutral-9);}',
     '.sw-body{flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column;}',
+    /* ── The confirm card. */
+    '.sw-confirm{padding:var(--spacing-24); padding-right:var(--spacing-48);}',
+    '.sw-confirm h4{margin:0 0 var(--spacing-8); font-size:var(--text-h5-size); line-height:var(--text-h5-lh); font-weight:700;}',
+    '.sw-confirm p{margin:0; font-size:var(--text-body2-size); line-height:1.5; color:var(--color-neutral-7);}',
+    '.sw-confirm .sw-confirm-foot{display:flex; justify-content:flex-end; gap:var(--spacing-12); margin-top:var(--spacing-20); margin-right:calc(var(--spacing-24) * -1);}',
+    '.sw-confirm .is-danger{background:var(--color-red); border-color:var(--color-red);}',
     /* ── The profile view. */
     '.sw-head{display:flex; align-items:center; gap:var(--spacing-16); padding:var(--spacing-24) var(--spacing-24) var(--spacing-16); flex:none;}',
     '.sw-head .c-card-profile-avatar{width:76px; height:76px; flex:none; font-size:var(--text-h5-size); position:relative; overflow:hidden;}',
@@ -81,7 +91,7 @@
     return String(name || '').split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w[0].toUpperCase(); }).join('') || '?';
   }
 
-  var host = null, panel = null, body = null, srcEl = null, srcRect = null, hideTimer = null, onCloseCb = null, guard = null;
+  var host = null, panel = null, body = null, srcEl = null, srcRect = null, hideTimer = null, onCloseCb = null, guard = null, curKey = null, openTicket = 0;
   var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function ensure() {
@@ -103,27 +113,40 @@
     var from = (srcEl && srcEl.isConnected) ? srcEl.getBoundingClientRect() : srcRect;
     if (!from) return false;
     var to = panel.getBoundingClientRect();
+    /* From a small button a big panel would start as a sliver and swing
+       through a full door-fold; a floor on the start scale and a rotation
+       that eases off past 520px keep the flight, lose the wrench. */
     panel.style.setProperty('--sw-dx', (from.left - to.left).toFixed(1) + 'px');
     panel.style.setProperty('--sw-dy', (from.top - to.top).toFixed(1) + 'px');
-    panel.style.setProperty('--sw-sx', (from.width / to.width).toFixed(4));
-    panel.style.setProperty('--sw-sy', (from.height / to.height).toFixed(4));
+    panel.style.setProperty('--sw-sx', Math.max(.3, from.width / to.width).toFixed(4));
+    panel.style.setProperty('--sw-sy', Math.max(.3, from.height / to.height).toFixed(4));
+    panel.style.setProperty('--sw-rot', Math.max(.5, Math.min(1, 520 / to.width)).toFixed(2));
     panel.style.setProperty('--sw-dir', (from.left + from.width / 2) <= window.innerWidth / 2 ? '1' : '-1');
     return true;
   }
-  function isOpen() { return !!host && host.classList.contains('is-open'); }
+  function isOpen(key) { return !!host && host.classList.contains('is-open') && (key == null || key === curKey); }
   function request() { if (guard && guard() === false) return; close(); }
   function open(o) {
     ensure();
     o = o || {};
     clearTimeout(hideTimer);
+    /* Taking the panel over from another popup runs that one's cleanup. */
+    if (isOpen() && onCloseCb) { var prev = onCloseCb; onCloseCb = null; prev(); }
     srcEl = o.anchor || null; srcRect = srcEl ? srcEl.getBoundingClientRect() : null;
-    onCloseCb = o.onClose || null; guard = o.guard || null;
+    onCloseCb = o.onClose || null; guard = o.guard || null; curKey = o.key || null;
     panel.style.setProperty('--sw-w', (o.width || 480) + 'px');
     panel.setAttribute('aria-label', o.label || 'Details');
     body.innerHTML = o.html || '';
     host.classList.add('is-open'); host.setAttribute('aria-hidden', 'false');
-    if (!REDUCED && swingVars()) panel.classList.add('is-swinging-open');
-    host.classList.add('is-shown');
+    /* The flight is measured a microtask later, once the caller has put
+       its content in the body — measured empty, the panel is a sliver and
+       the fold starts stretched twenty times tall. */
+    var ticket = ++openTicket;
+    Promise.resolve().then(function () {
+      if (ticket !== openTicket || !isOpen()) return;
+      if (!REDUCED && swingVars()) panel.classList.add('is-swinging-open');
+      host.classList.add('is-shown');
+    });
     return body;
   }
   function setBody(html) { if (host) body.innerHTML = html; return body; }
@@ -135,13 +158,28 @@
     hideTimer = setTimeout(function () {
       host.classList.remove('is-open'); host.setAttribute('aria-hidden', 'true');
       panel.classList.remove('is-swinging-closed');
-      body.innerHTML = ''; guard = null;
+      body.innerHTML = ''; guard = null; curKey = null;
       if (onCloseCb) { var cb = onCloseCb; onCloseCb = null; cb(); }
     }, REDUCED ? 0 : 560);
   }
 
+  function confirm(o) {
+    o = o || {};
+    var b = open({
+      anchor: o.anchor, width: o.width || 400, key: o.key || 'confirm', label: o.title || 'Confirm', onClose: o.onClose,
+      html: '<div class="sw-confirm" role="alertdialog" aria-labelledby="swConfirmTitle"><h4 id="swConfirmTitle">' + esc(o.title || 'Are you sure?') + '</h4>' +
+        '<p>' + (o.body || '') + '</p><div class="sw-confirm-foot">' +
+        '<button class="c-btn c-btn-ghost c-btn-md" type="button" data-sw-no>' + esc(o.cancel || 'Cancel') + '</button>' +
+        '<button class="c-btn c-btn-primary c-btn-md' + (o.danger ? ' is-danger' : '') + '" type="button" data-sw-ok>' + (o.ok || 'OK') + '</button></div></div>'
+    });
+    b.querySelector('[data-sw-no]').addEventListener('click', close);
+    b.querySelector('[data-sw-ok]').addEventListener('click', function () { close(); if (o.onOk) o.onOk(); });
+    setTimeout(function () { var n = b.querySelector('[data-sw-no]'); if (n) n.focus(); }, 200);
+    return b;
+  }
+
   window.swingModal = {
-    open: open, close: close, isOpen: isOpen, setBody: setBody,
+    open: open, close: close, isOpen: isOpen, setBody: setBody, confirm: confirm,
     panel: function () { ensure(); return panel; },
     body: function () { ensure(); return body; }
   };

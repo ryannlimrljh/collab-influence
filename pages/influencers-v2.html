@@ -1076,7 +1076,8 @@
 <script src="../shared/dropdown.js?v=3"></script>
 <script src="../shared/campaign-store.js?v=10"></script>
 <script src="../shared/campaign-model.js?v=8"></script>
-<script src="../shared/send-sheet.js?v=34"></script>
+<script src="../shared/swing-modal.js?v=4"></script>
+<script src="../shared/send-sheet.js?v=35"></script>
 <script src="../shared/influencers-data.js"></script>
 <script src="../shared/avatar-manifest.js?v=2"></script>
 <script>window.INFLUENCER_STORE_KEY = 'collab-influencers-v2';</script>
@@ -2763,6 +2764,7 @@
   document.getElementById('infSelGenerate').addEventListener('click', function () {
     if (!selected.size) return;
     window.sendSheet.open({
+      anchor: document.getElementById('infSelGenerate'),
       infIds: Array.from(selected),
       people: byId,
       campaigns: campaignStore.merged(),

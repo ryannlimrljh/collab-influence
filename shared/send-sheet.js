@@ -237,6 +237,12 @@
   var CSS = [
     '.ss-scrim{position:fixed; inset:0; z-index:400; background:var(--shadow-overlay);',
     '  display:flex; align-items:center; justify-content:center; padding:var(--spacing-16);}',
+    /* Inside the fold-out modal the sheet is the panel's content: no shadow
+       or width of its own, the modal's close instead of the sheet's. */
+    '.ss-host{display:flex; flex-direction:column; flex:1; min-height:0;}',
+    '.ss-host .ss-modal{max-width:none; max-height:none; box-shadow:none; border-radius:0; flex:1; min-height:0;}',
+    '.ss-host .c-modal-head{padding-right:var(--spacing-48);}',
+    '.ss-host [data-ss="close"]{display:none;}',
 
     /* c-modal ships max-width:400px for a confirm dialog; this one carries a
        table, so it is widened and its body made the scrolling part. */
@@ -530,15 +536,19 @@
       infIds: opts.infIds || []
     };
 
+    /* The sheet lives in the shared fold-out modal where the page has one,
+       flying out of `opts.anchor`; without it, it owns its own scrim. It
+       used to borrow `inf-scrim`, declared in influencers-v2.html's own
+       CSS — a shared module cannot depend on one page's stylesheet. */
+    var SW = window.swingModal || null;
     var host = document.createElement('div');
-    /* The sheet owns its own scrim. It used to borrow `inf-scrim`, which is
-       declared in influencers-v2.html's page-local CSS and starts at
-       opacity 0 until something adds `is-open` — so the sheet rendered
-       invisible there, and on campaign.html, where the class does not exist
-       at all, it would have had no overlay whatsoever. A shared module
-       cannot depend on one page's stylesheet. */
-    host.className = 'ss-scrim';
-    document.body.appendChild(host);
+    if (SW) {
+      host.className = 'ss-host';
+      SW.open({anchor: opts.anchor || null, width: 680, key: 'send', label: 'Create selection list'}).appendChild(host);
+    } else {
+      host.className = 'ss-scrim';
+      document.body.appendChild(host);
+    }
 
     /* Never auto-add someone already ticked, already booked on this campaign,
        or already turned down by this client — re-pitching a rejection is worse
@@ -1110,7 +1120,7 @@
       }, 420);
     }
 
-    function close() { host.remove(); }
+    function close() { if (SW && SW.isOpen('send')) SW.close(); else host.remove(); }
 
     host.addEventListener('click', function (e) {
       if (e.target === host || e.target.closest('[data-ss="close"], [data-ss="cancel"]')) return close();

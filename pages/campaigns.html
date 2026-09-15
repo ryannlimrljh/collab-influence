@@ -338,12 +338,6 @@
     .cmp-arriving *, tr.is-new td{animation:none !important;}
   }
 
-  /* ── Delete confirmation. */
-  .cmp-scrim{position:fixed; inset:0; z-index:400; background:var(--shadow-overlay);
-    display:flex; align-items:center; justify-content:center;
-    opacity:0; pointer-events:none;
-    transition:opacity var(--duration-base) var(--ease-standard);}
-  .cmp-scrim.is-open{opacity:1; pointer-events:auto;}
   .c-toast-host{z-index:500;}
 
   @media (max-width:1100px){ .cmp-hide-md{display:none;} }
@@ -505,19 +499,6 @@
 <!-- One floating menu: stage picker or row options, depending on who opened it. -->
 <div class="cmp-menu" id="cmpMenu" role="menu"></div>
 
-<!-- Delete confirmation -->
-<div class="cmp-scrim" id="cmpDelScrim">
-  <div class="c-modal" role="alertdialog" aria-modal="true" aria-labelledby="cmpDelTitle" style="margin:var(--spacing-16);">
-    <div class="c-modal-head"><h4 id="cmpDelTitle">Delete campaign?</h4>
-      <button class="c-icon-btn" type="button" id="cmpDelClose" aria-label="Close"><i class="ph ph-x"></i></button></div>
-    <div class="c-modal-body" id="cmpDelBody"></div>
-    <div class="c-modal-foot">
-      <button class="c-btn c-btn-ghost c-btn-md" type="button" id="cmpDelCancel">Cancel</button>
-      <button class="c-btn c-btn-primary c-btn-md" type="button" id="cmpDelConfirm" style="background:var(--color-red); border-color:var(--color-red);"><i class="ph ph-trash"></i> Delete</button>
-    </div>
-  </div>
-</div>
-
 <div class="c-toast-host" id="cmpToasts"></div>
 
 <script src="../shared/keys.local.js"></script>
@@ -527,7 +508,7 @@
 <script src="../shared/dropdown.js?v=3"></script>
 <script src="../shared/campaign-store.js?v=10"></script>
 <script src="../shared/campaign-model.js?v=8"></script>
-<script src="../shared/swing-modal.js?v=2"></script>
+<script src="../shared/swing-modal.js?v=4"></script>
 <script src="../shared/campaign-form.js?v=14"></script>
 <script>
 (function () {
@@ -952,7 +933,7 @@
         S.update(id, fields); render(id); toast('Changes saved.');
       }});
     } else if (b.dataset.del) {
-      var d = byId(b.dataset.del); closeMenu(); askDelete(d);
+      var d = byId(b.dataset.del), dfrom = menuAnchor && menuAnchor.closest('.cmp-card, tr'); closeMenu(); askDelete(d, dfrom);
     }
   });
   document.addEventListener('click', function(e){
@@ -1079,26 +1060,21 @@
   }
   E('cmpAddBtn').addEventListener('click', openAdd);
 
-  /* ── Delete — confirmed, then gone from the list. */
-  var delScrim = E('cmpDelScrim'), deleting = null;
-  function askDelete(c){
-    deleting = c;
-    E('cmpDelBody').innerHTML = 'This removes <strong>' + esc(c.name) + '</strong> and its roster and preview batches from the workspace. The seeded sample data on disk is untouched.';
-    delScrim.classList.add('is-open');
+  /* ── Delete — confirmed in a card folding out of the row, then gone. */
+  function askDelete(c, anchor){
+    window.swingModal.confirm({
+      anchor: anchor || null, title: 'Delete campaign?', danger: true, ok: '<i class="ph ph-trash"></i> Delete',
+      body: 'This removes <strong>' + esc(c.name) + '</strong> and its roster and preview batches from the workspace. The seeded sample data on disk is untouched.',
+      onOk: function(){ doDelete(c); }
+    });
   }
-  function closeDelete(){ delScrim.classList.remove('is-open'); deleting = null; }
-  E('cmpDelClose').addEventListener('click', closeDelete);
-  E('cmpDelCancel').addEventListener('click', closeDelete);
-  delScrim.addEventListener('click', function(e){ if (e.target === delScrim) closeDelete(); });
-  E('cmpDelConfirm').addEventListener('click', function(){
-    if (!deleting) return;
-    var c = deleting; closeDelete();
+  function doDelete(c){
     S.remove(c.id);
     var tr = E('cmpRows').querySelector('tr[data-id="' + c.id + '"]');
     if (tr) tr.classList.add('is-leaving');
     toast(c.name + ' deleted.', 'danger');
     setTimeout(render, 230);
-  });
+  }
 
   /* ── Boot: bones first, then the real page cascades in. */
   applyView();
