@@ -874,6 +874,12 @@
      later so it lands in place instead of popping. */
   .cd-sk{display:inline-block; height:12px; border-radius:var(--radius-sm); background:var(--color-neutral-2); vertical-align:middle;}
   .cd-sk.pill{height:24px; border-radius:var(--radius-pill);}
+  /* On the Next up gradient the page grey disappears; a tint of ink reads. */
+  .cd-next .cd-sk{background:rgba(0,0,0,.07);}
+  .cd-sk-tl{display:flex; justify-content:space-between; align-items:center;}
+  .cd-sk-seats{display:flex; gap:4px; margin-top:2px;}
+  .cd-sk-seats .cd-sk{width:18px; height:18px; border-radius:var(--radius-pill);}
+  .cd-kpi.is-sk .row{align-items:center;}
   .cd-sk.ring{width:80px; height:80px; border-radius:var(--radius-pill); background:var(--color-neutral-3);}
   .cd-sk-node{display:inline-flex; align-items:center; gap:8px; padding:6px 10px;}
   .cd-sk-node .ind{width:22px; height:22px; border-radius:var(--radius-pill); background:var(--color-neutral-3);}
@@ -2595,12 +2601,19 @@
     E('cdStageWrap').innerHTML = '<span class="cd-sk pill" style="width:120px"></span>';
     E('cdSub').innerHTML = '<span class="cd-sk" style="width:min(420px, 70%); height:12px"></span>';
     E('cdBrandMark').hidden = true;
-    E('cdKpis').innerHTML = [0,1,2,3].map(function(){
-      return '<span class="cd-kpi" style="pointer-events:none"><span class="cd-sk" style="width:56px; height:9px"></span><span class="cd-sk" style="width:64px; height:22px"></span><span class="cd-sk" style="width:80%; height:9px"></span></span>';
+    /* Bones in the shape of what lands: the tiles with their number row,
+       ring and seats, the Next up with its eyebrow, sentence, button and
+       timeline — so nothing moves when the campaign arrives. */
+    E('cdKpis').innerHTML = [0,1,2,3].map(function(i){
+      return '<span class="cd-kpi is-sk" style="pointer-events:none"><span class="cd-sk" style="width:56px; height:10px; margin:2px 0"></span>' +
+        '<span class="row"><span class="cd-sk" style="width:' + (i === 3 ? 110 : 64) + 'px; height:29px"></span>' + (i === 1 || i === 2 ? '<span class="cd-sk ring" style="width:44px; height:44px"></span>' : '') + '</span>' +
+        '<span class="cd-sk" style="width:70%; height:9px; margin:3px 0"></span>' +
+        (i === 0 ? '<span class="cd-sk-seats"><span class="cd-sk"></span><span class="cd-sk"></span><span class="cd-sk"></span><span class="cd-sk"></span><span class="cd-sk"></span></span>' : '') + '</span>';
     }).join('');
     E('cdNext').classList.remove('is-quiet');
-    E('cdNextBody').innerHTML = '<span class="cd-sk" style="width:56px; height:10px"></span><span class="say"><span class="cd-sk" style="width:90%; height:14px; margin-bottom:8px"></span><span class="cd-sk" style="width:60%; height:14px"></span></span><span class="acts"><span class="cd-sk pill" style="width:150px; height:40px"></span></span>';
-    E('cdTimeline').hidden = true;
+    E('cdNextBody').innerHTML = '<span class="cd-sk" style="width:56px; height:10px; margin:2px 0"></span><span class="say"><span class="cd-sk" style="width:88%; height:16px; margin-bottom:8px"></span><span class="cd-sk" style="width:52%; height:16px"></span></span><span class="acts"><span class="cd-sk pill" style="width:150px; height:40px"></span></span>';
+    E('cdTimeline').hidden = false;
+    E('cdTimeline').innerHTML = '<span class="cd-sk-tl" style="height:16px"><span class="cd-sk" style="width:38%; height:10px"></span><span class="cd-sk" style="width:12%; height:10px"></span></span><span class="cd-sk" style="width:100%; height:6px; margin:10px 0 8px"></span><span class="cd-sk-tl" style="height:14px"><span class="cd-sk" style="width:18%; height:8px"></span><span class="cd-sk" style="width:18%; height:8px"></span></span>';
     E('pan-overview').innerHTML = '<div class="cd-ov">' + ['span-4', 'span-2', 'span-2', 'span-2', 'span-2'].map(function(sp){
       return '<div class="cd-card ' + sp + '"><div class="cd-card-h"><span class="cd-chip gray"></span><span class="cd-sk" style="width:96px"></span></div>' +
         '<span class="cd-sk" style="width:80%; height:12px"></span><span class="cd-sk" style="width:55%; height:12px"></span><span class="cd-sk" style="width:65%; height:12px"></span></div>';
