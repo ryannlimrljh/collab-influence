@@ -8,14 +8,18 @@
      here, in the head: the reveal fires at first paint, which on a page
      this size comes before the script at the end of the body has run. */
   window.addEventListener('pagereveal', function (e) {
-    var fromList = false;
-    try { fromList = sessionStorage.getItem('collab-vt-from-list') === '1'; sessionStorage.removeItem('collab-vt-from-list'); } catch (err) {}
-    if (e.viewTransition && !fromList) e.viewTransition.skipTransition();
+    var mark = '';
+    try { mark = sessionStorage.getItem('collab-vt') || ''; sessionStorage.removeItem('collab-vt'); } catch (err) {}
+    if (!e.viewTransition) return;
+    if (mark === 'from-list' || mark === 'next' || mark === 'prev') { try { e.viewTransition.types.add(mark); } catch (err) {} }
+    else e.viewTransition.skipTransition();
   });
-  /* And on the way out: leaving a campaign — for another one, or back to
-     the list — is a plain change of page, never a flight. */
+  /* On the way out: a jump to the next or previous campaign carries its
+     direction; leaving any other way is a plain change of page. */
   window.addEventListener('pageswap', function (e) {
-    if (e.viewTransition) e.viewTransition.skipTransition();
+    if (!e.viewTransition) return;
+    if (window.__goDir) { try { e.viewTransition.types.add(window.__goDir); } catch (err) {} }
+    else e.viewTransition.skipTransition();
   });
 </script>
 <meta charset="utf-8" />
@@ -69,16 +73,31 @@
   ::view-transition-group(campaign-card), ::view-transition-group(campaign-head){animation-duration:.46s; animation-timing-function:var(--ease-settle);}
   ::view-transition-old(campaign-card), ::view-transition-old(campaign-head){animation-duration:.22s;}
   @media (prefers-reduced-motion:reduce){ @view-transition { navigation: none; } }
-  .cd-hero{view-transition-name:campaign-card;}
-  .cd-headrow{view-transition-name:campaign-head;}
+  /* Each route in carries a type. From the list: the card grows into the
+     hero and the second fold rises. Next or previous, from the rail or
+     the keys: the page content slides across while the shell stays. */
+  :root:active-view-transition-type(from-list) .cd-hero{view-transition-name:campaign-card;}
+  :root:active-view-transition-type(from-list) .cd-headrow{view-transition-name:campaign-head;}
   /* The second fold — tabs, then panels — waits for the card to land,
      then rises in: nothing below the hero competes with the expansion. */
-  .cd-tabs{view-transition-name:campaign-tabs;}
-  .cd-panels{view-transition-name:campaign-body;}
+  :root:active-view-transition-type(from-list) .cd-tabs{view-transition-name:campaign-tabs;}
+  :root:active-view-transition-type(from-list) .cd-panels{view-transition-name:campaign-body;}
   @keyframes cd-vt-rise{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
   ::view-transition-old(campaign-tabs), ::view-transition-old(campaign-body){animation:none; opacity:0;}
   ::view-transition-new(campaign-tabs){animation:cd-vt-rise .38s var(--ease-settle) .30s both;}
   ::view-transition-new(campaign-body){animation:cd-vt-rise .42s var(--ease-settle) .38s both;}
+  :root:active-view-transition-type(next) .c-shell-content, :root:active-view-transition-type(prev) .c-shell-content{view-transition-name:campaign-page;}
+  ::view-transition-group(campaign-page){animation-duration:.42s; animation-timing-function:var(--ease-settle);}
+  @keyframes cd-vt-out-left{to{opacity:0; transform:translateX(-48px);}}
+  @keyframes cd-vt-in-right{from{opacity:0; transform:translateX(72px);}}
+  @keyframes cd-vt-out-right{to{opacity:0; transform:translateX(48px);}}
+  @keyframes cd-vt-in-left{from{opacity:0; transform:translateX(-72px);}}
+  :root:active-view-transition-type(next)::view-transition-old(campaign-page){animation:cd-vt-out-left .30s var(--ease-standard) both;}
+  :root:active-view-transition-type(next)::view-transition-new(campaign-page){animation:cd-vt-in-right .44s var(--ease-settle) .06s both;}
+  :root:active-view-transition-type(prev)::view-transition-old(campaign-page){animation:cd-vt-out-right .30s var(--ease-standard) both;}
+  :root:active-view-transition-type(prev)::view-transition-new(campaign-page){animation:cd-vt-in-left .44s var(--ease-settle) .06s both;}
+  :root:active-view-transition-type(next)::view-transition-old(root), :root:active-view-transition-type(next)::view-transition-new(root),
+  :root:active-view-transition-type(prev)::view-transition-old(root), :root:active-view-transition-type(prev)::view-transition-new(root){animation:none;}
   /* ── The campaigns rail: every campaign as a card between the header
      and the hero, one keypress away, the current one outlined. Grid rows
      from 0fr to 1fr so it slides open without animating height itself. */
@@ -1166,8 +1185,8 @@
   var c = id ? S.get(id) : null;
   var tab = params.get('tab') || 'overview';
   var addedByHand = Number(params.get('added')) || 0;
-  /* The list's hand-off mark is consumed at reveal; never let one linger. */
-  try { sessionStorage.removeItem('collab-vt-from-list'); } catch (e) {}
+  /* The route mark is consumed at reveal; never let one linger. */
+  try { sessionStorage.removeItem('collab-vt'); } catch (e) {}
   var openBatches = {};
   var batchFilter = {};
   if (params.get('batch')) openBatches[Number(params.get('batch'))] = true;
@@ -2569,10 +2588,18 @@
     try { localStorage.setItem(RAIL_KEY, on ? '1' : '0'); } catch (e) {}
     if (on) setTimeout(function(){ railFocus(silent); }, silent ? 0 : 120);
   }
-  /* Leaving for another campaign is a plain change of page: the flight
-     belongs to arriving from the list, and the next page skips it. */
-  function goCampaign(id){
+  /* Leaving for another campaign slides the page in the direction of the
+     jump — next to the left, previous to the right — on both sides of
+     the navigation. */
+  function goCampaign(id, dir){
+    window.__goDir = dir || null;
+    try { if (dir) sessionStorage.setItem('collab-vt', dir); } catch (e) {}
     location.href = 'campaign.html?id=' + encodeURIComponent(id);
+  }
+  function dirTo(id){
+    var list = S.merged(), from = -1, to = -1;
+    list.forEach(function(x, k){ if (x.id === c.id) from = k; if (x.id === id) to = k; });
+    return to > from ? 'next' : 'prev';
   }
 
   E('cdRailBtn').addEventListener('click', function(){ setRail(!railOpen()); });
@@ -2580,7 +2607,7 @@
     var a = e.target.closest('[data-rail]'); if (!a) return;
     e.preventDefault();
     if (a.dataset.rail === c.id) return;
-    goCampaign(a.dataset.rail, a);
+    goCampaign(a.dataset.rail, dirTo(a.dataset.rail));
   });
   document.addEventListener('keydown', function(e){
     if (e.metaKey || e.ctrlKey || e.altKey || !c) return;
@@ -2594,7 +2621,7 @@
       var j = e.key === '[' ? i - 1 : i + 1;
       if (i < 0 || j < 0 || j >= list.length) return;
       e.preventDefault();
-      goCampaign(list[j].id, E('cdRailTrack').querySelector('[data-rail="' + list[j].id + '"]'));
+      goCampaign(list[j].id, e.key === '[' ? 'prev' : 'next');
     }
   });
 

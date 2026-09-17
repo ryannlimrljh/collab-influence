@@ -198,7 +198,7 @@
      hero and its name block flies up into the page title — a cross-page
      view transition, named on click on the way out and on the hero and
      header on the way in. Browsers without it just navigate. */
-  @view-transition { navigation: auto; }
+  @view-transition { navigation: auto; types: from-list; }
   ::view-transition-old(root), ::view-transition-new(root){animation-duration:.26s;}
   ::view-transition-group(campaign-card), ::view-transition-group(campaign-head){animation-duration:.46s; animation-timing-function:var(--ease-settle);}
   ::view-transition-old(campaign-card), ::view-transition-old(campaign-head){animation-duration:.22s;}
@@ -939,7 +939,7 @@
     }
     /* The card-to-hero flight is this page's to start; the campaign page
        runs it only when this mark is there. */
-    try { sessionStorage.setItem('collab-vt-from-list', '1'); } catch (e) {}
+    try { sessionStorage.setItem('collab-vt', 'from-list'); } catch (e) {}
     location.href = 'campaign.html?id=' + encodeURIComponent(id);
   }
   menu.addEventListener('click', function(e){
