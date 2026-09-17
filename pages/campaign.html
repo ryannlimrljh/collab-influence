@@ -1,6 +1,23 @@
 <!doctype html>
 <html lang="en">
 <head>
+<script>
+  /* The card-to-hero flight runs only when the list started it; any other
+     way in — the rail, the keys, back from the influencers page, a
+     reload — skips the transition and simply shows the page. Registered
+     here, in the head: the reveal fires at first paint, which on a page
+     this size comes before the script at the end of the body has run. */
+  window.addEventListener('pagereveal', function (e) {
+    var fromList = false;
+    try { fromList = sessionStorage.getItem('collab-vt-from-list') === '1'; sessionStorage.removeItem('collab-vt-from-list'); } catch (err) {}
+    if (e.viewTransition && !fromList) e.viewTransition.skipTransition();
+  });
+  /* And on the way out: leaving a campaign — for another one, or back to
+     the list — is a plain change of page, never a flight. */
+  window.addEventListener('pageswap', function (e) {
+    if (e.viewTransition) e.viewTransition.skipTransition();
+  });
+</script>
 <meta charset="utf-8" />
 <title>Collab:Influence · Campaign</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -1149,6 +1166,8 @@
   var c = id ? S.get(id) : null;
   var tab = params.get('tab') || 'overview';
   var addedByHand = Number(params.get('added')) || 0;
+  /* The list's hand-off mark is consumed at reveal; never let one linger. */
+  try { sessionStorage.removeItem('collab-vt-from-list'); } catch (e) {}
   var openBatches = {};
   var batchFilter = {};
   if (params.get('batch')) openBatches[Number(params.get('batch'))] = true;
@@ -2550,18 +2569,12 @@
     try { localStorage.setItem(RAIL_KEY, on ? '1' : '0'); } catch (e) {}
     if (on) setTimeout(function(){ railFocus(silent); }, silent ? 0 : 120);
   }
-  /* Leaving for another campaign: hand the hero's and header's names to
-     the card being opened, so it is the card that grows into the next
-     page, and not two things claiming the same name. */
-  function goCampaign(id, fromEl){
-    document.querySelector('.cd-hero').style.viewTransitionName = 'none';
-    document.querySelector('.cd-headrow').style.viewTransitionName = 'none';
-    if (fromEl) {
-      fromEl.style.viewTransitionName = 'campaign-card';
-      var top = fromEl.querySelector('.cd-rtop'); if (top) top.style.viewTransitionName = 'campaign-head';
-    }
+  /* Leaving for another campaign is a plain change of page: the flight
+     belongs to arriving from the list, and the next page skips it. */
+  function goCampaign(id){
     location.href = 'campaign.html?id=' + encodeURIComponent(id);
   }
+
   E('cdRailBtn').addEventListener('click', function(){ setRail(!railOpen()); });
   E('cdRailTrack').addEventListener('click', function(e){
     var a = e.target.closest('[data-rail]'); if (!a) return;

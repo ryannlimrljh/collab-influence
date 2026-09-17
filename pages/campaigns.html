@@ -937,6 +937,9 @@
       from.style.viewTransitionName = 'campaign-card';
       var head = from.querySelector('.cmp-card-top'); if (head) head.style.viewTransitionName = 'campaign-head';
     }
+    /* The card-to-hero flight is this page's to start; the campaign page
+       runs it only when this mark is there. */
+    try { sessionStorage.setItem('collab-vt-from-list', '1'); } catch (e) {}
     location.href = 'campaign.html?id=' + encodeURIComponent(id);
   }
   menu.addEventListener('click', function(e){
