@@ -107,8 +107,12 @@
   .cd-rfoot{display:flex; align-items:center; justify-content:space-between; gap:4px var(--spacing-8); flex-wrap:wrap; font-size:11px; color:var(--color-neutral-5); white-space:nowrap;}
   .cd-rfoot b{font-size:var(--text-body2-size); color:var(--color-neutral-9); font-variant-numeric:tabular-nums;}
   .cd-rfoot .dash{color:var(--color-neutral-4);}
+  .cd-rcard.is-sk{pointer-events:none; box-shadow:none;}
+  .cd-rcard.is-sk .cd-rfoot{justify-content:space-between; min-height:21px;}
+  .cd-rcard.is-sk .cd-rtop{min-height:30px;}
   @media (prefers-reduced-motion:no-preference){
     .cd-rail.is-on .cd-rcard{animation:cd-rise .32s var(--ease-settle) both; animation-delay:calc(var(--i, 0) * 28ms);}
+    .cd-rail.is-on .cd-rcard.is-sk{animation:none;}
   }
   .cd-brandmark{flex:none; width:40px; height:40px; margin-top:2px; display:flex; align-items:center; justify-content:center;
     background:var(--color-neutral-1); border:1px solid var(--color-neutral-3); border-radius:var(--radius-sm); overflow:hidden;}
@@ -874,6 +878,10 @@
      later so it lands in place instead of popping. */
   .cd-sk{display:inline-block; height:12px; border-radius:var(--radius-sm); background:var(--color-neutral-2); vertical-align:middle;}
   .cd-sk.pill{height:24px; border-radius:var(--radius-pill);}
+  /* Ghosted text: the real words, made into bars their own size. */
+  .cd-sk-text, .cd-sk-text *{color:transparent !important;}
+  .cd-sk-text{background:var(--color-neutral-2); border-radius:4px; -webkit-box-decoration-break:clone; box-decoration-break:clone;}
+  .cd-sk-text.dot{background:transparent;}
   /* On the Next up gradient the page grey disappears; a tint of ink reads. */
   .cd-next .cd-sk{background:rgba(0,0,0,.07);}
   .cd-sk-tl{display:flex; justify-content:space-between; align-items:center;}
@@ -884,7 +892,7 @@
   .cd-sk-node{display:inline-flex; align-items:center; gap:8px; padding:6px 10px;}
   .cd-sk-node .ind{width:22px; height:22px; border-radius:var(--radius-pill); background:var(--color-neutral-3);}
   @media (prefers-reduced-motion:no-preference){
-    .cd-sk, .cd-sk-node .ind{animation:cd-sk-pulse 1.4s var(--ease-standard) infinite;}
+    .cd-sk, .cd-sk-node .ind, .cd-sk-text{animation:cd-sk-pulse 1.4s var(--ease-standard) infinite;}
     @keyframes cd-sk-pulse{0%,100%{opacity:1;} 50%{opacity:.45;}}
   }
   @keyframes cd-arrive{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:none;}}
@@ -1167,6 +1175,15 @@
     E('cdNameText').textContent = c.name;
     E('cdStageWrap').innerHTML = stageBadge();
     fitTitle();
+    var bits = subBits();
+    E('cdSub').innerHTML = bits.length ? bits.join('<span class="dot">·</span>') : 'No brand or dates yet — edit the campaign to fill them in.';
+    updateBrandMark(c.brand);
+    renderKpis(); renderNext(); renderTimeline();
+    var n = (c.roster || []).filter(function(r){ return r.state !== 'unavailable'; }).length;
+    E('cdKolCount').hidden = !n; E('cdKolCount').textContent = n > 99 ? '99+' : n;
+  }
+  /* The pieces of the line under the title, in order. */
+  function subBits(){
     var plats = (c.platforms || []).map(function(p){ return PLAT_ICON[p] || ''; }).join('');
     var bits = [];
     if (c.brand) bits.push('<b>' + esc(c.brand) + '</b>' + (c.agency ? ' via ' + esc(c.agency) : ''));
@@ -1176,11 +1193,7 @@
     if (c.pax != null) bits.push(S.fmtNum(c.pax) + ' pax');
     if (c.io) bits.push('IO ' + esc(c.io));
     if (plats) bits.push('<span class="cmp-plats">' + plats + '</span>');
-    E('cdSub').innerHTML = bits.length ? bits.join('<span class="dot">·</span>') : 'No brand or dates yet — edit the campaign to fill them in.';
-    updateBrandMark(c.brand);
-    renderKpis(); renderNext(); renderTimeline();
-    var n = (c.roster || []).filter(function(r){ return r.state !== 'unavailable'; }).length;
-    E('cdKolCount').hidden = !n; E('cdKolCount').textContent = n > 99 ? '99+' : n;
+    return bits;
   }
   /* Does the name fit on its line? If not, how far it has to travel to
      show its end — that distance sets both the run and its pace (about
@@ -2595,11 +2608,32 @@
   /* ── Boot: bones first, the campaign a beat later with the arrival
      cascade. The data is inline, so the beat is staged rather than real
      — the same 1000ms the roster and list pages hold. */
+  /* The rail, when it was left open: open at once with bones the size
+     of its cards, so the space is held through the beat instead of
+     springing open under the page once the campaign lands. */
+  function railSkeleton(){
+    var was = false; try { was = localStorage.getItem(RAIL_KEY) === '1'; } catch (e) {}
+    if (!was) return;
+    var rail = E('cdRail');
+    E('cdRailTrack').innerHTML = [0,1,2,3,4,5].map(function(i){
+      return '<span class="cd-rcard is-sk" style="--i:' + i + '"><span class="cd-rtop"><span class="cd-sk" style="width:30px; height:30px; border-radius:var(--radius-sm)"></span>' +
+        '<span class="cd-rtxt"><span class="cd-sk" style="width:72%; height:12px; margin:2px 0 3px; display:block"></span><span class="cd-sk" style="width:50%; height:9px; margin:3px 0; display:block"></span></span></span>' +
+        '<span class="cd-rfoot"><span class="cd-sk" style="width:40%; height:10px"></span><span class="cd-sk" style="width:38%; height:10px"></span></span></span>';
+    }).join('');
+    rail.classList.add('is-on'); rail.setAttribute('inert', '');
+    E('cdRailBtn').setAttribute('aria-pressed', 'true');
+  }
   function skeleton(){
     if (!c) return;
+    railSkeleton();
     E('cdName').innerHTML = '<span class="cd-sk" style="width:min(360px, 60vw); height:28px"></span>';
     E('cdStageWrap').innerHTML = '<span class="cd-sk pill" style="width:120px"></span>';
-    E('cdSub').innerHTML = '<span class="cd-sk" style="width:min(420px, 70%); height:12px"></span>';
+    /* The line under the title is ghosted from its real words, so it
+       wraps exactly where the real one will and the page below it does
+       not move when the words appear. */
+    var gb = subBits();
+    E('cdSub').innerHTML = gb.length ? gb.map(function(b){ return '<span class="cd-sk-text">' + b + '</span>'; }).join('<span class="dot cd-sk-text">·</span>')
+      : '<span class="cd-sk-text">No brand or dates yet — edit the campaign to fill them in.</span>';
     E('cdBrandMark').hidden = true;
     /* Bones in the shape of what lands: the tiles with their number row,
        ring and seats, the Next up with its eyebrow, sentence, button and
