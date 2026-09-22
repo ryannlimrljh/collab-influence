@@ -966,10 +966,10 @@
       <div class="c-sidebar-footer">
         <button class="c-sidebar-account" type="button" id="accountMenuTrigger"
                 aria-haspopup="menu" aria-expanded="false" aria-controls="accountMenu">
-          <span class="c-search-input-avatar">DT</span>
+          <span class="c-search-input-avatar">RL</span>
           <span class="c-search-input-text">
-            <span class="c-search-input-title">Digital Team</span>
-            <span class="c-search-input-subtitle">Admin</span>
+            <span class="c-search-input-title">Ryann Lim</span>
+            <span class="c-search-input-subtitle">Super Admin</span>
           </span>
         </button>
       </div>
@@ -2118,7 +2118,7 @@
              : a.type === 'edit' ? '<span>·</span><button type="button" data-act-ask>See the ask</button>'
              : a.type === 'deliverable' ? '<span>·</span><button type="button" data-act-tab="deliverables">Open deliverables</button>' : '';
     return '<div class="cd-act is-' + esc(a.type) + (a.at === actFlashAt ? ' is-new' : '') + '"><span class="ico"><i class="ph ' + (ACT_ICON[a.type] || 'ph-circle') + '"></i></span>' +
-      '<div class="body"><p class="txt">' + esc(a.text) + '</p><span class="meta"><b>' + esc(a.by || 'Digital Team') + '</b><span>·</span><time datetime="' + esc(a.at) + '" title="' + esc(absTime(a.at)) + '">' + esc(relTime(a.at)) + '</time>' + link + '</span></div></div>';
+      '<div class="body"><p class="txt">' + esc(a.text) + '</p><span class="meta"><b>' + esc(a.by || 'Ryann Lim') + '</b><span>·</span><time datetime="' + esc(a.at) + '" title="' + esc(absTime(a.at)) + '">' + esc(relTime(a.at)) + '</time>' + link + '</span></div></div>';
   }
   function renderActivity(){
     var all = (c.activity || []).slice().reverse();

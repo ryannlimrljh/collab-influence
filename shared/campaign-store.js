@@ -40,7 +40,7 @@
   ];
   var TYPES = ['Influencers', 'Seeders', 'KOC'];
   var SALES_KEY = 'collab-salespeople-v1';
-  var TEAM = ['Digital Team', 'Neeza', 'Melissa N.', 'Izuan I.', 'Pui Yann', 'Grace Wong', 'Amir Rahman'];
+  var TEAM = ['Ryann Lim', 'Neeza', 'Melissa N.', 'Izuan I.', 'Pui Yann', 'Grace Wong', 'Amir Rahman'];
   /* Colour swatches for the campaign's own bar — DLS tokens only. */
   var COLORS = [
     {key: 'obsidian', css: 'var(--color-obsidian)'},
@@ -95,7 +95,7 @@
      the campaign page can show what happened without a second store. `by`
      is the workspace user; the prototype has one. Notes come in through
      addNote and share the stream. */
-  var BY = 'Digital Team';
+  var BY = 'Ryann Lim';
   var PLAT_LABEL = {tiktok: 'TikTok', instagram: 'Instagram', xhs: 'Xiaohongshu'};
   function entry(type, text, ref) {
     var e = {at: new Date().toISOString(), by: BY, type: type, text: text};
@@ -564,7 +564,7 @@
       return window.campaignStore.add({
         name: fields.name || 'Untitled lead',
         brand: fields.brand || '', agency: '', description: '',
-        pic: fields.pic || 'Digital Team', overseer: '', salesperson: '',
+        pic: fields.pic || 'Ryann Lim', overseer: '', salesperson: '',
         start: fields.start || null, end: fields.end || null,
         color: 'obsidian', io: '', types: ['Influencers'], stage: 'lead',
         requirement: requirement,

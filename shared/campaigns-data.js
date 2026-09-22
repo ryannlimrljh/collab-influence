@@ -58,7 +58,7 @@ window.CAMPAIGNS = [
   },
   {
     id: 'camp-002', name: '[Testing] Merdeka holiday fiesta', brand: 'Shopee', agency: '',
-    description: '', pic: 'Digital Team', overseer: '', salesperson: '',
+    description: '', pic: 'Ryann Lim', overseer: '', salesperson: '',
     start: '2026-09-01', end: '2026-09-30', color: 'earth',
     io: '', types: ['Influencers'], stage: 'sourcing',
     platforms: [], pax: null, quote: null, cost: null,
@@ -68,7 +68,7 @@ window.CAMPAIGNS = [
   },
   {
     id: 'camp-003', name: '[Testing] Raya 2026 Influencer Push', brand: 'Razer', agency: '',
-    description: '', pic: 'Digital Team', overseer: '', salesperson: '',
+    description: '', pic: 'Ryann Lim', overseer: '', salesperson: '',
     start: '2026-09-01', end: '2026-09-30', color: 'water',
     io: '', types: ['Influencers'], stage: 'sourcing',
     platforms: [], pax: null, quote: 10000, cost: 5000,
