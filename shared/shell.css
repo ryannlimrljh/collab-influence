@@ -128,7 +128,7 @@ a.c-sidebar-item{text-decoration:none;}
 .c-sidebar-logo-home{display:inline-flex; align-items:center;}
 .c-sidebar.is-collapsed .c-sidebar-logo-home{display:none;}
 .c-nav-tree{display:flex; flex-direction:column; gap:var(--spacing-4); flex-shrink:0;}
-.c-nav-group{padding:var(--spacing-8) var(--spacing-12) var(--spacing-4) var(--spacing-16);} /* a shelf label inside a pod's menu: the section label, indented to the entries */
+.c-nav-group{padding:var(--spacing-8) var(--spacing-12) var(--spacing-4) var(--spacing-16); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); font-weight:500; letter-spacing:var(--text-caption-tracking); text-transform:none;} /* a shelf label inside a pod's menu: caption type, indented to the entries, quieter than the section label above the pods */
 a.c-sidebar-item, a.c-nav-child{text-decoration:none;}
 .c-nav-child.soon{color:var(--color-neutral-4); cursor:not-allowed;}
 .c-nav-child.soon:hover{background:transparent;}
