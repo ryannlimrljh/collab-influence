@@ -127,4 +127,7 @@ a.c-sidebar-item{text-decoration:none;}
    collapsed coin stands in for it there. */
 .c-sidebar-logo-home{display:inline-flex; align-items:center;}
 .c-sidebar.is-collapsed .c-sidebar-logo-home{display:none;}
-.c-sidebar-group{display:flex; flex-direction:column; gap:var(--spacing-4); flex-shrink:0;}
+.c-nav-tree{display:flex; flex-direction:column; gap:var(--spacing-4); flex-shrink:0;}
+a.c-nav-child{text-decoration:none;}
+.c-nav-child.soon{color:var(--color-neutral-4); cursor:not-allowed;}
+.c-nav-child.soon:hover{background:transparent;}
