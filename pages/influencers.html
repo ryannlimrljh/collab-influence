@@ -489,6 +489,21 @@
       <div class="c-sidebar-section">General</div>
       <a class="c-sidebar-item" href="#"><i class="ph-fill ph-buildings"></i><span class="label">Agencies</span><span class="c-sidebar-hover-text">Agencies</span></a>
       <a class="c-sidebar-item" href="#"><i class="ph-fill ph-tag"></i><span class="label">Brands</span><span class="c-sidebar-hover-text">Brands</span></a>
+      <!-- ── Pods. The way across to every other workspace, as nav rows:
+           the logo switcher is display:none once the rail collapses, so for
+           most of a session there was no entry at all, and a caret beside a
+           logo never read as one. Each pod wears its element mark; a pod with
+           no deployed surface is the DS's own "soon" row rather than a dead
+           link. The current pod is marked, so the rail also says where you
+           are. Same six rows, same order, in every app. ── -->
+      <hr class="c-sidebar-divider" />
+      <div class="c-sidebar-section">Pods</div>
+      <a class="c-sidebar-item" href="https://app-shell-intro.vercel.app/pages/landing-v3.html"><i class="c-pod-mark" aria-hidden="true"><img src="../collabrium-dls/SVG/coin.svg" alt="" /></i><span class="label">Collabrium</span><span class="c-sidebar-hover-text">Collabrium</span></a>
+      <a class="c-sidebar-item" href="https://collab-sales-ui.vercel.app"><i class="c-pod-mark" aria-hidden="true"><img src="../collabrium-dls/SVG/gold.svg" alt="" /></i><span class="label">Sales</span><span class="c-sidebar-hover-text">Collab:Sales</span></a>
+      <a class="c-sidebar-item" href="https://collab-media.vercel.app"><i class="c-pod-mark" aria-hidden="true"><img src="../collabrium-dls/SVG/water.svg" alt="" /></i><span class="label">Media</span><span class="c-sidebar-hover-text">Collab:Media</span></a>
+      <a class="c-sidebar-item active" href="influencers-v2.html" aria-current="true"><i class="c-pod-mark" aria-hidden="true"><img src="../collabrium-dls/SVG/earth.svg" alt="" /></i><span class="label">Influence</span><span class="c-sidebar-hover-text">Collab:Influence</span></a>
+      <a class="c-sidebar-item soon" aria-disabled="true" title="No workspace deployed yet"><i class="c-pod-mark" aria-hidden="true"><img src="../collabrium-dls/SVG/fire.svg" alt="" /></i><span class="label">Studio</span><span class="c-badge c-badge-neutral">Soon</span><span class="c-sidebar-hover-text">Collab:Studio · soon</span></a>
+      <a class="c-sidebar-item soon" aria-disabled="true" title="No workspace deployed yet"><i class="c-pod-mark" aria-hidden="true"><img src="../collabrium-dls/SVG/wood.svg" alt="" /></i><span class="label">Content</span><span class="c-badge c-badge-neutral">Soon</span><span class="c-sidebar-hover-text">Collab:Content · soon</span></a>
       <div class="c-sidebar-footer">
         <button class="c-sidebar-account" type="button" id="accountMenuTrigger"
                 aria-haspopup="menu" aria-expanded="false" aria-controls="accountMenu">

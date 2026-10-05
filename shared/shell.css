@@ -109,3 +109,17 @@ a.c-sidebar-item{text-decoration:none;}
    toggle display in JS carry an inline style rather than the attribute,
    so there is nothing for !important to fight. */
 [hidden]{display:none !important;}
+
+/* Pods, in the nav. Element marks are SVG files rather than Phosphor
+   glyphs, so they sit inside the item's own <i> slot at the icon size:
+   the collapsed rail's hover label anchors on that <i>, and an <img>
+   in its place left the label with nothing to find. Everything else
+   is the DS's sidebar item. A "soon" row is the DS's locked variant with
+   its hover invitation removed, and its badge leaves with the label
+   when the rail collapses, or the 72px rail would be the one place a
+   badge ever sat beside a lone icon. */
+.c-pod-mark{width:var(--icon-base); height:var(--icon-base); flex:none; display:inline-flex;}
+.c-pod-mark img{width:100%; height:100%; display:block; object-fit:contain;}
+.c-sidebar-item.soon .c-pod-mark{opacity:.4;}
+.c-sidebar-item.soon:hover{background:transparent;}
+.c-sidebar.is-collapsed .c-sidebar-item .c-badge{display:none;}
