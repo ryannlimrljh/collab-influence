@@ -370,14 +370,11 @@
   <div class="c-sidebar-shell" id="shellSidebarShell">
     <nav class="c-sidebar" id="shellSidebarNav">
       <div class="c-sidebar-header">
-        <button class="c-dept-trigger js-dept-trigger" type="button" aria-haspopup="listbox"
-                aria-expanded="false" aria-label="Switch department, Influence" aria-controls="deptDropdown">
-          <span class="c-sidebar-logo-live-wrap js-dept-logo-live" style="display:none"><iframe src="../collabrium-dls/logo.html" title="Collabrium" scrolling="no"></iframe></span>
-          <img class="c-dept-logo-static js-dept-logo-static" src="../collabrium-dls/logo-lockups/collabInfluence.svg" alt="Influence" />
-          <i class="ph ph-caret-down js-dept-chevron c-dept-chevron"></i>
-        </button>
+        <!-- The logo is the home link it reads as. The way across to the
+             other pods is the Pods section below, so nothing hides here. -->
+          <a class="c-sidebar-logo-home" href="influencers-v2.html" aria-label="Collab:Influence home"><img class="c-dept-logo-static" src="../collabrium-dls/logo-lockups/collabInfluence.svg" alt="" /></a>
         <span class="c-badge c-badge-neutral c-sidebar-beta">Beta</span>
-        <img class="c-sidebar-logo-collapsed js-dept-logo-collapsed" src="../collabrium-dls/SVG/earth.svg" alt="Collab:Influence" />
+        <img class="c-sidebar-logo-collapsed" src="../collabrium-dls/SVG/earth.svg" alt="Collab:Influence" />
       </div>
       <a class="c-sidebar-item" href="#"><i class="ph-fill ph-house"></i><span class="label">Home</span><span class="c-sidebar-hover-text">Home</span></a>
       <div class="c-sidebar-section">Workspace</div>
@@ -499,34 +496,6 @@
   <button class="c-account-menu-item" type="button" role="menuitem"><i class="ph-fill ph-gear"></i><span>Settings</span></button>
   <button class="c-account-menu-item" type="button" role="menuitem"><i class="ph-fill ph-sign-out"></i><span>Log out</span></button>
 </div>
-
-<div class="c-dept-dropdown" id="deptDropdown" role="listbox" aria-label="Departments" hidden>
-  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Collabrium (Default)" data-dept="default" data-name="Collabrium (Default)" data-element-icon="../collabrium-dls/SVG/coin.svg" data-href="https://app-shell-intro.vercel.app/pages/landing-v3.html">
-    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabrium-default-logo.svg" alt="" style="--logo-scale:0.6" /></span>
-    <i class="ph ph-check c-dept-check"></i>
-  </div>
-  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Studio" data-dept="studio" data-name="Studio" data-logo="../collabrium-dls/logo-lockups/collabStudio.svg" data-element-icon="../collabrium-dls/SVG/fire.svg" aria-disabled="true" title="No workspace deployed yet">
-    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabStudio.svg" alt="" /></span>
-    <i class="ph ph-check c-dept-check"></i>
-  </div>
-  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Sales" data-dept="sales" data-name="Sales" data-logo="../collabrium-dls/logo-lockups/collabSales.svg" data-element-icon="../collabrium-dls/SVG/gold.svg" data-href="https://collab-sales-ui.vercel.app">
-    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabSales.svg" alt="" /></span>
-    <i class="ph ph-check c-dept-check"></i>
-  </div>
-  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Media" data-dept="media" data-name="Media" data-logo="../collabrium-dls/logo-lockups/collabMedia.svg" data-element-icon="../collabrium-dls/SVG/water.svg" data-href="https://collab-media.vercel.app">
-    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabMedia.svg" alt="" /></span>
-    <i class="ph ph-check c-dept-check"></i>
-  </div>
-  <div class="c-dept-option is-active" role="option" aria-selected="true" aria-label="Influence" data-dept="influence" data-name="Influence" data-logo="../collabrium-dls/logo-lockups/collabInfluence.svg" data-element-icon="../collabrium-dls/SVG/earth.svg">
-    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabInfluence.svg" alt="" /></span>
-    <i class="ph ph-check c-dept-check"></i>
-  </div>
-  <div class="c-dept-option" role="option" aria-selected="false" aria-label="Content" data-dept="content" data-name="Content" data-logo="../collabrium-dls/logo-lockups/collabContent.svg" data-element-icon="../collabrium-dls/SVG/wood.svg" aria-disabled="true" title="No workspace deployed yet">
-    <span class="c-dept-option-logo"><img src="../collabrium-dls/logo-lockups/collabContent.svg" alt="" /></span>
-    <i class="ph ph-check c-dept-check"></i>
-  </div>
-</div>
-
 <!-- One floating menu: stage picker or row options, depending on who opened it. -->
 <div class="cmp-menu" id="cmpMenu" role="menu"></div>
 

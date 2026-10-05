@@ -236,7 +236,7 @@
      out that is not one small button. */
   document.addEventListener('click', function (e) {
     if (!NARROW.matches || e.target.closest('#shellSidebarShell') ||
-        e.target.closest('#accountMenu') || e.target.closest('#deptDropdown')) return;
+        e.target.closest('#accountMenu')) return;
     setCollapsed(true);
   });
 
@@ -281,96 +281,6 @@
     window.addEventListener('resize', function () {
       if (menu.classList.contains('is-open')) place();
     });
-  })();
-
-  /* ── Department switcher. The system supplies the markup contract
-     (data-dept / data-logo / data-element-icon per option); this wires it
-     and positions a fixed panel next to a trigger inside a clipping rail.
-     The choice lives in memory, same limit as the dashboard. */
-  (function () {
-    var trigger = document.querySelector('.js-dept-trigger');
-    var panel = document.getElementById('deptDropdown');
-    if (!trigger || !panel) return;
-
-    var liveMark = trigger.querySelector('.js-dept-logo-live');
-    var staticMark = trigger.querySelector('.js-dept-logo-static');
-    var collapsedMark = document.querySelector('.js-dept-logo-collapsed');
-    var chevron = trigger.querySelector('.js-dept-chevron');
-
-    function place() {
-      var r = trigger.getBoundingClientRect();
-      var w = panel.offsetWidth || 240;
-      panel.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
-      panel.style.top = (r.bottom + 8) + 'px';
-    }
-    function close() {
-      panel.hidden = true;
-      trigger.setAttribute('aria-expanded', 'false');
-      if (chevron) chevron.classList.replace('ph-caret-up', 'ph-caret-down');
-    }
-    function open() {
-      panel.hidden = false;          /* unhidden BEFORE measuring */
-      place();
-      trigger.setAttribute('aria-expanded', 'true');
-      if (chevron) chevron.classList.replace('ph-caret-down', 'ph-caret-up');
-    }
-
-    function apply(opt) {
-      var all = panel.querySelectorAll('.c-dept-option');
-      for (var i = 0; i < all.length; i++) {
-        var on = all[i] === opt;
-        all[i].classList.toggle('is-active', on);
-        all[i].setAttribute('aria-selected', String(on));
-      }
-      /* No data-logo means the default department, which shows the
-         animated mark. Absence is the signal. */
-      var logo = opt.dataset.logo;
-      if (logo) {
-        staticMark.src = logo;
-        staticMark.alt = opt.dataset.name || '';
-        staticMark.style.display = '';
-        liveMark.style.display = 'none';
-      } else {
-        staticMark.style.display = 'none';
-        staticMark.removeAttribute('src');
-        liveMark.style.display = '';
-      }
-      if (collapsedMark && opt.dataset.elementIcon) collapsedMark.src = opt.dataset.elementIcon;
-      trigger.setAttribute('aria-label', 'Switch department, ' + (opt.dataset.name || ''));
-    }
-
-    /* This is Collab:Sales' own surface — arrive with Sales picked. */
-    var initial = panel.querySelector('.c-dept-option.is-active');
-    if (initial) apply(initial);
-
-    trigger.addEventListener('click', function (e) {
-      e.stopPropagation();
-      if (panel.hidden) open(); else close();
-    });
-    panel.addEventListener('click', function (e) {
-      var opt = e.target.closest('.c-dept-option');
-      if (!opt) return;
-      /* A pod with no deployed surface is shown but not selectable. */
-      if (opt.getAttribute('aria-disabled') === 'true') return;
-      /* A department that owns its own deployed surface navigates there
-         rather than restyling this shell — the mirror of the mothership's
-         switcher opening Collab:Media. data-href is what marks one; every
-         other option keeps the swap-the-lockup behaviour. Same tab, like
-         the rest of this rail: this is going home, not a side trip. */
-      if (opt.dataset.href) {
-        window.location.href = opt.dataset.href;
-        return;
-      }
-      apply(opt);
-      close();
-    });
-    document.addEventListener('click', function (e) {
-      if (panel.hidden) return;
-      if (e.target.closest('#deptDropdown') || e.target.closest('.js-dept-trigger')) return;
-      close();
-    });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
-    window.addEventListener('resize', function () { if (!panel.hidden) place(); });
   })();
 
   /* ── Collapsed rail's hover label — delegated, keyboard included. */

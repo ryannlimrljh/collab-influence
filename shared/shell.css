@@ -84,12 +84,6 @@ a.c-sidebar-item{text-decoration:none;}
   .c-sidebar.is-collapsed .c-sidebar-footer{display:none;}
 }
 
-/* Pods without a deployed surface are visible but inert — dimmed, no
-   hover invitation, and the title says why. The attribute selector
-   outranks the component's own hover by specificity, so this needs no
-   particular load order. */
-.c-dept-option[aria-disabled="true"]{opacity:.45; cursor:default;}
-.c-dept-option[aria-disabled="true"]:hover{background:transparent;}
 
 /* ── `hidden` has to actually hide.
 
@@ -128,3 +122,9 @@ a.c-sidebar-item{text-decoration:none;}
    rail collapses, where there is no room for a sentence. */
 .c-sidebar-caption{margin:0; padding:0 var(--spacing-8) var(--spacing-8); font-size:var(--text-caption-size); font-weight:500; line-height:1.4; color:var(--color-neutral-5); flex-shrink:0;}
 .c-sidebar.is-collapsed .c-sidebar-caption{display:none;}
+/* The logo as a home link, and the group the tour spotlights. The link
+   hides in the collapsed rail exactly as the old trigger did; the
+   collapsed coin stands in for it there. */
+.c-sidebar-logo-home{display:inline-flex; align-items:center;}
+.c-sidebar.is-collapsed .c-sidebar-logo-home{display:none;}
+.c-sidebar-group{display:flex; flex-direction:column; gap:var(--spacing-4); flex-shrink:0;}
