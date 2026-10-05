@@ -1,15 +1,20 @@
-/* The pods, as one tree, rendered by every Collabrium app from this one
+/* The pods, as one map, rendered by every Collabrium app from this one
    file. Three copies exist (one per repository) and they must stay
    identical: the whole point is that no app can disagree with another
    about what the other apps contain.
 
-   The shape is the DS's second-level navigation. A pod is a parent row
-   that only opens and closes; its entries are the children, and the
-   first child is the pod's front door. The pod this page belongs to
-   opens by default and links its children relatively, so a local copy
-   never leaves localhost; every other pod links to its deployed address.
-   One destination is ever active: the child for the page you are on,
-   whose parent goes bold with no fill, exactly as the DS asks.
+   The shape: the pod this page belongs to sits first, its entries open
+   beneath it with nothing to expand or collapse, because this is where
+   the reader is and the entries are the menu. A divider follows. Every
+   other pod is a single row that leads to that pod's front door, its
+   first entry, at its deployed address; the pod's own menu is drawn by
+   the pod itself once you arrive. The own pod links relatively, so a
+   local copy never leaves localhost.
+
+   One destination is ever active: the entry for the page you are on,
+   whose pod row goes bold with no fill, exactly as the DS asks. In the
+   collapsed rail the entries hide and the pod row, a link to the front
+   door, is the way in, per the DS's collapsed-rail rule.
 
    Entries with no path are real places in a pod's IA that have no page
    yet; they render dimmed rather than vanish, so the map stays honest. */
@@ -55,7 +60,6 @@ var tree = document.getElementById('podsNav');
 if (!tree) return;
 var here = tree.getAttribute('data-pod');
 var page = (location.pathname.split('/').pop() || '').split('?')[0];
-var nav = tree.closest('.c-sidebar');
 
 function mark(m) {
   return '<i class="c-pod-mark" aria-hidden="true"><img src="../collabrium-dls/SVG/' + m + '.svg" alt="" /></i>';
@@ -63,35 +67,37 @@ function mark(m) {
 function isPage(entry) {
   return entry.path === page || (entry.also || []).indexOf(page) >= 0;
 }
+/* A pod's front door is its first built entry. */
+function door(pod) {
+  var e = (pod.entries || []).filter(function (x) { return x.path; })[0];
+  return e ? e.path : null;
+}
+function rowHTML(pod, href) {
+  return '<a class="c-sidebar-item" href="' + href + '">' + mark(pod.mark) +
+    '<span class="label">' + pod.label + '</span>' +
+    '<span class="c-sidebar-hover-text">' + pod.hover + '</span></a>';
+}
+function soonHTML(pod) {
+  return '<a class="c-sidebar-item soon" aria-disabled="true" title="No workspace deployed yet">' + mark(pod.mark) +
+    '<span class="label">' + pod.label + '</span><span class="c-badge c-badge-neutral">Soon</span>' +
+    '<span class="c-sidebar-hover-text">' + pod.hover + '</span></a>';
+}
 
-PODS.forEach(function (pod) {
-  if (pod.soon) {
-    tree.insertAdjacentHTML('beforeend',
-      '<a class="c-sidebar-item soon" aria-disabled="true" title="No workspace deployed yet">' + mark(pod.mark) +
-      '<span class="label">' + pod.label + '</span><span class="c-badge c-badge-neutral">Soon</span>' +
-      '<span class="c-sidebar-hover-text">' + pod.hover + '</span></a>');
-    return;
-  }
-  var mine = pod.key === here;
-  var kidsId = 'podKids-' + pod.key;
+var mine = null, others = [];
+PODS.forEach(function (pod) { if (pod.key === here) mine = pod; else others.push(pod); });
 
-  var parent = document.createElement('button');
-  parent.type = 'button';
-  parent.className = 'c-sidebar-item';
-  parent.setAttribute('aria-expanded', String(mine));
-  parent.setAttribute('aria-controls', kidsId);
-  parent.innerHTML = mark(pod.mark) + '<span class="label">' + pod.label + '</span>' +
-    '<span class="c-nav-parent-toggle" aria-hidden="true"><i class="ph ph-caret-' + (mine ? 'up' : 'down') + '"></i></span>' +
-    '<span class="c-sidebar-hover-text">' + pod.hover + '</span>';
+if (mine) {
+  /* This pod: its row, then its entries, open and staying open. */
+  tree.insertAdjacentHTML('beforeend', rowHTML(mine, door(mine) || '#'));
+  var parent = tree.lastElementChild;
 
   var kids = document.createElement('div');
-  kids.className = 'c-nav-children' + (mine ? ' is-open' : '');
-  kids.id = kidsId;
+  kids.className = 'c-nav-children is-open';
   var inner = document.createElement('div');
   inner.className = 'c-nav-children-inner';
 
   var activeHere = false;
-  pod.entries.forEach(function (e) {
+  mine.entries.forEach(function (e) {
     if (!e.path) {
       var s = document.createElement('span');
       s.className = 'c-nav-child soon';
@@ -103,9 +109,9 @@ PODS.forEach(function (pod) {
     }
     var a = document.createElement('a');
     a.className = 'c-nav-child';
-    a.href = mine ? e.path : pod.base + e.path;
+    a.href = e.path;
     a.textContent = e.label;
-    if (mine && isPage(e)) {
+    if (isPage(e)) {
       a.classList.add('active');
       a.setAttribute('aria-current', 'page');
       activeHere = true;
@@ -115,20 +121,15 @@ PODS.forEach(function (pod) {
   if (activeHere) parent.classList.add('parent-active-child');
 
   kids.appendChild(inner);
-  tree.appendChild(parent);
   tree.appendChild(kids);
 
-  parent.addEventListener('click', function () {
-    /* Collapsed, there is no room to reveal children: the icon routes to
-       the pod's front door instead, per the DS's collapsed-rail rule. */
-    if (nav && nav.classList.contains('is-collapsed')) {
-      var first = inner.querySelector('a.c-nav-child');
-      if (first) location.href = first.href;
-      return;
-    }
-    var open = kids.classList.toggle('is-open');
-    parent.setAttribute('aria-expanded', String(open));
-    parent.querySelector('.c-nav-parent-toggle i').className = 'ph ph-caret-' + (open ? 'up' : 'down');
-  });
+  /* The line between where you are and where else you can go. */
+  tree.insertAdjacentHTML('beforeend', '<hr class="c-sidebar-divider" />');
+}
+
+/* Every other pod: one row, one door. */
+others.forEach(function (pod) {
+  if (pod.soon) { tree.insertAdjacentHTML('beforeend', soonHTML(pod)); return; }
+  tree.insertAdjacentHTML('beforeend', rowHTML(pod, pod.base + door(pod)));
 });
 })();

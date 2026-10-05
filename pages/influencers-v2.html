@@ -803,12 +803,13 @@
         <span class="c-badge c-badge-neutral c-sidebar-beta">Beta</span>
         <img class="c-sidebar-logo-collapsed" src="../collabrium-dls/SVG/earth.svg" alt="Collab:Influence" />
       </div>
-      <!-- The nav is the pods tree: one parent row per workspace, its
-           entries as children, rendered by shared/pods.js so every app
-           draws the same map. This page's own pod opens and its page is
-           the one active row; the parent goes bold with no fill, per the
-           DS's second-level navigation. Studio and Content are the DS's
-           "soon" rows until they have a surface. -->
+      <!-- The nav is the pods map, rendered by shared/pods.js so every
+           app draws the same one. This page's own pod sits first with its
+           entries open beneath it and nothing to toggle; a divider follows;
+           every other pod is one row that leads to its front door. The
+           page you are on is the one active row and its pod goes bold with
+           no fill, per the DS's second-level navigation. Studio and Content
+           are the DS's "soon" rows until they have a surface. -->
       <div class="c-sidebar-section">Pods</div>
       <p class="c-sidebar-caption">Each pod is a team’s workspace. Hop across any time.</p>
       <div class="c-nav-tree" id="podsNav" data-pod="influence"></div>
