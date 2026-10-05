@@ -5,7 +5,9 @@
 
    The shape: the pod this page belongs to sits first, its entries open
    beneath it with nothing to expand or collapse, because this is where
-   the reader is and the entries are the menu. A divider follows, then
+   the reader is and the entries are the menu, on two shelves: Workspace
+   for the modules people work in, General for the library they look
+   things up in. A divider follows, then
    the Pods heading, because the heading describes what comes after it,
    not the menu above. Every other pod is a single row that leads to that pod's front door, its
    first entry, at its deployed address; the pod's own menu is drawn by
@@ -26,35 +28,42 @@ var PODS = [
   { key: 'collabrium', label: 'Collabrium', hover: 'Collabrium', mark: 'coin',
     base: 'https://app-shell-intro.vercel.app/pages/',
     entries: [
-      { label: 'Dashboard', path: 'landing-v3.html' },
-      { label: 'Feedback',  path: 'feedback-v1.html' }
+      { label: 'Dashboard', path: 'landing-v3.html',  group: 'workspace' },
+      { label: 'Feedback',  path: 'feedback-v1.html', group: 'general' }
     ] },
   { key: 'sales', label: 'Sales', hover: 'Collab:Sales', mark: 'gold',
     base: 'https://collab-sales-ui.vercel.app/',
     /* the two doors the hero cards already use; Collab:Sales renders
        client-side, so its full menu waits on its owners */
     entries: [
-      { label: 'Client intelligence', path: 'client-intelligence' },
-      { label: 'Proposals',           path: 'proposals' }
+      { label: 'Proposals',           path: 'proposals',           group: 'workspace' },
+      { label: 'Client intelligence', path: 'client-intelligence', group: 'general' }
     ] },
   { key: 'media', label: 'Media', hover: 'Collab:Media', mark: 'water',
     base: 'https://collab-media.vercel.app/pages/',
     entries: [
-      { label: 'New media plan', path: 'planner.html',       also: ['planner-v1.html'] },
-      { label: 'My media plans', path: 'campaign-list.html', also: ['campaigns.html'] },
-      { label: 'Ad formats',     path: 'formats.html',       also: ['formats-original.html'] },
-      { label: 'Audiences',      path: 'audiences.html' }
+      { label: 'New media plan', path: 'planner.html',       also: ['planner-v1.html'],       group: 'workspace' },
+      { label: 'My media plans', path: 'campaign-list.html', also: ['campaigns.html'],        group: 'workspace' },
+      { label: 'Ad formats',     path: 'formats.html',       also: ['formats-original.html'], group: 'general' },
+      { label: 'Audiences',      path: 'audiences.html',                                      group: 'general' }
     ] },
   { key: 'influence', label: 'Influence', hover: 'Collab:Influence', mark: 'earth',
     base: 'https://collab-influence.vercel.app/pages/',
     entries: [
-      { label: 'Influencers', path: 'influencers-v2.html', also: ['influencers.html'] },
-      { label: 'Campaigns',   path: 'campaigns.html',      also: ['campaign.html'] },
-      { label: 'Agencies',    path: null },
-      { label: 'Brands',      path: null }
+      { label: 'Influencers', path: 'influencers-v2.html', also: ['influencers.html'], group: 'workspace' },
+      { label: 'Campaigns',   path: 'campaigns.html',      also: ['campaign.html'],    group: 'workspace' },
+      { label: 'Agencies',    path: null,                                              group: 'general' },
+      { label: 'Brands',      path: null,                                              group: 'general' }
     ] },
   { key: 'studio',  label: 'Studio',  hover: 'Collab:Studio · soon',  mark: 'fire', soon: true },
   { key: 'content', label: 'Content', hover: 'Collab:Content · soon', mark: 'wood', soon: true }
+];
+
+/* A pod's menu has two shelves: the modules people work in, and the
+   library they look things up in. Order here is render order. */
+var GROUPS = [
+  { key: 'workspace', label: 'Workspace' },
+  { key: 'general',   label: 'General' }
 ];
 
 var tree = document.getElementById('podsNav');
@@ -98,7 +107,16 @@ if (mine) {
   inner.className = 'c-nav-children-inner';
 
   var activeHere = false;
-  mine.entries.forEach(function (e) {
+  GROUPS.forEach(function (g) {
+    var members = mine.entries.filter(function (e) { return e.group === g.key; });
+    if (!members.length) return;
+    var h = document.createElement('div');
+    h.className = 'c-sidebar-section c-nav-group';
+    h.textContent = g.label;
+    inner.appendChild(h);
+    members.forEach(addEntry);
+  });
+  function addEntry(e) {
     if (!e.path) {
       var s = document.createElement('span');
       s.className = 'c-nav-child soon';
@@ -118,7 +136,7 @@ if (mine) {
       activeHere = true;
     }
     inner.appendChild(a);
-  });
+  }
   if (activeHere) parent.classList.add('parent-active-child');
 
   kids.appendChild(inner);
