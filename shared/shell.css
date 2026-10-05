@@ -123,3 +123,8 @@ a.c-sidebar-item{text-decoration:none;}
 .c-sidebar-item.soon .c-pod-mark{opacity:.4;}
 .c-sidebar-item.soon:hover{background:transparent;}
 .c-sidebar.is-collapsed .c-sidebar-item .c-badge{display:none;}
+/* The one line that says what a pod is. Caption size at body weight,
+   under the eyebrow it explains; it leaves with the labels when the
+   rail collapses, where there is no room for a sentence. */
+.c-sidebar-caption{margin:0; padding:0 var(--spacing-8) var(--spacing-8); font-size:var(--text-caption-size); font-weight:500; line-height:1.4; color:var(--color-neutral-5); flex-shrink:0;}
+.c-sidebar.is-collapsed .c-sidebar-caption{display:none;}
