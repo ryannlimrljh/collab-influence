@@ -5,8 +5,9 @@
 
    The shape: the pod this page belongs to sits first, its entries open
    beneath it with nothing to expand or collapse, because this is where
-   the reader is and the entries are the menu. A divider follows. Every
-   other pod is a single row that leads to that pod's front door, its
+   the reader is and the entries are the menu. A divider follows, then
+   the Pods heading, because the heading describes what comes after it,
+   not the menu above. Every other pod is a single row that leads to that pod's front door, its
    first entry, at its deployed address; the pod's own menu is drawn by
    the pod itself once you arrive. The own pod links relatively, so a
    local copy never leaves localhost.
@@ -126,6 +127,12 @@ if (mine) {
   /* The line between where you are and where else you can go. */
   tree.insertAdjacentHTML('beforeend', '<hr class="c-sidebar-divider" />');
 }
+
+/* The heading belongs to the other pods, not to the page's own menu,
+   so it follows the divider. */
+tree.insertAdjacentHTML('beforeend',
+  '<div class="c-sidebar-section">Pods</div>' +
+  '<p class="c-sidebar-caption">The other Collabrium workspaces. One click and you are across.</p>');
 
 /* Every other pod: one row, one door. */
 others.forEach(function (pod) {
