@@ -3,19 +3,21 @@
    identical: the whole point is that no app can disagree with another
    about what the other apps contain.
 
-   The shape: a strip of boxed marks under the logo, one box per pod,
-   each carrying the element icon from that pod's own logo.
+   The shape: a tray under the logo holding one mark per pod, the
+   element icon from that pod's own logo; the pod you are in sits on a
+   white tab.
    It is the way across, and it costs one row however long the pod's
    own menu grows beneath it, which is the whole reason it sits there:
-   anything placed after a real pod menu lands below the fold. The pod
-   you are in is the filled box; hover or focus any box and a tip gives
+   anything placed after a real pod menu lands below the fold. Hover
+   or focus any mark and a tip gives
    the pod's full name and what it does; the grey boxes are pods with
    no workspace yet. Collapsed, the strip keeps only this pod's box and
    a click on it opens the pods as a flyout beside the rail.
 
    Below the strip, this pod's own menu on two shelves: Workspace for
    the modules people work in, General for the library they look things
-   up in. The pods' real builds carry their own menus; they take the
+   up in. Entries are the DS's first-level rows, icon and label, the
+   icons being the ones each pod's menu carried before the pods map. The pods' real builds carry their own menus; they take the
    strip alone. Entries with no path are real places in a pod's IA that
    have no page yet; they render dimmed rather than vanish, so the map
    stays honest. The own pod links relatively, so a local copy never
@@ -28,8 +30,8 @@ var PODS = [
     about: 'The group home: the leadership board, feedback and the assistant.',
     base: 'https://app-shell-intro.vercel.app/pages/',
     entries: [
-      { label: 'Dashboard', path: 'landing-v3.html',  group: 'workspace' },
-      { label: 'Feedback',  path: 'feedback-v1.html', group: 'general' }
+      { label: 'Dashboard', path: 'landing-v3.html',  group: 'workspace', icon: 'house' },
+      { label: 'Feedback',  path: 'feedback-v1.html', group: 'general',   icon: 'lightbulb-filament' }
     ] },
   { key: 'sales', label: 'Collab:Sales', mark: 'gold', tint: 'gold',
     about: 'Client intelligence, campaigns and proposals.',
@@ -37,8 +39,8 @@ var PODS = [
     /* the two doors the hero cards already use; Collab:Sales renders
        client-side, so its full menu waits on its owners */
     entries: [
-      { label: 'Proposals',           path: 'proposals',           group: 'workspace' },
-      { label: 'Client intelligence', path: 'client-intelligence', group: 'general' }
+      { label: 'Proposals',           path: 'proposals',           group: 'workspace', icon: 'file-text' },
+      { label: 'Client intelligence', path: 'client-intelligence', group: 'general',   icon: 'sparkle' }
     ] },
   { key: 'media', label: 'Collab:Media', mark: 'water', tint: 'water',
     about: 'Media plans, ad formats and audiences.',
@@ -49,20 +51,20 @@ var PODS = [
          landing rather than part-way into the wizard. It was briefly only
          an `also` of My media plans, which left the landing with no row of
          its own and lit the wrong one when you were on it. */
-      { label: 'Home',           path: 'campaigns.html',                                      group: 'workspace' },
-      { label: 'New media plan', path: 'planner.html',       also: ['planner-v1.html'],       group: 'workspace' },
-      { label: 'My media plans', path: 'campaign-list.html',                                  group: 'workspace' },
-      { label: 'Ad formats',     path: 'formats.html',       also: ['formats-original.html'], group: 'general' },
-      { label: 'Audiences',      path: 'audiences.html',                                      group: 'general' }
+      { label: 'Home',           path: 'campaigns.html',                                      group: 'workspace', icon: 'house' },
+      { label: 'New media plan', path: 'planner.html',       also: ['planner-v1.html'],       group: 'workspace', icon: 'compass-tool' },
+      { label: 'My media plans', path: 'campaign-list.html',                                  group: 'workspace', icon: 'rows' },
+      { label: 'Ad formats',     path: 'formats.html',       also: ['formats-original.html'], group: 'general',   icon: 'frame-corners' },
+      { label: 'Audiences',      path: 'audiences.html',                                      group: 'general',   icon: 'users-three' }
     ] },
   { key: 'influence', label: 'Collab:Influence', mark: 'earth', tint: 'earth',
     about: 'Creators, campaigns, agencies and brands.',
     base: 'https://collab-influence.vercel.app/pages/',
     entries: [
-      { label: 'Influencers', path: 'influencers-v2.html', also: ['influencers.html'], group: 'workspace' },
-      { label: 'Campaigns',   path: 'campaigns.html',      also: ['campaign.html'],    group: 'workspace' },
-      { label: 'Agencies',    path: null,                                              group: 'general' },
-      { label: 'Brands',      path: null,                                              group: 'general' }
+      { label: 'Influencers', path: 'influencers-v2.html', also: ['influencers.html'], group: 'workspace', icon: 'users-three' },
+      { label: 'Campaigns',   path: 'campaigns.html',      also: ['campaign.html'],    group: 'workspace', icon: 'folder-open' },
+      { label: 'Agencies',    path: null,                                              group: 'general',   icon: 'buildings' },
+      { label: 'Brands',      path: null,                                              group: 'general',   icon: 'tag' }
     ] },
   { key: 'studio',  label: 'Collab:Studio',  mark: 'fire', tint: 'fire', soon: true,
     about: 'Production and creative delivery. Not built yet.' },
@@ -224,31 +226,34 @@ PODS.forEach(function (pod) {
 tree.appendChild(strip);
 
 /* ── This pod's own menu ─────────────────────────────────────────── */
+/* Entries are the DS's first-level rows, icon and label, so the
+   collapsed rail keeps the icons and the shell's own hover label names
+   them; only the shelf labels hide. */
 var mine = null;
 PODS.forEach(function (pod) { if (pod.key === here) mine = pod; });
 if (mine) {
   tree.appendChild(el('hr', 'c-sidebar-divider'));
-  var kids = el('div', 'c-nav-children is-open');
-  var inner = el('div', 'c-nav-children-inner');
   GROUPS.forEach(function (g) {
     var members = mine.entries.filter(function (e) { return e.group === g.key; });
     if (!members.length) return;
-    inner.appendChild(el('div', 'c-sidebar-section c-nav-group', g.label));
+    tree.appendChild(el('div', 'c-sidebar-section c-nav-group', g.label));
     members.forEach(function (e) {
+      var row = e.path ? el('a', 'c-sidebar-item') : el('span', 'c-sidebar-item soon');
+      var ic = el('i', 'ph-fill ph-' + e.icon);
+      ic.setAttribute('aria-hidden', 'true');
+      row.appendChild(ic);
+      row.appendChild(el('span', 'label', e.label));
       if (!e.path) {
-        var s = el('span', 'c-nav-child soon', e.label);
-        s.setAttribute('aria-disabled', 'true');
-        s.title = 'Not built yet';
-        inner.appendChild(s);
-        return;
+        row.setAttribute('aria-disabled', 'true');
+        row.title = 'Not built yet';
+        row.appendChild(el('span', 'c-badge c-badge-neutral', 'Soon'));
+      } else {
+        row.href = e.path;
+        if (isPage(e)) { row.classList.add('active'); row.setAttribute('aria-current', 'page'); }
       }
-      var a = el('a', 'c-nav-child', e.label);
-      a.href = e.path;
-      if (isPage(e)) { a.classList.add('active'); a.setAttribute('aria-current', 'page'); }
-      inner.appendChild(a);
+      row.appendChild(el('span', 'c-sidebar-hover-text', e.label));
+      tree.appendChild(row);
     });
   });
-  kids.appendChild(inner);
-  tree.appendChild(kids);
 }
 })();

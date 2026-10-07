@@ -122,26 +122,19 @@ a.c-sidebar-item{text-decoration:none;}
 .c-sidebar-logo-home{display:inline-flex; align-items:center;}
 .c-sidebar.is-collapsed .c-sidebar-logo-home{display:none;}
 .c-nav-tree{display:flex; flex-direction:column; gap:var(--spacing-4); flex-shrink:0;}
-/* Pod strip: one boxed mark per pod, under the logo. The current pod
-   is filled with its element's lightest tint (the only coloured fill the
-   DS permits); the rest sit on white inside a hairline. */
-.c-pod-strip{display:flex; gap:var(--spacing-4); padding:0 2px var(--spacing-4); flex-shrink:0;}
-.c-sidebar.is-collapsed .c-pod-strip{justify-content:center; padding:0 0 var(--spacing-4);}
+/* Pod strip: one grey tray under the logo holding a mark per pod; the
+   current pod sits on a white tab, segmented-control fashion. */
+.c-pod-strip{display:flex; gap:var(--spacing-4); padding:var(--spacing-4); border-radius:var(--radius-sm); background:var(--color-neutral-2); flex-shrink:0;}
+.c-sidebar.is-collapsed .c-pod-strip{justify-content:center;}
 .c-sidebar.is-collapsed .c-pod-chip:not(.is-current){display:none;}
-.c-pod-chip{width:32px; height:32px; flex:none; display:inline-flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); background:var(--color-neutral-1); box-shadow:var(--shadow-hairline); color:var(--color-neutral-5); font-family:inherit; font-size:var(--text-label2-size); font-weight:700; line-height:1; text-decoration:none; cursor:pointer; transition:background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);}
-.c-pod-chip:hover{background:var(--color-neutral-2); color:var(--color-neutral-9);}
-.c-pod-chip img{width:var(--icon-base); height:var(--icon-base); display:block; object-fit:contain;}
+.c-pod-chip{flex:1 1 0; min-width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-radius:calc(var(--radius-sm) - var(--spacing-4)); background:transparent; text-decoration:none; cursor:pointer; transition:background-color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);} /* a cell of the tray; the inner radius is the tray's less its padding */
+.c-pod-chip:hover{background:var(--color-neutral-1);}
+.c-pod-chip img{width:24px; height:24px; display:block; object-fit:contain;} /* one-off: --icon-base reads small in a 32px cell, --icon-lg fills it */
 .c-pod-chip.soon img{opacity:.4;}
 .c-pod-chip:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
-.c-pod-chip.is-current{color:var(--color-neutral-9); box-shadow:none;}
-.c-pod-chip.is-current.tint-neutral{background:var(--color-neutral-2);}
-.c-pod-chip.is-current.tint-gold{background:var(--color-gold-bg-strong);}
-.c-pod-chip.is-current.tint-water{background:var(--color-water-bg-strong);}
-.c-pod-chip.is-current.tint-earth{background:var(--color-earth-bg-strong);}
-.c-pod-chip.is-current.tint-fire{background:var(--color-fire-bg-strong);}
-.c-pod-chip.is-current.tint-wood{background:var(--color-wood-bg-strong);}
-.c-pod-chip.soon{color:var(--color-neutral-4); cursor:not-allowed; box-shadow:0 0 0 1px var(--color-neutral-2);}
-.c-pod-chip.soon:hover{background:var(--color-neutral-1); color:var(--color-neutral-4);}
+.c-pod-chip.is-current{background:var(--color-neutral-1); box-shadow:var(--shadow-1);} /* the white tab */
+.c-pod-chip.soon{cursor:not-allowed;}
+.c-pod-chip.soon:hover{background:transparent;}
 /* The tip: the DS hover label, two lines, fixed so the sidebar's clip cannot cut it. */
 .c-pod-tip{position:fixed; z-index:60; max-width:240px; padding:var(--spacing-8) var(--spacing-12); border-radius:var(--radius-sm); background:var(--color-neutral-7); color:var(--color-neutral-1); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); font-weight:500; opacity:0; pointer-events:none; transition:opacity var(--duration-fast) var(--ease-standard);}
 .c-pod-tip.is-visible{opacity:1;}
@@ -155,12 +148,13 @@ a.c-sidebar-item{text-decoration:none;}
 .c-pod-fly-row:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:-2px;}
 .c-pod-fly-row[aria-disabled="true"]{color:var(--color-neutral-4); cursor:not-allowed;}
 .c-pod-fly-row[aria-disabled="true"]:hover{background:transparent;}
-.c-pod-fly-row .c-pod-chip{cursor:inherit;}
+.c-pod-fly-row .c-pod-chip{flex:none; width:32px; background:var(--color-neutral-2); cursor:inherit;}
+.c-pod-fly-row[aria-current] .c-pod-chip{background:var(--color-neutral-1); box-shadow:var(--shadow-hairline);}
 .c-pod-fly-text{display:flex; flex-direction:column; min-width:0;}
 .c-pod-fly-text b{font-size:var(--text-label1-size); line-height:var(--text-label1-lh); font-weight:700;}
 .c-pod-fly-text small{font-size:var(--text-caption-size); line-height:var(--text-caption-lh); color:var(--color-neutral-5);}
 .c-pod-fly-row[aria-disabled="true"] small{color:var(--color-neutral-4);}
-.c-nav-group{padding:var(--spacing-8) var(--spacing-12) var(--spacing-4) var(--spacing-16); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); font-weight:500; letter-spacing:var(--text-caption-tracking); text-transform:none;} /* a shelf label inside a pod's menu: caption type, indented to the entries, quieter than the section label above the pods */
+.c-nav-group{padding:var(--spacing-8) var(--spacing-12) var(--spacing-4); font-size:var(--text-caption-size); line-height:var(--text-caption-lh); font-weight:500; letter-spacing:var(--text-caption-tracking); text-transform:none;} /* a shelf label inside a pod's menu: caption type, indented to the entries, quieter than the section label above the pods */
 a.c-sidebar-item, a.c-nav-child{text-decoration:none;}
 .c-nav-child.soon{color:var(--color-neutral-4); cursor:not-allowed;}
 .c-nav-child.soon:hover{background:transparent;}
