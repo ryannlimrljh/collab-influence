@@ -3,7 +3,8 @@
    identical: the whole point is that no app can disagree with another
    about what the other apps contain.
 
-   The shape: a strip of boxed initials under the logo, one box per pod.
+   The shape: a strip of boxed marks under the logo, one box per pod,
+   each carrying the element icon from that pod's own logo.
    It is the way across, and it costs one row however long the pod's
    own menu grows beneath it, which is the whole reason it sits there:
    anything placed after a real pod menu lands below the fold. The pod
@@ -23,14 +24,14 @@
 'use strict';
 
 var PODS = [
-  { key: 'collabrium', label: 'Collabrium', initials: 'C', tint: 'neutral',
+  { key: 'collabrium', label: 'Collabrium', mark: 'coin', tint: 'neutral',
     about: 'The group home: the leadership board, feedback and the assistant.',
     base: 'https://app-shell-intro.vercel.app/pages/',
     entries: [
       { label: 'Dashboard', path: 'landing-v3.html',  group: 'workspace' },
       { label: 'Feedback',  path: 'feedback-v1.html', group: 'general' }
     ] },
-  { key: 'sales', label: 'Collab:Sales', initials: 'S', tint: 'gold',
+  { key: 'sales', label: 'Collab:Sales', mark: 'gold', tint: 'gold',
     about: 'Client intelligence, campaigns and proposals.',
     base: 'https://collab-sales-ui.vercel.app/',
     /* the two doors the hero cards already use; Collab:Sales renders
@@ -39,7 +40,7 @@ var PODS = [
       { label: 'Proposals',           path: 'proposals',           group: 'workspace' },
       { label: 'Client intelligence', path: 'client-intelligence', group: 'general' }
     ] },
-  { key: 'media', label: 'Collab:Media', initials: 'M', tint: 'water',
+  { key: 'media', label: 'Collab:Media', mark: 'water', tint: 'water',
     about: 'Media plans, ad formats and audiences.',
     base: 'https://collab-media.vercel.app/pages/',
     entries: [
@@ -48,7 +49,7 @@ var PODS = [
       { label: 'Ad formats',     path: 'formats.html',       also: ['formats-original.html'], group: 'general' },
       { label: 'Audiences',      path: 'audiences.html',                                      group: 'general' }
     ] },
-  { key: 'influence', label: 'Collab:Influence', initials: 'I', tint: 'earth',
+  { key: 'influence', label: 'Collab:Influence', mark: 'earth', tint: 'earth',
     about: 'Creators, campaigns, agencies and brands.',
     base: 'https://collab-influence.vercel.app/pages/',
     entries: [
@@ -57,9 +58,9 @@ var PODS = [
       { label: 'Agencies',    path: null,                                              group: 'general' },
       { label: 'Brands',      path: null,                                              group: 'general' }
     ] },
-  { key: 'studio',  label: 'Collab:Studio',  initials: 'St', tint: 'fire', soon: true,
+  { key: 'studio',  label: 'Collab:Studio',  mark: 'fire', tint: 'fire', soon: true,
     about: 'Production and creative delivery. Not built yet.' },
-  { key: 'content', label: 'Collab:Content', initials: 'Co', tint: 'wood', soon: true,
+  { key: 'content', label: 'Collab:Content', mark: 'wood', tint: 'wood', soon: true,
     about: 'Content scheduling and publishing. Not built yet.' }
 ];
 
@@ -99,7 +100,10 @@ function el(tag, cls, text) {
 function chip(pod, decorative) {
   var c = (pod.soon || decorative) ? el('span', 'c-pod-chip' + (pod.soon ? ' soon' : '')) : el('a', 'c-pod-chip');
   c.classList.add('tint-' + pod.tint);
-  c.textContent = pod.initials;
+  var img = document.createElement('img');
+  img.src = '../collabrium-dls/SVG/' + pod.mark + '.svg';
+  img.alt = '';
+  c.appendChild(img);
   if (decorative) { c.setAttribute('aria-hidden', 'true'); return c; }
   c.setAttribute('aria-label', pod.label + '. ' + pod.about);
   if (pod.soon) c.setAttribute('aria-disabled', 'true'); else c.href = href(pod);
