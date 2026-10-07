@@ -44,8 +44,14 @@ var PODS = [
     about: 'Media plans, ad formats and audiences.',
     base: 'https://collab-media.vercel.app/pages/',
     entries: [
+      /* Home is the pod's front door, so it leads: door() takes the first
+         built entry, and arriving from another pod should land on the
+         landing rather than part-way into the wizard. It was briefly only
+         an `also` of My media plans, which left the landing with no row of
+         its own and lit the wrong one when you were on it. */
+      { label: 'Home',           path: 'campaigns.html',                                      group: 'workspace' },
       { label: 'New media plan', path: 'planner.html',       also: ['planner-v1.html'],       group: 'workspace' },
-      { label: 'My media plans', path: 'campaign-list.html', also: ['campaigns.html'],        group: 'workspace' },
+      { label: 'My media plans', path: 'campaign-list.html',                                  group: 'workspace' },
       { label: 'Ad formats',     path: 'formats.html',       also: ['formats-original.html'], group: 'general' },
       { label: 'Audiences',      path: 'audiences.html',                                      group: 'general' }
     ] },
