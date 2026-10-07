@@ -4,7 +4,7 @@
    about what the other apps contain.
 
    The shape: a tray under the logo holding one mark per pod, the
-   element icon from that pod's own logo, a house for Collabrium itself;
+   element icon from that pod's own logo, a rocket for the mothership;
    the pod you are in sits on a white tab.
    It is the way across, and it costs one row however long the pod's
    own menu grows beneath it, which is the whole reason it sits there:
@@ -26,9 +26,10 @@
 'use strict';
 
 var PODS = [
-  /* Collabrium is the home, and its mark is a house: the coin is the
-     group logo and Sales already wears gold, so two coins would clash. */
-  { key: 'collabrium', label: 'Collabrium', icon: 'house', tint: 'neutral',
+  /* Collabrium is the mothership, and its mark is a rocket: the coin is
+     the group logo and Sales already wears gold, so two coins would
+     clash, and a house clashes with every pod's own Home row. */
+  { key: 'collabrium', label: 'Collabrium', icon: 'rocket-launch', tint: 'neutral',
     about: 'The group home: the leadership board, feedback and the assistant.',
     base: 'https://app-shell-intro.vercel.app/pages/',
     entries: [
