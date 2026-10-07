@@ -129,7 +129,8 @@ a.c-sidebar-item{text-decoration:none;}
 .c-sidebar.is-collapsed .c-pod-chip:not(.is-current){display:none;}
 .c-pod-chip{flex:1 1 0; min-width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-radius:calc(var(--radius-sm) - var(--spacing-4)); background:transparent; text-decoration:none; cursor:pointer; transition:background-color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);} /* a cell of the tray; the inner radius is the tray's less its padding */
 .c-pod-chip:hover{background:var(--color-neutral-1);}
-.c-pod-chip img{width:24px; height:24px; display:block; object-fit:contain;} /* one-off: --icon-base reads small in a 32px cell, --icon-lg fills it */
+.c-pod-chip img{width:var(--icon-base); height:var(--icon-base); display:block; object-fit:contain;}
+.c-pod-chip i{font-size:var(--icon-base); line-height:1; color:var(--color-neutral-9);}
 .c-pod-chip.soon img{opacity:.4;}
 .c-pod-chip:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
 .c-pod-chip.is-current{background:var(--color-neutral-1); box-shadow:var(--shadow-1);} /* the white tab */

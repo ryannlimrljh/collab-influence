@@ -4,8 +4,8 @@
    about what the other apps contain.
 
    The shape: a tray under the logo holding one mark per pod, the
-   element icon from that pod's own logo; the pod you are in sits on a
-   white tab.
+   element icon from that pod's own logo, a house for Collabrium itself;
+   the pod you are in sits on a white tab.
    It is the way across, and it costs one row however long the pod's
    own menu grows beneath it, which is the whole reason it sits there:
    anything placed after a real pod menu lands below the fold. Hover
@@ -26,7 +26,9 @@
 'use strict';
 
 var PODS = [
-  { key: 'collabrium', label: 'Collabrium', mark: 'coin', tint: 'neutral',
+  /* Collabrium is the home, and its mark is a house: the coin is the
+     group logo and Sales already wears gold, so two coins would clash. */
+  { key: 'collabrium', label: 'Collabrium', icon: 'house', tint: 'neutral',
     about: 'The group home: the leadership board, feedback and the assistant.',
     base: 'https://app-shell-intro.vercel.app/pages/',
     entries: [
@@ -108,10 +110,16 @@ function el(tag, cls, text) {
 function chip(pod, decorative) {
   var c = (pod.soon || decorative) ? el('span', 'c-pod-chip' + (pod.soon ? ' soon' : '')) : el('a', 'c-pod-chip');
   c.classList.add('tint-' + pod.tint);
-  var img = document.createElement('img');
-  img.src = '../collabrium-dls/SVG/' + pod.mark + '.svg';
-  img.alt = '';
-  c.appendChild(img);
+  if (pod.icon) {
+    var ic = el('i', 'ph-fill ph-' + pod.icon);
+    ic.setAttribute('aria-hidden', 'true');
+    c.appendChild(ic);
+  } else {
+    var img = document.createElement('img');
+    img.src = '../collabrium-dls/SVG/' + pod.mark + '.svg';
+    img.alt = '';
+    c.appendChild(img);
+  }
   if (decorative) { c.setAttribute('aria-hidden', 'true'); return c; }
   c.setAttribute('aria-label', pod.label + '. ' + pod.about);
   if (pod.soon) c.setAttribute('aria-disabled', 'true'); else c.href = href(pod);
