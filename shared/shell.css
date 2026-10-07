@@ -127,11 +127,11 @@ a.c-sidebar-item{text-decoration:none;}
 .c-pod-strip{display:flex; gap:var(--spacing-4); padding:var(--spacing-4); border-radius:var(--radius-sm); background:var(--color-neutral-2); flex-shrink:0;}
 .c-sidebar.is-collapsed .c-pod-strip{justify-content:center;}
 .c-sidebar.is-collapsed .c-pod-chip:not(.is-current){display:none;}
-.c-pod-chip{flex:1 1 0; min-width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-radius:calc(var(--radius-sm) - var(--spacing-4)); background:transparent; text-decoration:none; cursor:pointer; transition:background-color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);} /* a cell of the tray; the inner radius is the tray's less its padding */
+.c-pod-chip{flex:1 1 0; min-width:0; height:32px; display:inline-flex; align-items:center; justify-content:center; border-radius:calc(var(--radius-sm) - var(--spacing-4)); background:transparent; text-decoration:none; cursor:pointer; transition:background-color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);} /* a cell of the tray, six sharing the width with no minimum so the last one keeps its margin; the inner radius is the tray's less its padding */
 .c-pod-chip:hover{background:var(--color-neutral-1);}
 .c-pod-chip img{width:var(--icon-base); height:var(--icon-base); display:block; object-fit:contain;}
 .c-pod-chip i{font-size:var(--icon-base); line-height:1; color:var(--color-neutral-9);}
-.c-pod-chip.soon img{opacity:.4;}
+.c-pod-chip.soon img{filter:grayscale(1); opacity:.45;} /* not built yet: grey, not its element colour */
 .c-pod-chip:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:2px;}
 .c-pod-chip.is-current{background:var(--color-neutral-1); box-shadow:var(--shadow-1);} /* the white tab */
 .c-pod-chip.soon{cursor:not-allowed;}
@@ -149,7 +149,7 @@ a.c-sidebar-item{text-decoration:none;}
 .c-pod-fly-row:focus-visible{outline:2px solid var(--color-obsidian); outline-offset:-2px;}
 .c-pod-fly-row[aria-disabled="true"]{color:var(--color-neutral-4); cursor:not-allowed;}
 .c-pod-fly-row[aria-disabled="true"]:hover{background:transparent;}
-.c-pod-fly-row .c-pod-chip{flex:none; width:32px; background:var(--color-neutral-2); cursor:inherit;}
+.c-pod-fly-row .c-pod-chip{flex:none; width:32px; min-width:32px; background:var(--color-neutral-2); cursor:inherit;}
 .c-pod-fly-row[aria-current] .c-pod-chip{background:var(--color-neutral-1); box-shadow:var(--shadow-hairline);}
 .c-pod-fly-text{display:flex; flex-direction:column; min-width:0;}
 .c-pod-fly-text b{font-size:var(--text-label1-size); line-height:var(--text-label1-lh); font-weight:700;}
