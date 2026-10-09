@@ -38,12 +38,16 @@ var PODS = [
     ] },
   { key: 'sales', label: 'Collab:Sales', mark: 'gold', tint: 'gold',
     about: 'Client intelligence, campaigns and proposals.',
-    base: 'https://collab-sales-ui.vercel.app/',
-    /* the two doors the hero cards already use; Collab:Sales renders
-       client-side, so its full menu waits on its owners */
+    base: 'https://collab-sales.vercel.app/pages/',
+    /* The flexible-workspace build (collab-sales/). The library pages
+       stay on the old app until they are redesigned, so they show as
+       Soon here rather than linking out of the new one. */
     entries: [
-      { label: 'Proposals',           path: 'proposals',           group: 'workspace', icon: 'file-text' },
-      { label: 'Client intelligence', path: 'client-intelligence', group: 'general',   icon: 'sparkle' }
+      { label: 'Home',                path: 'home.html',                                 group: 'workspace', icon: 'house' },
+      { label: 'Campaigns',           path: 'campaigns.html', also: ['campaign.html'],   group: 'workspace', icon: 'folder-open' },
+      { label: 'Client intelligence', path: null,                                        group: 'general',   icon: 'sparkle' },
+      { label: 'Rates & inventory',   path: null,                                        group: 'general',   icon: 'tag' },
+      { label: 'Bundles',             path: null,                                        group: 'general',   icon: 'stack' }
     ] },
   { key: 'media', label: 'Collab:Media', mark: 'water', tint: 'water',
     about: 'Media plans, ad formats and audiences.',
