@@ -33,7 +33,7 @@ var PODS = [
     about: 'The group home: the leadership board, feedback and the assistant.',
     base: 'https://app-shell-intro.vercel.app/pages/',
     entries: [
-      { label: 'Dashboard', path: 'landing-v3.html',  group: 'workspace', icon: 'house' },
+      { label: 'Dashboard', path: 'landing-v4.html',  group: 'workspace', icon: 'house' },
       { label: 'Feedback',  path: 'feedback-v1.html', group: 'general',   icon: 'lightbulb-filament' }
     ] },
   { key: 'sales', label: 'Collab:Sales', mark: 'gold', tint: 'gold',
